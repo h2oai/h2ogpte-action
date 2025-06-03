@@ -2,13 +2,12 @@ name: Continuous Integration
 
 on:
   issues:
-      types: [opened, assigned]
+    types: [opened, assigned]
 
 permissions:
   contents: read
 
 jobs:
-
   test-action:
     name: GitHub Actions Test
     runs-on: ubuntu-latest
@@ -24,8 +23,4 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
