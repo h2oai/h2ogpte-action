@@ -1,0 +1,31 @@
+name: Continuous Integration
+
+on:
+  issues:
+      types: [opened, assigned]
+
+permissions:
+  contents: read
+
+jobs:
+
+  test-action:
+    name: GitHub Actions Test
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@h2ogpte'))
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Test Local Action
+        id: test-action
+        uses: ./
+        with:
+          milliseconds: 2000
+
+      - name: Print Output
+        id: output
+        run: echo "${{ steps.test-action.outputs.time }}"
