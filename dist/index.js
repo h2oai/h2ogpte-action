@@ -34775,12 +34775,24 @@ async function run() {
             auth: provided_gh_token,
             baseUrl: 'https://api.github.com'
         });
-        await rest.issues.createComment({
-            owner,
-            repo,
-            issue_number: context.payload.issue.number,
-            body: 'It works!'
-        });
+        console.log('Test!');
+        if (context.eventName == 'pull_request_review_comment') {
+            coreExports.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
+            coreExports.debug(`Pull request object: ${context.payload.pull_request}`);
+            coreExports.debug(`Comment object: ${context.payload.comment}`);
+            await rest.pulls.createReplyForReviewComment({
+                owner,
+                repo,
+                pull_number: context.payload
+                    .pull_request.number,
+                comment_id: context.payload.comment
+                    .id,
+                body: 'It works!'
+            });
+        }
+        else {
+            throw new Error(`Unexpected event: ${context.eventName}`);
+        }
     }
     catch (error) {
         // Fail the workflow run if an error occurs

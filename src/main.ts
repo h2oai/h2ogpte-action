@@ -20,25 +20,24 @@ export async function run(): Promise<void> {
       baseUrl: 'https://api.github.com'
     })
 
-    console.log("Test!")
+    console.log('Test!')
 
-    if (context.eventName == "pull_request_review_comment") {
-      core.info(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
-      core.info(`Pull request object: ${context.payload.pull_request}`);
-      core.info(`Comment object: ${context.payload.comment}`);
-      // tess
+    if (context.eventName == 'pull_request_review_comment') {
+      core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`)
+      core.debug(`Pull request object: ${context.payload.pull_request}`)
+      core.debug(`Comment object: ${context.payload.comment}`)
       await rest.pulls.createReplyForReviewComment({
         owner,
         repo,
-        pull_number: (context.payload as PullRequestReviewCommentEvent).pull_request.number,
-        comment_id: (context.payload as PullRequestReviewCommentEvent).comment.id,
-        body: "It works!"
+        pull_number: (context.payload as PullRequestReviewCommentEvent)
+          .pull_request.number,
+        comment_id: (context.payload as PullRequestReviewCommentEvent).comment
+          .id,
+        body: 'It works!'
       })
     } else {
       throw new Error(`Unexpected event: ${context.eventName}`)
     }
-
-
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
