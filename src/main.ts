@@ -20,6 +20,8 @@ export async function run(): Promise<void> {
       baseUrl: 'https://api.github.com'
     })
 
+    console.log("Test!")
+
     await rest.issues.createComment({
       owner,
       repo,
