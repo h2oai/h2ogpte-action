@@ -23,6 +23,9 @@ export async function run(): Promise<void> {
     console.log("Test!")
 
     if (context.eventName == "pull_request_review_comment") {
+      console.log("Full payload:", JSON.stringify(context.payload, null, 2));
+      console.log("Pull request object:", context.payload.pull_request);
+      console.log("Comment object:", context.payload.comment);
       await rest.pulls.createReplyForReviewComment({
         owner,
         repo,
