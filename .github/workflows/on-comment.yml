@@ -5,7 +5,9 @@ on:
     types: [opened, assigned]
 
 permissions:
-  contents: read
+  contents: read  
+  issues: write
+
 
 jobs:
   test-action:
