@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { Octokit } from '@octokit/rest'
 import * as github from '@actions/github'
-import type { IssuesEvent } from '@octokit/webhooks-types'
+import type { IssuesEvent, PullRequestReviewCommentEvent } from '@octokit/webhooks-types'
 
 /**
  * The main function for the action.
@@ -23,7 +23,7 @@ export async function run(): Promise<void> {
     await rest.issues.createComment({
       owner,
       repo,
-      issue_number: (context.payload as IssuesEvent).issue.number,
+      issue_number: (context.payload as PullRequestReviewCommentEvent).pull_request.number,
       body: 'It works!'
     })
   } catch (error) {
