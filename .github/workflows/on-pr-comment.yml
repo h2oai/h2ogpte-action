@@ -24,3 +24,5 @@ jobs:
         uses: ./
         with:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          ACTIONS_RUNNER_DEBUG: true

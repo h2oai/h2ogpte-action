@@ -23,10 +23,10 @@ export async function run(): Promise<void> {
     console.log("Test!")
 
     if (context.eventName == "pull_request_review_comment") {
-      console.log("Full payload:", JSON.stringify(context.payload, null, 2));
-      console.log("Pull request object:", context.payload.pull_request);
-      console.log("Comment object:", context.payload.comment);
-      // test
+      core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
+      core.debug(`Pull request object: ${context.payload.pull_request}`);
+      core.debug(`Comment object: ${context.payload.comment}`);
+      // tess
       await rest.pulls.createReplyForReviewComment({
         owner,
         repo,
