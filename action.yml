@@ -10,7 +10,9 @@ branding:
 # Define your inputs here.
 inputs:
   gh_token:
-    description: Github access token. In the future, we should be able to create one in the action.
+    description:
+      Github access token. In the future, we should be able to create one in the
+      action.
     required: true
 
 runs:
