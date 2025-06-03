@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { Octokit } from '@octokit/rest'
 import * as github from '@actions/github'
-import type { IssuesEvent, PullRequestReviewCommentEvent } from '@octokit/webhooks-types'
+import type { PullRequestReviewCommentEvent } from '@octokit/webhooks-types'
 
 /**
  * The main function for the action.
@@ -20,12 +20,24 @@ export async function run(): Promise<void> {
       baseUrl: 'https://api.github.com'
     })
 
-    await rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: (context.payload as PullRequestReviewCommentEvent).pull_request.number,
-      body: 'It works!'
-    })
+    console.log("Test!")
+
+    if (context.eventName == "pull_request_review_comment") {
+      console.log("Full payload:", JSON.stringify(context.payload, null, 2));
+      console.log("Pull request object:", context.payload.pull_request);
+      console.log("Comment object:", context.payload.comment);
+      await rest.pulls.createReplyForReviewComment({
+        owner,
+        repo,
+        pull_number: (context.payload as PullRequestReviewCommentEvent).pull_request.number,
+        comment_id: (context.payload as PullRequestReviewCommentEvent).comment.id,
+        body: "It works!"
+      })
+    } else {
+      throw new Error(`Unexpected event: ${context.eventName}`)
+    }
+
+
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
