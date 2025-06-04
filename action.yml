@@ -1,6 +1,6 @@
-name: The name of your action here
-description: Provide a description here
-author: Your name or organization here
+name: h2oGPTe Agent
+description: Use h2oGPTe's agent coding capabilties directly in GitHub.
+author: H2O.ai
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
