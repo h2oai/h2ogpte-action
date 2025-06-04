@@ -26,3 +26,4 @@ jobs:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
         env:
           ACTIONS_RUNNER_DEBUG: true
+          ACTIONS_STEP_DEBUG: true
