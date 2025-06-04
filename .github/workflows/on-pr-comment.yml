@@ -25,6 +25,3 @@ jobs:
         with:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
-        env:
-          ACTIONS_RUNNER_DEBUG: true
-          ACTIONS_STEP_DEBUG: true
