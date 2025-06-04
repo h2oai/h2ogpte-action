@@ -370,8 +370,8 @@ export async function run(): Promise<void> {
         h2ogpte_api_base
       )
 
-      const chat_session_url = `${h2ogpte_api_base}/chats/${chat_session_id}`
-      await rest.pulls.createReplyForReviewComment({
+      const chat_session_url = `${h2ogpte_api_base}/chats/${chat_session_id.id}`
+      const h2ogpte_comment = await rest.pulls.createReplyForReviewComment({
         owner,
         repo,
         pull_number: pullRequest.number,
@@ -379,6 +379,7 @@ export async function run(): Promise<void> {
         body: `⏳ h2oGPTe is working on it, see the chat [here](${chat_session_url})`
       })
 
+      // Get agent completion
       const chat_completion = await requestAgentCompletion(
         h2ogpte_api_key,
         h2ogpte_api_base,
@@ -389,6 +390,10 @@ export async function run(): Promise<void> {
       // Extract response
       const cleaned_response = extractFinalAgentRessponse(chat_completion.body)
       core.debug(`Extracted response: ${cleaned_response}`)
+
+      // Update initial comment
+      const body = cleaned_response
+      await rest.pulls.updateReviewComment({ owner, repo, comment_id: h2ogpte_comment.data.id, body })
     } else {
       throw new Error(`Unexpected event: ${context.eventName}`)
     }
