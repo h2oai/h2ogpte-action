@@ -34963,18 +34963,27 @@ async function run() {
             // *********************************** //
             // h2oGPTe API Calls
             const chat_session_id = await createChatSession(h2ogpte_api_key, h2ogpte_api_base);
-            const chat_session_url = `${h2ogpte_api_base}/chats/${chat_session_id}`;
-            await rest.pulls.createReplyForReviewComment({
+            const chat_session_url = `${h2ogpte_api_base}/chats/${chat_session_id.id}`;
+            const h2ogpte_comment = await rest.pulls.createReplyForReviewComment({
                 owner,
                 repo,
                 pull_number: pullRequest.number,
                 comment_id: comment.id,
                 body: `⏳ h2oGPTe is working on it, see the chat [here](${chat_session_url})`
             });
+            // Get agent completion
             const chat_completion = await requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, chat_session_id.id, 'Hello');
             // Extract response
             const cleaned_response = extractFinalAgentRessponse(chat_completion.body);
             coreExports.debug(`Extracted response: ${cleaned_response}`);
+            // Update initial comment
+            const body = cleaned_response;
+            await rest.pulls.updateReviewComment({
+                owner,
+                repo,
+                comment_id: h2ogpte_comment.data.id,
+                body
+            });
         }
         else {
             throw new Error(`Unexpected event: ${context.eventName}`);

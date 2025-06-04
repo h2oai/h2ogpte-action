@@ -393,7 +393,12 @@ export async function run(): Promise<void> {
 
       // Update initial comment
       const body = cleaned_response
-      await rest.pulls.updateReviewComment({ owner, repo, comment_id: h2ogpte_comment.data.id, body })
+      await rest.pulls.updateReviewComment({
+        owner,
+        repo,
+        comment_id: h2ogpte_comment.data.id,
+        body
+      })
     } else {
       throw new Error(`Unexpected event: ${context.eventName}`)
     }
