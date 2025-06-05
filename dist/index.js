@@ -35104,7 +35104,6 @@ async function run() {
             };
             // Comment data
             const comment = {
-                id: context.payload.comment.id,
                 body: context.payload.comment.body,
                 diff_hunk: context.payload.comment
                     .diff_hunk,
@@ -35143,7 +35142,8 @@ async function run() {
                     owner,
                     repo,
                     pull_number: pullRequest.number,
-                    comment_id: comment.id,
+                    comment_id: context.payload.comment
+                        .id,
                     body: `⏳ h2oGPTe is working on it, see the chat [here](${chat_session_url})`
                 });
             }
@@ -35154,6 +35154,7 @@ async function run() {
       Developers interact with you by adding @h2ogpte in their pull request review comments. 
       You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
       You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
+      You should use the GitHub API directly (https://api.github.com) with the api key as a bearer token.
       You should only ever respond to the users query by creating commits (if required) on the provided pull request.
       Your response will automatically be added to the user's initial comment so don't create any comments yourself.
       `;
