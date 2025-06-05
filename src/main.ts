@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import { Octokit } from '@octokit/rest'
 import * as github from '@actions/github'
 import type { PullRequestReviewCommentEvent } from '@octokit/webhooks-types'
+import { dedent } from 'ts-dedent'
 
 /**
  * Creates agent keys with retry mechanism
@@ -533,8 +534,6 @@ export async function run(): Promise<void> {
 
       // Repository data
       const repository = {
-        owner: owner,
-        repo: repo,
         full_name: `${context.repo.owner}/${context.repo.repo}`
       }
 
@@ -624,20 +623,21 @@ export async function run(): Promise<void> {
         )
       }
 
-      const system_prompt = `You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
+      const instruction_prompt = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
       Developers interact with you by adding @h2ogpte in their pull request review comments. 
       You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
       You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
       You should use the GitHub API directly (https://api.github.com) with the api key as a bearer token.
-      You should only ever respond to the users query by creating commits (if required) on the provided pull request.
-      Your response will automatically be added to the user's initial comment so don't create any comments yourself.
-      `
+      You should only ever respond to the users query by reading code and creating commits (if required) on the branch of the pull request.
+      Don't create any comments on the pull request yourself.
+      
+      Here is the user's instruction: '${comment.body}'.
+      You must only work in the user's repository, ${repository.full_name}, on pull request number ${pullRequest.number}.
+      You must only work on the section of code they've selected which may be a diff hunk or an entire file/s. 
+      Use the commit id, ${comment.commit_id}, and the relative file path, ${comment.file_relative_path}, to pull any necessary files.
+      ${comment.diff_hunk ? `In this case the user has selected the following diff hunk that you must focus on ${comment.diff_hunk}` : ''}
 
-      const instruction_prompt = `You've been called upon by the github action as described in your system prompt.
-      Here is the information about the repository: ${JSON.stringify(repository)} 
-      Here is the information about the pull request: ${JSON.stringify(pullRequest)} 
-      Here is the comment data: ${JSON.stringify(comment)}
-      Please respond and execute actions accordingly.
+      Please respond and execute actions according to the user's instruction.
       `
 
       // Get agent completion
@@ -645,8 +645,7 @@ export async function run(): Promise<void> {
         h2ogpte_api_key,
         h2ogpte_api_base,
         chat_session_id.id,
-        instruction_prompt,
-        system_prompt
+        instruction_prompt
       )
 
       // Extract response

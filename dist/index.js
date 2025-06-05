@@ -34760,6 +34760,43 @@ function requireGithub () {
 
 var githubExports = requireGithub();
 
+function dedent(templ) {
+    var values = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        values[_i - 1] = arguments[_i];
+    }
+    var strings = Array.from(typeof templ === 'string' ? [templ] : templ);
+    strings[strings.length - 1] = strings[strings.length - 1].replace(/\r?\n([\t ]*)$/, '');
+    var indentLengths = strings.reduce(function (arr, str) {
+        var matches = str.match(/\n([\t ]+|(?!\s).)/g);
+        if (matches) {
+            return arr.concat(matches.map(function (match) { var _a, _b; return (_b = (_a = match.match(/[\t ]/g)) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0; }));
+        }
+        return arr;
+    }, []);
+    if (indentLengths.length) {
+        var pattern_1 = new RegExp("\n[\t ]{" + Math.min.apply(Math, indentLengths) + "}", 'g');
+        strings = strings.map(function (str) { return str.replace(pattern_1, '\n'); });
+    }
+    strings[0] = strings[0].replace(/^\r?\n/, '');
+    var string = strings[0];
+    values.forEach(function (value, i) {
+        var endentations = string.match(/(?:^|\n)( *)$/);
+        var endentation = endentations ? endentations[1] : '';
+        var indentedValue = value;
+        if (typeof value === 'string' && value.includes('\n')) {
+            indentedValue = String(value)
+                .split('\n')
+                .map(function (str, i) {
+                return i === 0 ? str : "" + endentation + str;
+            })
+                .join('\n');
+        }
+        string += indentedValue + strings[i + 1];
+    });
+    return string;
+}
+
 /**
  * Creates agent keys with retry mechanism
  */
@@ -34947,7 +34984,7 @@ async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session
         message: prompt,
         llm_args: { use_agent: true },
         tags: ['github_action_trigger'],
-        ...(system_prompt && { system_prompt: system_prompt })
+        ...(system_prompt)
     };
     coreExports.debug(`Agent completion config: ${JSON.stringify(agent_completion_config)}`);
     const controller = new AbortController();
@@ -35093,8 +35130,6 @@ async function run() {
             }
             // Repository data
             const repository = {
-                owner: owner,
-                repo: repo,
                 full_name: `${context.repo.owner}/${context.repo.repo}`
             };
             // Pull request data
@@ -35150,22 +35185,24 @@ async function run() {
             catch (error) {
                 throw new Error(`Failed to create initial comment: ${error instanceof Error ? error.message : String(error)}`);
             }
-            const system_prompt = `You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
+            const instruction_prompt = dedent `You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
       Developers interact with you by adding @h2ogpte in their pull request review comments. 
       You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
       You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
       You should use the GitHub API directly (https://api.github.com) with the api key as a bearer token.
-      You should only ever respond to the users query by creating commits (if required) on the provided pull request.
-      Your response will automatically be added to the user's initial comment so don't create any comments yourself.
-      `;
-            const instruction_prompt = `You've been called upon by the github action as described in your system prompt.
-      Here is the information about the repository: ${JSON.stringify(repository)} 
-      Here is the information about the pull request: ${JSON.stringify(pullRequest)} 
-      Here is the comment data: ${JSON.stringify(comment)}
-      Please respond and execute actions accordingly.
+      You should only ever respond to the users query by reading code and creating commits (if required) on the branch of the pull request.
+      Don't create any comments on the pull request yourself.
+      
+      Here is the user's instruction: '${comment.body}'.
+      You must only work in the user's repository, ${repository.full_name}, on pull request number ${pullRequest.number}.
+      You must only work on the section of code they've selected which may be a diff hunk or an entire file/s. 
+      Use the commit id, ${comment.commit_id}, and the relative file path, ${comment.file_relative_path}, to pull any necessary files.
+      ${comment.diff_hunk ? `In this case the user has selected the following diff hunk that you must focus on ${comment.diff_hunk}` : ''}
+
+      Please respond and execute actions according to the user's instruction.
       `;
             // Get agent completion
-            const chat_completion = await requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, chat_session_id.id, instruction_prompt, system_prompt);
+            const chat_completion = await requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, chat_session_id.id, instruction_prompt);
             // Extract response
             let cleaned_response = '';
             let header = '';
