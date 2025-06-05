@@ -34862,7 +34862,7 @@ async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session
         message: prompt,
         llm_args: { use_agent: true },
         tags: ['github_action_trigger'],
-        ...(system_prompt)
+        ...(system_prompt && { system_prompt: system_prompt })
     };
     coreExports.debug(`Agent completion config: ${JSON.stringify(agent_completion_config)}`);
     const controller = new AbortController();
@@ -34971,13 +34971,28 @@ async function run() {
                 comment_id: comment.id,
                 body: `⏳ h2oGPTe is working on it, see the chat [here](${chat_session_url})`
             });
+            const system_prompt = `You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
+      Developers interact with you by adding @h2ogpte in their pull request review comments. 
+      You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
+      You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
+      You should only ever respond to the users query by creating commits (if required) on the provided branch.
+      `;
+            const instruction_prompt = `You've been called upon by the github action as described in your system prompt.
+      Here is the information about the repository: ${JSON.stringify(repository)} 
+      Here is the information about the pull request: ${JSON.stringify(pullRequest)} 
+      Here is the comment data: ${JSON.stringify(comment)}
+      Please respond and execute actions accordingly.
+      `;
             // Get agent completion
-            const chat_completion = await requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, chat_session_id.id, 'Hello');
+            const chat_completion = await requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, chat_session_id.id, instruction_prompt, system_prompt);
             // Extract response
             const cleaned_response = extractFinalAgentRessponse(chat_completion.body);
             coreExports.debug(`Extracted response: ${cleaned_response}`);
             // Update initial comment
-            const body = cleaned_response;
+            const body = `✅ h2oGPTe made some changes, see the response below and the full chat history [here](${chat_session_url})
+      ---
+      ${cleaned_response}
+      `;
             await rest.pulls.updateReviewComment({
                 owner,
                 repo,
