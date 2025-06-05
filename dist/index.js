@@ -34883,13 +34883,19 @@ async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session
         }
         const data = (await response.json());
         coreExports.debug(`Successfully receieved chat completion and got response: ${JSON.stringify(data, null, 2)}`);
-        return data;
+        return { success: true, body: data.body };
     }
     catch (error) {
         clearTimeout(timeoutId);
-        if (error instanceof Error)
-            coreExports.setFailed(`Failed to recieve chat completion with error: ${error.message}`);
-        throw error;
+        if (error instanceof Error) {
+            const error_msg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;
+            coreExports.error(error_msg);
+            return { success: false, body: error_msg };
+        }
+        return {
+            success: false,
+            body: 'Failed to receive completion from h2oGPTe with unknown completion'
+        };
     }
 }
 function extractFinalAgentRessponse(input) {
@@ -34931,8 +34937,6 @@ async function run() {
             coreExports.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
             coreExports.debug(`Pull request object: ${context.payload.pull_request}`);
             coreExports.debug(`Comment object: ${context.payload.comment}`);
-            // Get appropriate metadata
-            const payload = context.payload;
             // Repository data
             const repository = {
                 owner: owner,
@@ -34986,10 +34990,19 @@ async function run() {
             // Get agent completion
             const chat_completion = await requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, chat_session_id.id, instruction_prompt, system_prompt);
             // Extract response
-            const cleaned_response = extractFinalAgentRessponse(chat_completion.body);
+            let cleaned_response = '';
+            let header = '';
+            if (chat_completion.success) {
+                header = `💡 h2oGPTe made some changes`;
+                cleaned_response = extractFinalAgentRessponse(chat_completion.body);
+            }
+            else {
+                header = `❌ h2oGPTe ran into some issues`;
+                cleaned_response = chat_completion.body;
+            }
             coreExports.debug(`Extracted response: ${cleaned_response}`);
             // Update initial comment
-            const body = `✅ h2oGPTe made some changes, see the response below and the full chat history [here](${chat_session_url})
+            const body = `${header}, see the response below and the full chat history [here](${chat_session_url})
       ---
       ${cleaned_response}
       `;

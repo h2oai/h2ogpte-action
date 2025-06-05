@@ -194,6 +194,11 @@ async function createChatSession(
 }
 
 interface ChatResponse {
+  success: boolean
+  body: string
+}
+
+interface h2oRawResponse {
   body: string
 }
 
@@ -241,19 +246,23 @@ async function requestAgentCompletion(
       )
     }
 
-    const data = (await response.json()) as ChatResponse
+    const data = (await response.json()) as h2oRawResponse
     core.debug(
       `Successfully receieved chat completion and got response: ${JSON.stringify(data, null, 2)}`
     )
 
-    return data
+    return { success: true, body: data.body }
   } catch (error) {
     clearTimeout(timeoutId)
-    if (error instanceof Error)
-      core.setFailed(
-        `Failed to recieve chat completion with error: ${error.message}`
-      )
-    throw error
+    if (error instanceof Error) {
+      const error_msg = `Failed to receive completion from h2oGPTe with error: ${error.message}`
+      core.error(error_msg)
+      return { success: false, body: error_msg }
+    }
+    return {
+      success: false,
+      body: 'Failed to receive completion from h2oGPTe with unknown completion'
+    }
   }
 }
 
@@ -307,9 +316,6 @@ export async function run(): Promise<void> {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`)
       core.debug(`Pull request object: ${context.payload.pull_request}`)
       core.debug(`Comment object: ${context.payload.comment}`)
-
-      // Get appropriate metadata
-      const payload = context.payload
 
       // Repository data
       const repository = {
@@ -403,11 +409,19 @@ export async function run(): Promise<void> {
       )
 
       // Extract response
-      const cleaned_response = extractFinalAgentRessponse(chat_completion.body)
+      let cleaned_response = ''
+      let header = ''
+      if (chat_completion.success) {
+        header = `💡 h2oGPTe made some changes`
+        cleaned_response = extractFinalAgentRessponse(chat_completion.body)
+      } else {
+        header = `❌ h2oGPTe ran into some issues`
+        cleaned_response = chat_completion.body
+      }
       core.debug(`Extracted response: ${cleaned_response}`)
 
       // Update initial comment
-      const body = `✅ h2oGPTe made some changes, see the response below and the full chat history [here](${chat_session_url})
+      const body = `${header}, see the response below and the full chat history [here](${chat_session_url})
       ---
       ${cleaned_response}
       `
