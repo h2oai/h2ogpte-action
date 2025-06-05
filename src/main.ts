@@ -337,7 +337,9 @@ export async function run(): Promise<void> {
         diff_hunk: (context.payload as PullRequestReviewCommentEvent).comment
           .diff_hunk,
         commit_id: (context.payload as PullRequestReviewCommentEvent).comment
-          .commit_id
+          .commit_id,
+        file_relative_path: (context.payload as PullRequestReviewCommentEvent)
+          .comment.path
       }
 
       // H2OGPTE Secrets setup
@@ -389,7 +391,8 @@ export async function run(): Promise<void> {
       Developers interact with you by adding @h2ogpte in their pull request review comments. 
       You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
       You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
-      You should only ever respond to the users query by creating commits (if required) on the provided branch.
+      You should only ever respond to the users query by creating commits (if required) on the provided pull request.
+      Your response will automatically be added to the user's initial comment so don't create any comments yourself.
       `
 
       const instruction_prompt = `You've been called upon by the github action as described in your system prompt.
