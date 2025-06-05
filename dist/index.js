@@ -34760,104 +34760,189 @@ function requireGithub () {
 
 var githubExports = requireGithub();
 
-async function createAgentKeys(h2ogpte_api_key, h2ogpte_api_base, provided_gh_token) {
+/**
+ * Creates agent keys with retry mechanism
+ */
+async function createAgentKeys(h2ogpte_api_key, h2ogpte_api_base, provided_gh_token, maxRetries = 3, retryDelay = 1000) {
     const token_name = `gh_token-${crypto.randomUUID()}`;
     const options = {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${h2ogpte_api_key}`
         },
-        body: `{"name":"${token_name}","type":"private","value":"${provided_gh_token}","description":"Delete me"}`
+        body: JSON.stringify({
+            name: token_name,
+            type: 'private',
+            value: provided_gh_token,
+            description: 'Delete me'
+        })
     };
-    try {
-        const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/keys`, options);
-        if (!response.ok) {
-            throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}}`);
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            coreExports.debug(`Attempt ${attempt}/${maxRetries} to create agent key`);
+            const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/keys`, options);
+            if (!response.ok) {
+                const errorText = await response
+                    .text()
+                    .catch(() => 'Failed to read error response');
+                throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}, details: ${errorText}}`);
+            }
+            const data = await response.json();
+            coreExports.debug(`Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`);
+            return token_name;
         }
-        const data = await response.json();
-        coreExports.debug(`Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`);
-        return token_name;
+        catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            coreExports.warning(`Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`);
+            if (attempt < maxRetries) {
+                // Exponential backoff
+                const delay = retryDelay * Math.pow(2, attempt - 1);
+                coreExports.debug(`Retrying after ${delay}ms`);
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+        }
     }
-    catch (error) {
-        if (error instanceof Error)
-            coreExports.setFailed(`Failed to create agent key with error: ${error.message}`);
-        throw error;
-    }
+    // If we've exhausted all retries
+    coreExports.setFailed(`Failed to create agent key after ${maxRetries} attempts: ${lastError?.message}`);
+    throw lastError;
 }
-async function getAgentKeyID(h2ogpte_api_key, h2ogpte_api_base, key_name) {
+/**
+ * Gets agent key ID with retry mechanism
+ */
+async function getAgentKeyID(h2ogpte_api_key, h2ogpte_api_base, key_name, maxRetries = 3, retryDelay = 1000) {
     const options = {
         method: 'GET',
         headers: {
             Authorization: `Bearer ${h2ogpte_api_key}`
         }
     };
-    try {
-        const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/keys`, options);
-        if (!response.ok) {
-            throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}}`);
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            coreExports.debug(`Attempt ${attempt}/${maxRetries} to get agent key ID`);
+            const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/keys`, options);
+            if (!response.ok) {
+                const errorText = await response
+                    .text()
+                    .catch(() => 'Failed to read error response');
+                throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}, details: ${errorText}}`);
+            }
+            const data = (await response.json());
+            coreExports.debug(`Successfully retrieved agent keys and got response: ${JSON.stringify(data, null, 2)}`);
+            // Search for agent key
+            const key_id = data.find((k) => k.name === key_name);
+            if (key_id === undefined) {
+                throw new Error(`Could not find ${key_name} in the list of keys. Check debug logs.`);
+            }
+            coreExports.debug(`Retrieved agent key uuid: ${key_id.id}`);
+            return key_id.id;
         }
-        const data = (await response.json());
-        coreExports.debug(`Successfully retrieved agent keys and got response: ${JSON.stringify(data, null, 2)}`);
-        // Search for agent key
-        const key_id = data.find((k) => k.name == key_name);
-        if (key_id == undefined) {
-            throw new Error(`Could not find ${key_name} in the list of keys. Check debug logs.`);
+        catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            coreExports.warning(`Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`);
+            if (attempt < maxRetries) {
+                // Exponential backoff
+                const delay = retryDelay * Math.pow(2, attempt - 1);
+                coreExports.debug(`Retrying after ${delay}ms`);
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
         }
-        coreExports.debug(`Retrieved agent key uuid: ${key_id.id}`);
-        return key_id.id;
     }
-    catch (error) {
-        if (error instanceof Error)
-            coreExports.setFailed(`Failed to get agent key with error: ${error.message}`);
-        throw error;
-    }
+    // If we've exhausted all retries
+    coreExports.setFailed(`Failed to get agent key ID after ${maxRetries} attempts: ${lastError?.message}`);
+    throw lastError;
 }
-async function createToolAssociation(h2ogpte_api_key, h2ogpte_api_base, tool_name, key_id, environment_variable_name) {
+/**
+ * Creates tool association with retry mechanism
+ */
+async function createToolAssociation(h2ogpte_api_key, h2ogpte_api_base, tool_name, key_id, environment_variable_name, maxRetries = 3, retryDelay = 1000) {
     const options = {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${h2ogpte_api_key}`
         },
-        body: `{"tool":"${tool_name}","keys":[{"name":"${environment_variable_name}","key_id":"${key_id}"}]}`
+        body: JSON.stringify({
+            tool: tool_name,
+            keys: [{ name: environment_variable_name, key_id: key_id }]
+        })
     };
-    try {
-        const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/tool_association`, options);
-        if (!response.ok) {
-            throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}}`);
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            coreExports.debug(`Attempt ${attempt}/${maxRetries} to create tool association`);
+            const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/tool_association`, options);
+            if (!response.ok) {
+                const errorText = await response
+                    .text()
+                    .catch(() => 'Failed to read error response');
+                throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}, details: ${errorText}}`);
+            }
+            const data = (await response.json());
+            coreExports.debug(`Successfully created tool association and got response: ${JSON.stringify(data, null, 2)}`);
+            return data;
         }
-        const data = (await response.json());
-        coreExports.debug(`Successfully created tool association and got response: ${JSON.stringify(data, null, 2)}`);
-        return data;
+        catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            coreExports.warning(`Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`);
+            if (attempt < maxRetries) {
+                // Exponential backoff
+                const delay = retryDelay * Math.pow(2, attempt - 1);
+                coreExports.debug(`Retrying after ${delay}ms`);
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+        }
     }
-    catch (error) {
-        if (error instanceof Error)
-            coreExports.setFailed(`Failed to create tool association with error: ${error.message}`);
-        throw error;
-    }
+    // If we've exhausted all retries
+    coreExports.setFailed(`Failed to create tool association after ${maxRetries} attempts: ${lastError?.message}`);
+    throw lastError;
 }
-async function createChatSession(h2ogpte_api_key, h2ogpte_api_base) {
+/**
+ * Creates chat session with retry mechanism
+ */
+async function createChatSession(h2ogpte_api_key, h2ogpte_api_base, maxRetries = 3, retryDelay = 1000) {
     const options = {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${h2ogpte_api_key}`
         }
     };
-    try {
-        const response = await fetch(`${h2ogpte_api_base}/api/v1/chats`, options);
-        if (!response.ok) {
-            throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}}`);
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            coreExports.debug(`Attempt ${attempt}/${maxRetries} to create chat session`);
+            const response = await fetch(`${h2ogpte_api_base}/api/v1/chats`, options);
+            if (!response.ok) {
+                const errorText = await response
+                    .text()
+                    .catch(() => 'Failed to read error response');
+                throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}, details: ${errorText}}`);
+            }
+            const data = (await response.json());
+            coreExports.debug(`Successfully created chat session and got response: ${JSON.stringify(data, null, 2)}`);
+            return data;
         }
-        const data = (await response.json());
-        coreExports.debug(`Successfully created chat session and got response: ${JSON.stringify(data, null, 2)}`);
-        return data;
+        catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            coreExports.warning(`Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`);
+            if (attempt < maxRetries) {
+                // Exponential backoff
+                const delay = retryDelay * Math.pow(2, attempt - 1);
+                coreExports.debug(`Retrying after ${delay}ms`);
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+        }
     }
-    catch (error) {
-        if (error instanceof Error)
-            coreExports.setFailed(`Failed to create chat session with error: ${error.message}`);
-        throw error;
-    }
+    // If we've exhausted all retries
+    coreExports.setFailed(`Failed to create chat session after ${maxRetries} attempts: ${lastError?.message}`);
+    throw lastError;
 }
-async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session_id, prompt, system_prompt) {
+/**
+ * Requests agent completion with improved error handling and timeout management
+ */
+async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session_id, prompt, system_prompt, timeoutMinutes = 30) {
     const agent_completion_config = {
         message: prompt,
         llm_args: { use_agent: true },
@@ -34866,10 +34951,15 @@ async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session
     };
     coreExports.debug(`Agent completion config: ${JSON.stringify(agent_completion_config)}`);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30 * 60 * 1000); // 30 mins
+    const timeoutMs = timeoutMinutes * 60 * 1000;
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+        coreExports.warning(`Request timed out after ${timeoutMinutes} minutes`);
+    }, timeoutMs);
     const options = {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${h2ogpte_api_key}`
         },
         body: JSON.stringify(agent_completion_config),
@@ -34879,14 +34969,26 @@ async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session
         const response = await fetch(`${h2ogpte_api_base}/api/v1/chats/${session_id}/completions`, options);
         clearTimeout(timeoutId);
         if (!response.ok) {
-            throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}}`);
+            const errorText = await response
+                .text()
+                .catch(() => 'Failed to read error response');
+            throw new Error(`HTTP error! {status: ${response.status}, msg: ${response.statusText}, details: ${errorText}}`);
         }
         const data = (await response.json());
-        coreExports.debug(`Successfully receieved chat completion and got response: ${JSON.stringify(data, null, 2)}`);
+        if (!data || !data.body) {
+            throw new Error('Received empty or invalid response from h2oGPTe API');
+        }
+        coreExports.debug(`Successfully received chat completion and got response: ${JSON.stringify(data, null, 2)}`);
         return { success: true, body: data.body };
     }
     catch (error) {
         clearTimeout(timeoutId);
+        // Handle AbortError specifically
+        if (error instanceof DOMException && error.name === 'AbortError') {
+            const error_msg = `Request to h2oGPTe was aborted after ${timeoutMinutes} minutes timeout`;
+            coreExports.error(error_msg);
+            return { success: false, body: error_msg };
+        }
         if (error instanceof Error) {
             const error_msg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;
             coreExports.error(error_msg);
@@ -34894,16 +34996,22 @@ async function requestAgentCompletion(h2ogpte_api_key, h2ogpte_api_base, session
         }
         return {
             success: false,
-            body: 'Failed to receive completion from h2oGPTe with unknown completion'
+            body: 'Failed to receive completion from h2oGPTe with unknown error'
         };
     }
 }
+/**
+ * Extracts the final agent response from the raw response
+ */
 function extractFinalAgentRessponse(input) {
+    if (!input || typeof input !== 'string') {
+        return 'The agent did not return a valid response. Please check h2oGPTe.';
+    }
     // Find all occurrences of "ENDOFTURN"
     const endOfTurnMatches = Array.from(input.matchAll(/ENDOFTURN/g));
     if (endOfTurnMatches.length < 2) {
         // If there's less than 2 ENDOFTURN markers, return empty string
-        return 'The agent did not return a response. Please check h2oGPTe.';
+        return 'The agent did not return a complete response. Please check h2oGPTe.';
     }
     // Get the position of the second-to-last ENDOFTURN
     const secondToLastIndex = endOfTurnMatches[endOfTurnMatches.length - 2].index;
@@ -34917,11 +35025,39 @@ function extractFinalAgentRessponse(input) {
     return cleanText.replace(/^\n+|\n+$/g, '').trim();
 }
 /**
+ * Safely deletes an agent key
+ */
+async function deleteAgentKey(h2ogpte_api_key, h2ogpte_api_base, key_id) {
+    try {
+        const options = {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${h2ogpte_api_key}`
+            }
+        };
+        const response = await fetch(`${h2ogpte_api_base}/api/v1/agents/keys/${key_id}`, options);
+        if (!response.ok) {
+            const errorText = await response
+                .text()
+                .catch(() => 'Failed to read error response');
+            coreExports.warning(`Failed to delete agent key: {status: ${response.status}, msg: ${response.statusText}, details: ${errorText}}`);
+            return false;
+        }
+        coreExports.debug(`Successfully deleted agent key: ${key_id}`);
+        return true;
+    }
+    catch (error) {
+        coreExports.warning(`Error deleting agent key: ${error instanceof Error ? error.message : String(error)}`);
+        return false;
+    }
+}
+/**
  * The main function for the action.
  *
  * @returns Resolves when the action is complete.
  */
 async function run() {
+    let key_uuid = null;
     try {
         const provided_gh_token = coreExports.getInput('gh_token');
         const h2ogpte_api_key = coreExports.getInput('h2ogpte_api_key');
@@ -34929,14 +35065,32 @@ async function run() {
         const context = githubExports.context;
         const owner = context.repo.owner;
         const repo = context.repo.repo;
+        // Validate required inputs
+        if (!provided_gh_token) {
+            throw new Error('GitHub token is required');
+        }
+        if (!h2ogpte_api_key) {
+            throw new Error('h2oGPTe API key is required');
+        }
+        if (!h2ogpte_api_base) {
+            throw new Error('h2oGPTe API base URL is required');
+        }
         const rest = new Octokit$1({
             auth: provided_gh_token,
-            baseUrl: 'https://api.github.com'
+            baseUrl: 'https://api.github.com',
+            request: {
+                timeout: 10000 // 10 second timeout for GitHub API requests
+            }
         });
         if (context.eventName == 'pull_request_review_comment') {
             coreExports.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
-            coreExports.debug(`Pull request object: ${context.payload.pull_request}`);
-            coreExports.debug(`Comment object: ${context.payload.comment}`);
+            // Validate payload
+            if (!context.payload.pull_request) {
+                throw new Error('Pull request data is missing from the event payload');
+            }
+            if (!context.payload.comment) {
+                throw new Error('Comment data is missing from the event payload');
+            }
             // Repository data
             const repository = {
                 owner: owner,
@@ -34962,21 +35116,40 @@ async function run() {
             // H2OGPTE Secrets setup
             const AGENT_GITHUB_ENV_VAR = 'GITHUB_PAT_TMP';
             // ** AGENT KEY SHOULD ALWAYS BE DELETED ** //
-            const key_name = await createAgentKeys(h2ogpte_api_key, h2ogpte_api_base, provided_gh_token);
-            const key_uuid = await getAgentKeyID(h2ogpte_api_key, h2ogpte_api_base, key_name);
-            const python_tool_association = await createToolAssociation(h2ogpte_api_key, h2ogpte_api_base, 'python', key_uuid, AGENT_GITHUB_ENV_VAR);
-            const shell_tool_association = await createToolAssociation(h2ogpte_api_key, h2ogpte_api_base, 'shell', key_uuid, AGENT_GITHUB_ENV_VAR);
+            try {
+                const key_name = await createAgentKeys(h2ogpte_api_key, h2ogpte_api_base, provided_gh_token);
+                key_uuid = await getAgentKeyID(h2ogpte_api_key, h2ogpte_api_base, key_name);
+                await Promise.all([
+                    createToolAssociation(h2ogpte_api_key, h2ogpte_api_base, 'python', key_uuid, AGENT_GITHUB_ENV_VAR),
+                    createToolAssociation(h2ogpte_api_key, h2ogpte_api_base, 'shell', key_uuid, AGENT_GITHUB_ENV_VAR)
+                ]);
+            }
+            catch (error) {
+                throw new Error(`Failed to set up agent keys and tool associations: ${error instanceof Error ? error.message : String(error)}`);
+            }
             // *********************************** //
             // h2oGPTe API Calls
-            const chat_session_id = await createChatSession(h2ogpte_api_key, h2ogpte_api_base);
+            let chat_session_id;
+            try {
+                chat_session_id = await createChatSession(h2ogpte_api_key, h2ogpte_api_base);
+            }
+            catch (error) {
+                throw new Error(`Failed to create chat session: ${error instanceof Error ? error.message : String(error)}`);
+            }
             const chat_session_url = `${h2ogpte_api_base}/chats/${chat_session_id.id}`;
-            const h2ogpte_comment = await rest.pulls.createReplyForReviewComment({
-                owner,
-                repo,
-                pull_number: pullRequest.number,
-                comment_id: comment.id,
-                body: `⏳ h2oGPTe is working on it, see the chat [here](${chat_session_url})`
-            });
+            let h2ogpte_comment;
+            try {
+                h2ogpte_comment = await rest.pulls.createReplyForReviewComment({
+                    owner,
+                    repo,
+                    pull_number: pullRequest.number,
+                    comment_id: comment.id,
+                    body: `⏳ h2oGPTe is working on it, see the chat [here](${chat_session_url})`
+                });
+            }
+            catch (error) {
+                throw new Error(`Failed to create initial comment: ${error instanceof Error ? error.message : String(error)}`);
+            }
             const system_prompt = `You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
       Developers interact with you by adding @h2ogpte in their pull request review comments. 
       You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
@@ -35005,16 +35178,18 @@ async function run() {
             }
             coreExports.debug(`Extracted response: ${cleaned_response}`);
             // Update initial comment
-            const body = `${header}, see the response below and the full chat history [here](${chat_session_url})
-      ---
-      ${cleaned_response}
-      `;
-            await rest.pulls.updateReviewComment({
-                owner,
-                repo,
-                comment_id: h2ogpte_comment.data.id,
-                body
-            });
+            try {
+                const body = `${header}, see the response below and the full chat history [here](${chat_session_url})\n---\n${cleaned_response}`;
+                await rest.pulls.updateReviewComment({
+                    owner,
+                    repo,
+                    comment_id: h2ogpte_comment.data.id,
+                    body
+                });
+            }
+            catch (error) {
+                coreExports.warning(`Failed to update comment, but main task completed: ${error instanceof Error ? error.message : String(error)}`);
+            }
         }
         else {
             throw new Error(`Unexpected event: ${context.eventName}`);
@@ -35024,6 +35199,19 @@ async function run() {
         // Fail the workflow run if an error occurs
         if (error instanceof Error)
             coreExports.setFailed(error.message);
+    }
+    finally {
+        // Always try to clean up the agent key
+        if (key_uuid) {
+            try {
+                const h2ogpte_api_key = coreExports.getInput('h2ogpte_api_key');
+                const h2ogpte_api_base = coreExports.getInput('h2ogpte_api_base');
+                await deleteAgentKey(h2ogpte_api_key, h2ogpte_api_base, key_uuid);
+            }
+            catch (error) {
+                coreExports.warning(`Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
     }
 }
 
