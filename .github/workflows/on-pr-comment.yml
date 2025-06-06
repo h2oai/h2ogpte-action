@@ -5,7 +5,7 @@ on:
     types: [created]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -24,3 +24,4 @@ jobs:
         uses: ./
         with:
           gh_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}

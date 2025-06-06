@@ -1,6 +1,6 @@
-name: The name of your action here
-description: Provide a description here
-author: Your name or organization here
+name: h2oGPTe Agent
+description: Use h2oGPTe's agent coding capabilties directly in GitHub.
+author: H2O.ai
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
@@ -14,6 +14,13 @@ inputs:
       Github access token. In the future, we should be able to create one in the
       action.
     required: true
+  h2ogpte_api_key:
+    description: h2oGPTe API Key from https://h2ogpte.cloud-dev.h2o.dev/
+    required: true
+  h2ogpte_api_base:
+    description: h2oGPTe API base url address (no trailing slash)
+    required: false
+    default: https://h2ogpte.cloud-dev.h2o.dev
 
 runs:
   using: node20

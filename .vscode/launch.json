@@ -9,7 +9,11 @@
       "cwd": "${workspaceRoot}",
       "args": ["@github/local-action", ".", "src/main.ts", ".env"],
       "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**", "node_modules/**"]
+      "skipFiles": ["<node_internals>/**", "node_modules/**"],
+      "env": {
+        "GITHUB_EVENT_NAME": "pull_request_review_comment",
+        "GITHUB_EVENT_PATH": "${workspaceFolder}/mock-payload.json"
+      }
     }
   ]
 }
