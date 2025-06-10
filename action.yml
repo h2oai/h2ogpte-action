@@ -9,7 +9,7 @@ branding:
 
 # Define your inputs here.
 inputs:
-  gh_token:
+  github_token:
     description:
       Github access token. In the future, we should be able to create one in the
       action.
@@ -23,5 +23,24 @@ inputs:
     default: https://h2ogpte.cloud-dev.h2o.dev
 
 runs:
-  using: node20
-  main: dist/index.js
+  using: composite
+  steps:
+    - name: Install Bun
+      uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # https://github.com/oven-sh/setup-bun/releases/tag/v2.0.2
+      with:
+        bun-version: 1.2.15
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        cd ${GITHUB_ACTION_PATH}
+        bun install
+
+    - name: Run Action
+      shell: bash
+      run: |
+        bun run ${GITHUB_ACTION_PATH}/index.ts
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        H2OGPTE_API_KEY: ${{ inputs.h2ogpte_api_key }}
+        H2OGPTE_API_BASE: ${{ inputs.h2ogpte_api_base }}
