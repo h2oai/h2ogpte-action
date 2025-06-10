@@ -419,14 +419,25 @@ function extractFinalAgentRessponse(input: string): string {
     // Find all occurrences of "ENDOFTURN"
     const endOfTurnMatches = Array.from(input.matchAll(/ENDOFTURN/g))
 
-    if (endOfTurnMatches.length < 2) {
+    if (!endOfTurnMatches || endOfTurnMatches.length < 2) {
         // If there's less than 2 ENDOFTURN markers, return empty string
+        core.debug(`h2oGPTe response is invalid: ${input}`)
         return 'The agent did not return a complete response. Please check h2oGPTe.'
     }
 
     // Get the position of the second-to-last ENDOFTURN
-    const secondToLastIndex = endOfTurnMatches[endOfTurnMatches.length - 2].index!
-    const lastIndex = endOfTurnMatches[endOfTurnMatches.length - 1].index!
+    const secondToLastMatch = endOfTurnMatches[endOfTurnMatches.length - 2]
+    const lastMatch = endOfTurnMatches[endOfTurnMatches.length - 1]
+
+    // Check that both matches exist and have valid index values
+    if (!secondToLastMatch || !lastMatch ||
+        secondToLastMatch.index === undefined || lastMatch.index === undefined) {
+        core.debug(`h2oGPTe response is invalid: ${input}`)
+        return 'The agent did not return a complete response. Please check h2oGPTe.'
+    }
+
+    const secondToLastIndex = secondToLastMatch.index
+    const lastIndex = lastMatch.index
 
     // Extract text between second-to-last and last ENDOFTURN
     const startPosition = secondToLastIndex + 'ENDOFTURN'.length
@@ -492,9 +503,9 @@ export async function run(): Promise<void> {
     let key_uuid: string | null = null
 
     try {
-        const provided_gh_token: string = core.getInput('gh_token')
-        const h2ogpte_api_key: string = core.getInput('h2ogpte_api_key')
-        const h2ogpte_api_base: string = core.getInput('h2ogpte_api_base')
+        const provided_gh_token: string | undefined = process.env.GITHUB_TOKEN
+        const h2ogpte_api_key: string | undefined = process.env.H2OGPTE_API_KEY
+        const h2ogpte_api_base: string | undefined = process.env.H2OGPTE_API_BASE
         const context = github.context
         const owner = context.repo.owner
         const repo = context.repo.repo
