@@ -1,58 +1,72 @@
 # h2oGPTe GitHub Action
 
-This GitHub Action integrates h2oGPTe, an AI assistant by H2O.ai, into your GitHub workflow. It allows you to leverage AI capabilities directly within your pull requests and code reviews.
+A GitHub Action that integrates h2oGPTe AI assistant into your workflow for automated code reviews and suggestions.
+
+## Overview
+
+This action allows you to leverage h2oGPTe's capabilities directly within your GitHub repository. It can automatically review pull requests, suggest code improvements, and assist with development tasks.
 
 ## Features
 
-- AI-powered code reviews and suggestions
-- Automated responses to PR comments when mentioned with @h2ogpte
-- Integration with h2oGPTe's advanced language capabilities
-- Ability to create commits directly on PR branches
+- Automated code reviews on pull requests
+- AI-powered code suggestions and improvements
+- Integration with GitHub's comment system
+- Customizable configuration options
 
-## Prerequisites
+## Getting Started Guide
 
-- A GitHub repository where you want to use the action
-- [Bun](https://bun.sh/) installed for local development and testing
-- h2oGPTe API key from [h2oGPTe Cloud](https://h2ogpte.cloud-dev.h2o.dev/)
+### Prerequisites
 
-## Installation
+- GitHub repository with Actions enabled
+- Access to h2oGPTe API (if required)
 
-Add this action to your GitHub workflow by creating a `.github/workflows/h2ogpte.yml` file:
+### Installation
+
+1. Install [Bun](https://bun.sh/docs/installation) (JavaScript runtime and package manager)
+2. Clone this repository
+3. Run `bun install` to install dependencies
+
+### Usage
+
+Add the following to your GitHub workflow file (e.g., `.github/workflows/h2ogpte.yml`):
 
 ```yaml
-name: h2oGPTe PR Assistant
+name: h2oGPTe Code Review
 
 on:
-  pull_request_review_comment:
-    types: [created]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
-  h2ogpte-respond:
-    if: contains(github.event.comment.body, '@h2ogpte')
+  code-review:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: h2oGPTe Action
+      - uses: actions/checkout@v3
+      - name: h2oGPTe Review
         uses: MillenniumForce/h2ogpte-action@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-## Usage
+### Local Testing
 
-1. Set up the GitHub workflow as described above
-2. Add your h2oGPTe API key as a repository secret named `H2OGPTE_API_KEY`
-3. In a pull request, add a review comment that includes `@h2ogpte` followed by your request
+To test the action locally:
 
-Example: `@h2ogpte can you suggest ways to improve this file?`
+```bash
+bun run test-action
+```
 
-## Development
+## Configuration Options
 
-1. Install Bun: Follow the instructions at [bun.sh](https://bun.sh/)
-2. Install dependencies: `bun install`
-3. Test the action locally: `bun run test-action`
+| Option | Description | Required | Default |
+|--------|-------------|----------|--------|
+| `github-token` | GitHub token for API access | Yes | N/A |
+| `h2ogpte-api-key` | API key for h2oGPTe service | No | N/A |
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the terms specified in the LICENSE file.
+This project is licensed under the MIT License - see the LICENSE file for details.
