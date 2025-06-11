@@ -104,8 +104,8 @@ export function extractFinalAgentResponse(input: string): string {
 
     if (!endOfTurnMatches || endOfTurnMatches.length < 2) {
         // If there's less than 2 ENDOFTURN markers, return empty string
-        core.debug(`h2oGPTe response is invalid: ${input}`)
-        return 'The agent did not return a complete response. Please check h2oGPTe.'
+        core.debug(`Could not find any end of turn markers, returning raw agent response: '${input}'`)
+        return input
     }
 
     // Get the position of the second-to-last ENDOFTURN
@@ -115,7 +115,7 @@ export function extractFinalAgentResponse(input: string): string {
     // Check that both matches exist and have valid index values
     if (!secondToLastMatch || !lastMatch ||
         secondToLastMatch.index === undefined || lastMatch.index === undefined) {
-        core.debug(`h2oGPTe response is invalid: ${input}`)
+        core.debug(`h2oGPTe response is invalid: '${input}'`)
         return 'The agent did not return a complete response. Please check h2oGPTe.'
     }
 
