@@ -43,7 +43,7 @@ runs:
     - name: Run Action
       shell: bash
       run: |
-        bun run ${GITHUB_ACTION_PATH}/src/index.ts
+        bun run ${GITHUB_ACTION_PATH}/src/entrypoint.ts
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
         GITHUB_API_BASE: ${{ inputs.github_api_base }}
