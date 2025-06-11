@@ -2,6 +2,7 @@ import dedent from "ts-dedent"
 import { AGENT_GITHUB_ENV_VAR } from "./constants"
 import type { ParsedGitHubContext } from "./apis/github/types"
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
+import { getGithubApiBase } from "./utils"
 
 export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
     const commentBody = (context.payload as PullRequestReviewCommentEvent).comment.body
@@ -9,12 +10,13 @@ export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
     const fileRelativePath = (context.payload as PullRequestReviewCommentEvent).comment.path
     const commitId = (context.payload as PullRequestReviewCommentEvent).comment.commit_id
     const diffHunk = (context.payload as PullRequestReviewCommentEvent).comment.diff_hunk
+    const githubApiBase = getGithubApiBase()
 
     return dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
     Developers interact with you by adding @h2ogpte in their pull request review comments. 
     You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
     You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
-    You should use the GitHub API directly (https://api.github.com) with the api key as a bearer token.
+    You should use the GitHub API directly (${githubApiBase}) with the api key as a bearer token.
     You should only ever respond to the users query by reading code and creating commits (if required) on the branch of the pull request.
     Don't create any comments on the pull request yourself.
     
