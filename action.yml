@@ -21,6 +21,10 @@ inputs:
     description: h2oGPTe API base url address (no trailing slash)
     required: false
     default: https://h2ogpte.cloud-dev.h2o.dev
+  github_api_base:
+    description: GitHub API base url (no trailing slash)
+    required: false
+    default: https://api.github.com
 
 runs:
   using: composite
@@ -39,8 +43,9 @@ runs:
     - name: Run Action
       shell: bash
       run: |
-        bun run ${GITHUB_ACTION_PATH}/index.ts
+        bun run ${GITHUB_ACTION_PATH}/src/index.ts
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_API_BASE: ${{ inputs.github_api_base }}
         H2OGPTE_API_KEY: ${{ inputs.h2ogpte_api_key }}
         H2OGPTE_API_BASE: ${{ inputs.h2ogpte_api_base }}
