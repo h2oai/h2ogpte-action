@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import * as h2ogpte from "./apis/h2ogpte/h2ogpte"
-import { createReplyForReviewComment, isPullRequestReviewCommentEvent, newOctokit, parseGitHubContext, updateReviewComment } from './apis/github/github'
+import * as h2ogpte from "./services/h2ogpte/h2ogpte"
+import { createReplyForReviewComment, isPullRequestReviewCommentEvent, newOctokit, parseGitHubContext, updateReviewComment } from './services/github/github'
 import { checkWritePermissions, createSecretAndToolAssociation, extractFinalAgentResponse, getGithubToken } from './utils'
 import { createAgentInstructionPrompt } from './prompts'
 

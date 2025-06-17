@@ -1,6 +1,6 @@
 import dedent from "ts-dedent"
 import { AGENT_GITHUB_ENV_VAR } from "./constants"
-import type { ParsedGitHubContext } from "./apis/github/types"
+import type { ParsedGitHubContext } from "./services/github/types"
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
 import { getGithubApiBase } from "./utils"
 
