@@ -1,7 +1,7 @@
 export interface FetchWithRetryOptions {
     maxRetries?: number
     retryDelay?: number
-    timeoutMinutes?: number
+    timeoutMs?: number
 }
 
 

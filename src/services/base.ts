@@ -11,15 +11,14 @@ export async function fetchWithRetry(
 ): Promise<Response> {
     const {
         maxRetries = 3,
-        retryDelay = 1000,
-        timeoutMinutes = 30
+        retryDelay = 1000, // 1 second
+        timeoutMs = 50000 // 5 seconds
     } = retryOptions
 
     const controller = new AbortController()
-    const timeoutMs = timeoutMinutes * 60 * 1000
     const timeoutId = setTimeout(() => {
         controller.abort()
-        core.warning(`Request timed out after ${timeoutMinutes} minutes`)
+        core.warning(`Request timed out after ${timeoutMs} ms`)
     }, timeoutMs)
 
     // Merge the abort signal with existing options
@@ -52,7 +51,7 @@ export async function fetchWithRetry(
 
             // Handle AbortError specifically
             if (error instanceof DOMException && error.name === 'AbortError') {
-                throw new Error(`Request was aborted after ${timeoutMinutes} minutes timeout`)
+                throw new Error(`Request was aborted after ${timeoutMs} ms timeout`)
             }
 
             lastError = error instanceof Error ? error : new Error(String(error))
@@ -67,7 +66,7 @@ export async function fetchWithRetry(
                 // Reset timeout for next attempt
                 const newTimeoutId = setTimeout(() => {
                     controller.abort()
-                    core.warning(`Request timed out after ${timeoutMinutes} minutes`)
+                    core.warning(`Request timed out after ${timeoutMs} ms`)
                 }, timeoutMs)
                 timeoutId && clearTimeout(timeoutId)
             }

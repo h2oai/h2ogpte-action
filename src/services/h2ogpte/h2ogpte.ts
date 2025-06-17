@@ -196,7 +196,7 @@ export async function requestAgentCompletion(
         const response = await fetchWithRetry(
             `${apiBase}/api/v1/chats/${sessionId}/completions`,
             options,
-            { maxRetries, retryDelay, timeoutMinutes }
+            { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000}
         )
 
         const data = (await response.json()) as types.H2oRawResponse
