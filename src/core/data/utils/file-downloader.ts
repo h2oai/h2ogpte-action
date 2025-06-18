@@ -13,7 +13,7 @@
 import fs from "fs/promises";
 import path from "path";
 import type { Octokit } from "@octokit/rest";
-import { getGithubServerUrl } from "../../../utils";
+import { getGithubServerUrl, getGithubToken } from "../../../utils";
 
 // Single regex to match any GitHub user-attachments URL (both ![](url) and [](url) formats)
 const GITHUB_ATTACHMENT_REGEX = new RegExp(
@@ -207,7 +207,7 @@ export async function downloadCommentAttachments(
 
             const response = await fetch(signedUrl, {
               headers: {
-                'Authorisation': `token ${rest.auth}`,
+                'Authorization': `token ${getGithubToken()}`,
                 'User-Agent': 'Mozilla/5.0 (compatible; GitHub-Attachment-Downloader/1.0)',
                 'Accept': '*/*',
               },
