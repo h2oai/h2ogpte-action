@@ -207,7 +207,7 @@ export async function downloadCommentAttachments(
 
             const response = await fetch(signedUrl, {
               headers: {
-                'Authorization': `token ${getGithubToken()}`,
+                'Authorization': `Bearer ${getGithubToken()}`,
                 'User-Agent': 'Mozilla/5.0 (compatible; GitHub-Attachment-Downloader/1.0)',
                 'Accept': '*/*',
               },
