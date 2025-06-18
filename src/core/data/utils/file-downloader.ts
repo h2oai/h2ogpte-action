@@ -154,12 +154,23 @@ export async function downloadCommentAttachments(
         console.log(`Processing ${urls.length} attachment(s) for ${comment.type}`);
 
         // Extract signed URLs from HTML
-        const signedUrlRegex = /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+/g;
-        const allSignedUrls = bodyHtml.match(signedUrlRegex) || [];
+        const signedUrlPatterns = [
+          /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+/g, // Images with JWT
+          /https:\/\/github\.com\/user-attachments\/files\/[^"'>\s]+/g, // Files (no JWT)
+          /https:\/\/user-images\.githubusercontent\.com\/[^"'>\s]+/g, // Alternative image pattern
+        ];
+
+        const allSignedUrls = [];
+        for (const pattern of signedUrlPatterns) {
+          const matches = bodyHtml.match(pattern) || [];
+          allSignedUrls.push(...matches);
+        }
+
         const signedUrls = [...new Set(allSignedUrls)];
 
-        console.log(`Found ${signedUrls.length} signed URLs`);
-        console.log(`Signed urls: ${JSON.stringify(signedUrls)}`)
+        console.log(`Found ${allSignedUrls.length} signed URLs, only ${signedUrls} after deduplicating`);
+        console.log(`All Signed urls: ${JSON.stringify(allSignedUrls)}`)
+        console.log(`Final Signed urls: ${JSON.stringify(signedUrls)}`)
 
         // Download each attachment - assume signed URLs match original URLs in order
         for (let i = 0; i < Math.min(signedUrls.length, urls.length); i++) {
