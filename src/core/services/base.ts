@@ -49,11 +49,6 @@ export async function fetchWithRetry(
         } catch (error) {
             clearTimeout(timeoutId)
 
-            // Handle AbortError specifically
-            if (error instanceof DOMException && error.name === 'AbortError') {
-                throw new Error(`Request was aborted after ${timeoutMs} ms timeout`)
-            }
-
             lastError = error instanceof Error ? error : new Error(String(error))
             core.warning(`Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`)
 
