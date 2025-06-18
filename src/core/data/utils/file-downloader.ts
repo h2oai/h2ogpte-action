@@ -31,8 +31,8 @@ const FILE_TYPE_CATEGORIES = {
   code: ['.js', '.ts', '.py', '.java', '.cpp', '.c', '.h', '.css', '.html', '.xml', '.json', '.yaml', '.yml', '.go', '.rs', '.php', '.rb', '.swift'],
   data: ['.json', '.xml', '.yaml', '.yml', '.sql', '.db', '.sqlite', '.csv', '.tsv'],
   media: ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.mp3', '.wav', '.ogg', '.flac', '.aac'],
-  other: ['.bin'] // fallback category with some common extensions
-};
+  other: ['.bin'] // fallback category
+}
 
 export type FileType = keyof typeof FILE_TYPE_CATEGORIES;
 
@@ -153,44 +153,26 @@ export async function downloadCommentAttachments(
 
         console.log(`Processing ${urls.length} attachment(s) for ${comment.type}`);
 
-        // Extract signed URLs from HTML - handle multiple possible patterns
-        const signedUrlPatterns = [
-          /https:\/\/private-user-images\.githubusercontent\.com\/[^"'>\s]+\?jwt=[^"'>\s]+/g,
-          /https:\/\/github\.com\/user-attachments\/files\/[^"'>\s]+/g,
-          /https:\/\/user-images\.githubusercontent\.com\/[^"'>\s]+/g,
-          /https:\/\/github\.com\/user-attachments\/assets\/[^"'>\s]+/g
-        ];
+        // Extract signed URLs from HTML
+        const signedUrlRegex = /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+/g;
+        const signedUrls = bodyHtml.match(signedUrlRegex) || [];
 
-        const allSignedUrls: string[] = [];
-        for (const pattern of signedUrlPatterns) {
-          const matches = bodyHtml.match(pattern) || [];
-          allSignedUrls.push(...matches);
-        }
+        console.log(`Found ${signedUrls.length} signed URLs`);
+        console.log(`Signed urls: ${JSON.stringify(signedUrls)}`)
 
-        console.log(`Found ${allSignedUrls.length} signed URLs`);
-
-        // Download each attachment
-        for (let i = 0; i < urls.length; i++) {
+        // Download each attachment - assume signed URLs match original URLs in order
+        for (let i = 0; i < Math.min(signedUrls.length, urls.length); i++) {
+          const signedUrl = signedUrls[i];
           const originalUrl = urls[i];
 
-          if (!originalUrl) continue;
+          if (!signedUrl || !originalUrl) {
+            continue;
+          }
 
           // Check if we've already downloaded this URL
           if (urlToPathMap.has(originalUrl)) {
             console.log(`Already downloaded: ${originalUrl}`);
             continue;
-          }
-
-          // Find matching signed URL
-          let signedUrl = allSignedUrls[i];
-          if (!signedUrl && allSignedUrls.length > 0) {
-            // Try to find a matching signed URL by file ID or use first available
-            signedUrl = findMatchingSignedUrl(originalUrl, allSignedUrls) || allSignedUrls[0];
-          }
-
-          if (!signedUrl) {
-            console.warn(`No signed URL found for ${originalUrl}, trying direct download...`);
-            signedUrl = originalUrl;
           }
 
           // Determine if this is an image based on the signed URL containing "user-images"
@@ -445,33 +427,6 @@ function generateFilename(originalUrl: string, index: number, extension: string,
   const timestamp = Date.now();
   const urlHash = originalUrl.split('/').pop()?.substring(0, 8) || 'unknown';
   return `${fileType}-${urlHash}-${timestamp}-${index}${extension}`;
-}
-
-function findMatchingSignedUrl(originalUrl: string, signedUrls: string[]): string | null {
-  // Try to match by extracting the asset ID from both URLs
-  const originalAssetId = extractAssetId(originalUrl);
-  if (!originalAssetId) return null;
-
-  for (const signedUrl of signedUrls) {
-    const signedAssetId = extractAssetId(signedUrl);
-    if (signedAssetId && signedAssetId === originalAssetId) {
-      return signedUrl;
-    }
-  }
-
-  return null;
-}
-
-function extractAssetId(url: string): string | null {
-  // GitHub asset URLs typically have UUIDs in them
-  const uuidMatch = url.match(/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i);
-  if (uuidMatch && uuidMatch[1]) {
-    return uuidMatch[1];
-  }
-
-  // Fallback: use last part of path
-  const pathParts = url.split('/');
-  return pathParts[pathParts.length - 1] || null;
 }
 
 // Backwards compatibility - keep the old function name as an alias
