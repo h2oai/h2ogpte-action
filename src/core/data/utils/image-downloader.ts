@@ -73,7 +73,7 @@ export async function downloadCommentImages(
     const imageMatches = [...comment.body.matchAll(IMAGE_REGEX)];
     console.log(`Image Matches: ${imageMatches}`)
     const urls = imageMatches.map((match) => match[1] as string);
-    console.log(`URLs: ${urls}`) 
+    console.log(`URLs: ${urls}`)
     if (urls.length > 0) {
       commentsWithImages.push({ comment, urls });
       const id =
@@ -208,7 +208,7 @@ export async function downloadCommentImages(
           console.log(`Map update ${originalUrl}: ${localPath}`)
 
           urlToPathMap.set(originalUrl, localPath);
-          console.log(`Inner url to path map ${urlToPathMap}`)
+          console.log(`Inner url to path map ${JSON.stringify(urlToPathMap)}`)
         } catch (error) {
           console.error(`✗ Failed to download ${originalUrl}:`, error);
         }
@@ -227,8 +227,8 @@ export async function downloadCommentImages(
     }
   }
 
-  console.log(`Final url to path map ${urlToPathMap}`)
-
+  console.log(`Final url to path map size: ${urlToPathMap.size}`);
+  console.log(`Final url to path map contents:`, Object.fromEntries(urlToPathMap));
   return urlToPathMap;
 }
 
