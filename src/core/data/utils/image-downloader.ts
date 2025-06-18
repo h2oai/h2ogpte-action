@@ -7,10 +7,10 @@
 import fs from "fs/promises";
 import path from "path";
 import type { Octokit } from "@octokit/rest";
-import { getGithubApiUrl } from "../../../utils";
+import { getGithubServerUrl } from "../../../utils";
 
 const IMAGE_REGEX = new RegExp(
-  `!\\[[^\\]]*\\]\\((${getGithubApiUrl().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/user-attachments\\/assets\\/[^)]+)\\)`,
+  `!\\[[^\\]]*\\]\\((${getGithubServerUrl().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/user-attachments\\/assets\\/[^)]+)\\)`,
   "g",
 );
 
