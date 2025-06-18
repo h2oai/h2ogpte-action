@@ -1,8 +1,13 @@
 /**
- * Universal GitHub attachment downloader
+ * Universal GitHub attachment downloader with special handling for images
  * Adapted from: https://github.com/anthropics/claude-code-action/blob/main/src/github/utils/image-downloader.ts
  * Original author: Anthropic
  * License: MIT
+ * 
+ * NOTE: Images are identified by their signed URLs containing "user-images":
+ * - Image signed URLs: https://private-user-images.githubusercontent.com/.../file-id.jpeg?jwt=...
+ * - File signed URLs: https://github.com/user-attachments/files/...
+ * The file extension for images is embedded in the middle of the signed URL path.
  */
 
 import fs from "fs/promises";
@@ -10,7 +15,7 @@ import path from "path";
 import type { Octokit } from "@octokit/rest";
 import { getGithubServerUrl } from "../../../utils";
 
-// Regex to match any GitHub user-attachments URL (both ![](url) and [](url) formats)
+// Single regex to match any GitHub user-attachments URL (both ![](url) and [](url) formats)
 const GITHUB_ATTACHMENT_REGEX = new RegExp(
   `\\[[^\\]]*\\]\\((${getGithubServerUrl().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/user-attachments\\/(?:assets|files)\\/[^)]+)\\)`,
   "g",
@@ -26,8 +31,7 @@ const FILE_TYPE_CATEGORIES = {
   code: ['.js', '.ts', '.py', '.java', '.cpp', '.c', '.h', '.css', '.html', '.xml', '.json', '.yaml', '.yml', '.go', '.rs', '.php', '.rb', '.swift'],
   data: ['.json', '.xml', '.yaml', '.yml', '.sql', '.db', '.sqlite', '.csv', '.tsv'],
   media: ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.mp3', '.wav', '.ogg', '.flac', '.aac'],
-  fonts: ['.ttf', '.otf', '.woff', '.woff2', '.eot'],
-  other: [] as string[] // fallback category
+  other: ['.bin'] // fallback category with some common extensions
 };
 
 export type FileType = keyof typeof FILE_TYPE_CATEGORIES;
@@ -40,6 +44,7 @@ export type DownloadedFile = {
   extension: string;
   size: number;
   downloadedAt: Date;
+  isImage: boolean; // Track whether this was detected as an image
 };
 
 type IssueComment = {
@@ -121,7 +126,7 @@ export async function downloadCommentAttachments(
 
     console.log(`Processing ${comments.length} comments for attachments...`);
 
-    // First pass: find all attachments
+    // First pass: find all attachments using single regex
     for (const comment of comments) {
       const attachmentMatches = [...comment.body.matchAll(GITHUB_ATTACHMENT_REGEX)];
       const urls = attachmentMatches.map((match) => match[1] as string).filter(Boolean);
@@ -176,21 +181,6 @@ export async function downloadCommentAttachments(
             continue;
           }
 
-          // Get file extension and type
-          const extension = getFileExtension(originalUrl);
-          const fileType = categoriseFile(extension);
-
-          // Check if file type/extension is allowed
-          if (allowedExtensions && !allowedExtensions.includes(extension)) {
-            console.log(`Skipping ${originalUrl} - extension ${extension} not allowed`);
-            continue;
-          }
-
-          if (allowedFileTypes && !allowedFileTypes.includes(fileType)) {
-            console.log(`Skipping ${originalUrl} - file type ${fileType} not allowed`);
-            continue;
-          }
-
           // Find matching signed URL
           let signedUrl = allSignedUrls[i];
           if (!signedUrl && allSignedUrls.length > 0) {
@@ -203,11 +193,31 @@ export async function downloadCommentAttachments(
             signedUrl = originalUrl;
           }
 
+          // Determine if this is an image based on the signed URL containing "user-images"
+          const isImage = signedUrl.includes('user-images');
+
+          // Get file extension - handle images differently due to their signed URL structure
+          const extension = getFileExtension(originalUrl, signedUrl, isImage);
+          const fileType = categoriseFile(extension);
+
+          console.log(`Detected ${isImage ? 'image' : 'file'}: ${originalUrl} -> extension: ${extension}, type: ${fileType}`);
+
+          // Check if file type/extension is allowed
+          if (allowedExtensions && !allowedExtensions.includes(extension)) {
+            console.log(`Skipping ${originalUrl} - extension ${extension} not allowed`);
+            continue;
+          }
+
+          if (allowedFileTypes && !allowedFileTypes.includes(fileType)) {
+            console.log(`Skipping ${originalUrl} - file type ${fileType} not allowed`);
+            continue;
+          }
+
           const filename = generateFilename(originalUrl, i, extension, fileType);
           const localPath = path.join(downloadsDir, filename);
 
           try {
-            console.log(`Downloading ${fileType} file: ${originalUrl}...`);
+            console.log(`Downloading ${isImage ? 'image' : 'file'} (${fileType}): ${originalUrl}...`);
 
             const response = await fetch(signedUrl, {
               headers: {
@@ -247,12 +257,13 @@ export async function downloadCommentAttachments(
               fileType,
               extension,
               size: arrayBuffer.byteLength,
-              downloadedAt: new Date()
+              downloadedAt: new Date(),
+              isImage
             };
 
             downloadedFiles.push(downloadedFile);
 
-            console.log(`✓ Downloaded ${fileType} file: ${filename}`);
+            console.log(`✓ Downloaded ${isImage ? 'image' : 'file'} (${fileType}): ${filename}`);
 
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -277,7 +288,11 @@ export async function downloadCommentAttachments(
       return acc;
     }, {} as Record<FileType, number>);
 
-    console.log('Downloaded file types:', fileTypeCounts);
+    const imageCount = downloadedFiles.filter(f => f.isImage).length;
+    const fileCount = downloadedFiles.filter(f => !f.isImage).length;
+
+    console.log(`Downloaded ${imageCount} images and ${fileCount} other files`);
+    console.log('File types:', fileTypeCounts);
 
     return {
       urlToPathMap,
@@ -359,14 +374,45 @@ function getCommentId(comment: CommentWithAttachments): string {
       : comment.id;
 }
 
-function getFileExtension(url: string): string {
+/**
+ * Extract file extension from URLs, with special handling for images
+ * 
+ * Images have different signed URL structure where the extension is embedded in the path:
+ * - Original: https://github.com/user-attachments/assets/416e686f-3fe1-40aa-885d-bb54c4a6cbdb
+ * - Signed: https://private-user-images.githubusercontent.com/.../416e686f-3fe1-40aa-885d-bb54c4a6cbdb.jpeg?jwt=...
+ * 
+ * For images, we need to check the signed URL for the extension, not just the original URL.
+ */
+function getFileExtension(originalUrl: string, signedUrl: string, isImage: boolean): string {
   try {
-    // Handle GitHub asset URLs which might have UUIDs
-    const urlParts = url.split("/");
+    // For images, prioritize checking the signed URL since it contains the actual extension
+    if (isImage) {
+      // Extract extension from signed URL path - look for pattern like "file-id.ext" before query params
+      const signedUrlPath = signedUrl.split('?')[0]; // Remove query parameters
+      const pathMatch = signedUrlPath?.match(/\/([^\/]+)\.([a-zA-Z0-9]+)$/);
+      if (pathMatch && pathMatch[2]) {
+        const ext = `.${pathMatch[2].toLowerCase()}`;
+        console.log(`Extracted extension from signed URL: ${ext}`);
+        return ext;
+      }
+
+      // Fallback: look anywhere in the signed URL path for common image extensions
+      const extensionMatch = signedUrlPath?.match(/\.([a-zA-Z0-9]+)/g);
+      if (extensionMatch && extensionMatch.length > 0) {
+        // Take the last extension found (most likely to be the file extension)
+        const lastExtension = extensionMatch[extensionMatch.length - 1];
+        const ext = lastExtension!.toLowerCase();
+        console.log(`Found extension in signed URL path: ${ext}`);
+        return ext;
+      }
+    }
+
+    // For non-images or fallback, check the original URL
+    const urlParts = originalUrl.split("/");
     const filename = urlParts[urlParts.length - 1];
 
     if (!filename) {
-      return ".bin"; // Binary fallback
+      return isImage ? ".png" : ".bin"; // Default fallbacks
     }
 
     // Try to extract extension from filename
@@ -375,11 +421,11 @@ function getFileExtension(url: string): string {
       return `.${match[1].toLowerCase()}`;
     }
 
-    // If no extension found, default to .bin
-    return ".bin";
+    // If no extension found, use defaults based on type
+    return isImage ? ".png" : ".bin";
   } catch (error) {
-    console.warn(`Error getting extension for ${url}:`, error);
-    return ".bin";
+    console.warn(`Error getting extension for ${originalUrl}:`, error);
+    return isImage ? ".png" : ".bin";
   }
 }
 
