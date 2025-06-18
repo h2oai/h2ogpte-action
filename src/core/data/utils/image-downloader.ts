@@ -205,8 +205,10 @@ export async function downloadCommentImages(
 
           await fs.writeFile(localPath, buffer);
           console.log(`✓ Saved: ${localPath}`);
+          console.log(`Map update ${originalUrl}: ${localPath}`)
 
           urlToPathMap.set(originalUrl, localPath);
+          console.log(`Inner url to path map ${urlToPathMap}`)
         } catch (error) {
           console.error(`✗ Failed to download ${originalUrl}:`, error);
         }
@@ -224,6 +226,8 @@ export async function downloadCommentImages(
       );
     }
   }
+
+  console.log(`Final url to path map ${urlToPathMap}`)
 
   return urlToPathMap;
 }

@@ -234,7 +234,7 @@ export async function fetchUserDisplayName(
     });
     return result.user.name;
   } catch (error) {
-    console.warn(`Failed to fetch user display name for ${login}:`, error);
+    console.warn(`Failed tohfetch user display name for ${login}:`, error);
     return null;
   }
 }
