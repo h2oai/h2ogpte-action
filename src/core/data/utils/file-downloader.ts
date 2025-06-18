@@ -168,7 +168,7 @@ export async function downloadCommentAttachments(
 
         const signedUrls = [...new Set(allSignedUrls)];
 
-        console.log(`Found ${allSignedUrls.length} signed URLs, only ${signedUrls} after deduplicating`);
+        console.log(`Found ${allSignedUrls.length} signed URLs, only ${signedUrls.length} after deduplicating`);
         console.log(`All Signed urls: ${JSON.stringify(allSignedUrls)}`)
         console.log(`Final Signed urls: ${JSON.stringify(signedUrls)}`)
 
