@@ -208,7 +208,7 @@ export async function downloadCommentImages(
           console.log(`Map update ${originalUrl}: ${localPath}`)
 
           urlToPathMap.set(originalUrl, localPath);
-          console.log(`Inner url to path map ${JSON.stringify(urlToPathMap)}`)
+          console.log(`Inner url to path map ${Object.fromEntries(urlToPathMap)}`)
         } catch (error) {
           console.error(`✗ Failed to download ${originalUrl}:`, error);
         }

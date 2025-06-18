@@ -33,7 +33,7 @@ export async function run(): Promise<void> {
                 "Actor does not have write permissions to the repository",
             );
         }
-        
+
         // Fetch Github comment data
         const githubData = await fetchGitHubData({
             octokits: octokits,
@@ -44,8 +44,8 @@ export async function run(): Promise<void> {
         });
 
         core.debug(`GH data fetch result: ${JSON.stringify(githubData, null, 2)}`)
-        core.debug(`imageURLMAP: ${JSON.stringify(githubData.imageUrlMap)}`)
-
+        core.debug(`imageURLMAP size: ${githubData.imageUrlMap.size}`)
+        core.debug(`imageURLMAP contents: ${JSON.stringify(Object.fromEntries(githubData.imageUrlMap))}`)
         // Handle Github Event
         if (isPullRequestReviewCommentEvent(context)) {
             core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`)

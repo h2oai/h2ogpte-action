@@ -201,6 +201,9 @@ export async function fetchGitHubData({
     allComments,
   );
 
+  console.log(`Outer image to url map size: ${imageUrlMap.size}`);
+  console.log(`Outer image to url map contents:`, Object.fromEntries(imageUrlMap));
+
   // Fetch trigger user display name if username is provided
   let triggerDisplayName: string | null | undefined;
   if (triggerUsername) {
@@ -234,7 +237,7 @@ export async function fetchUserDisplayName(
     });
     return result.user.name;
   } catch (error) {
-    console.warn(`Failed tohfetch user display name for ${login}:`, error);
+    console.warn(`Failed to fetch user display name for ${login}:`, error);
     return null;
   }
 }
