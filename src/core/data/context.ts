@@ -1,7 +1,11 @@
-import { Octokit } from '@octokit/rest'
+/**
+ * Adapted from: https://github.com/anthropics/claude-code-action/blob/main/src/github/context.ts
+ * Original author: Anthropic
+ * License: MIT
+ */
+
 import * as github from '@actions/github'
-import { getGithubApiBase, getGithubToken } from '../../utils'
-import type { ParsedGitHubContext } from './types'
+import type { ParsedGitHubContext } from '../services/github/types'
 import type {
     IssuesEvent,
     IssueCommentEvent,
@@ -11,21 +15,6 @@ import type {
 } from "@octokit/webhooks-types";
 
 
-export async function newOctokit(): Promise<Octokit> {
-    const rest = new Octokit({
-        auth: getGithubToken(),
-        baseUrl: getGithubApiBase(),
-        request: {
-            timeout: 10000 // 10 second timeout for GitHub API requests
-        }
-    })
-    return rest
-}
-
-
-/**
- * Source: https://github.com/anthropics/claude-code-action/blob/main/src/github/context.ts
- */
 export function parseGitHubContext(): ParsedGitHubContext {
     const context = github.context;
 
@@ -91,6 +80,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
     }
 }
 
+
 export function isIssuesEvent(
     context: ParsedGitHubContext,
 ): context is ParsedGitHubContext & { payload: IssuesEvent } {
@@ -120,27 +110,4 @@ export function isPullRequestReviewCommentEvent(
     context: ParsedGitHubContext,
 ): context is ParsedGitHubContext & { payload: PullRequestReviewCommentEvent } {
     return context.eventName === "pull_request_review_comment";
-}
-
-
-export async function createReplyForReviewComment(octokit: Octokit, comment_body: string, context: ParsedGitHubContext) {
-    const comment = await octokit.pulls.createReplyForReviewComment({
-        owner: context.repository.owner,
-        repo: context.repository.repo,
-        pull_number: context.entityNumber,
-        comment_id: (context.payload as PullRequestReviewCommentEvent).comment
-            .id,
-        body: comment_body
-    })
-    return comment
-}
-
-
-export async function updateReviewComment(octokit: Octokit, comment_body: string, context: ParsedGitHubContext, initialh2ogpteCommentId: number) {
-    await octokit.pulls.updateReviewComment({
-        owner: context.repository.owner,
-        repo: context.repository.repo,
-        comment_id: initialh2ogpteCommentId,
-        body: comment_body
-    })
 }

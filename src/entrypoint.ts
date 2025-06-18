@@ -1,8 +1,11 @@
 import * as core from '@actions/core'
-import * as h2ogpte from "./services/h2ogpte/h2ogpte"
-import { createReplyForReviewComment, isPullRequestReviewCommentEvent, newOctokit, parseGitHubContext, updateReviewComment } from './services/github/github'
+import * as h2ogpte from "./core/services/h2ogpte/h2ogpte"
 import { checkWritePermissions, createSecretAndToolAssociation, extractFinalAgentResponse, getGithubToken } from './utils'
 import { createAgentInstructionPrompt } from './prompts'
+import { createOctokits } from './core/services/github/octokits'
+import { isPullRequestReviewCommentEvent, parseGitHubContext } from './core/data/context'
+import { createReplyForReviewComment, updateReviewComment } from './core/services/github/api'
+import { fetchGitHubData } from './core/data/fetcher'
 
 
 /**
@@ -16,12 +19,13 @@ export async function run(): Promise<void> {
     try {
 
         // Fetch context
-        const octokit = await newOctokit()
+        const octokits = createOctokits()
         const context = parseGitHubContext()
         const githubToken = getGithubToken()
 
+        // Check if actor has correct permissions, otherwise exit immeditely
         const hasWritePermissions = await checkWritePermissions(
-            octokit,
+            octokits.rest,
             context,
         );
         if (!hasWritePermissions) {
@@ -29,6 +33,17 @@ export async function run(): Promise<void> {
                 "Actor does not have write permissions to the repository",
             );
         }
+        
+        // Fetch Github comment data
+        const githubData = await fetchGitHubData({
+            octokits: octokits,
+            repository: `${context.repository.owner}/${context.repository.repo}`,
+            prNumber: context.entityNumber.toString(),
+            isPR: context.isPR,
+            triggerUsername: context.actor,
+        });
+
+        core.debug(`GH data fetch result: ${JSON.stringify(githubData, null, 2)}`)
 
         // Handle Github Event
         if (isPullRequestReviewCommentEvent(context)) {
@@ -43,7 +58,7 @@ export async function run(): Promise<void> {
 
             // 3. Create the initial review reply comment
             const intialCommentBody = `⏳ h2oGPTe is working on it, see the chat [here](${chatSessionUrl})`
-            const h2ogpteComment = await createReplyForReviewComment(octokit, intialCommentBody, context)
+            const h2ogpteComment = await createReplyForReviewComment(octokits.rest, intialCommentBody, context)
 
             // 4. Create the agent instruction prompt
             const instructionPrompt = createAgentInstructionPrompt(context)
@@ -68,7 +83,7 @@ export async function run(): Promise<void> {
 
             // 7. Update initial review comment
             const updatedCommentBody = `${header}, see the response below and the full chat history [here](${chatSessionUrl})\n---\n${cleanedResponse}`
-            await updateReviewComment(octokit, updatedCommentBody, context, h2ogpteComment.data.id)
+            await updateReviewComment(octokits.rest, updatedCommentBody, context, h2ogpteComment.data.id)
 
         } else {
             throw new Error(`Unexpected event: ${context.eventName}`)
