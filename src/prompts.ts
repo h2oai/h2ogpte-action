@@ -1,8 +1,8 @@
 import dedent from "ts-dedent"
 import { AGENT_GITHUB_ENV_VAR } from "./constants"
-import type { ParsedGitHubContext } from "./services/github/types"
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
 import { getGithubApiBase } from "./utils"
+import type { ParsedGitHubContext } from "./core/services/github/types"
 
 export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
     const commentBody = (context.payload as PullRequestReviewCommentEvent).comment.body

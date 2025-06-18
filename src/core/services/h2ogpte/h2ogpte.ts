@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import { getH2ogpteConfig } from '../../utils'
 import { fetchWithRetry } from '../base'
 import * as types from "./types"
+import { getH2ogpteConfig } from '../../../utils'
 
 
 /**

@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
-import type { ParsedGitHubContext } from "./services/github/types";
 import { Octokit } from "@octokit/rest";
-import { createAgentKey, createToolAssociation, getAgentKeyId } from "./services/h2ogpte/h2ogpte";
 import { AGENT_GITHUB_ENV_VAR } from "./constants";
+import type { ParsedGitHubContext } from "./core/services/github/types";
+import { createAgentKey, createToolAssociation, getAgentKeyId } from "./core/services/h2ogpte/h2ogpte";
 
 
 /**
