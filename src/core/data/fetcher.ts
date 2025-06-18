@@ -16,9 +16,8 @@ import type {
   IssueQueryResponse,
   PullRequestQueryResponse,
 } from "./queries/types";
-import type { CommentWithImages } from "./utils/image-downloader";
-import { downloadCommentImages } from "./utils/image-downloader";
 import type { Octokits } from "../services/github/octokits";
+import { downloadCommentAttachments, type CommentWithAttachments } from "./utils/file-downloader";
 
 type FetchDataParams = {
   octokits: Octokits;
@@ -140,7 +139,7 @@ export async function fetchGitHubData({
   }
 
   // Prepare all comments for image processing
-  const issueComments: CommentWithImages[] = comments
+  const issueComments: CommentWithAttachments[] = comments
     .filter((c) => c.body)
     .map((c) => ({
       type: "issue_comment" as const,
@@ -148,7 +147,7 @@ export async function fetchGitHubData({
       body: c.body,
     }));
 
-  const reviewBodies: CommentWithImages[] =
+  const reviewBodies: CommentWithAttachments[] =
     reviewData?.nodes
       ?.filter((r) => r.body)
       .map((r) => ({
@@ -158,7 +157,7 @@ export async function fetchGitHubData({
         body: r.body,
       })) ?? [];
 
-  const reviewComments: CommentWithImages[] =
+  const reviewComments: CommentWithAttachments[] =
     reviewData?.nodes
       ?.flatMap((r) => r.comments?.nodes ?? [])
       .filter((c) => c.body)
@@ -169,7 +168,7 @@ export async function fetchGitHubData({
       })) ?? [];
 
   // Add the main issue/PR body if it has content
-  const mainBody: CommentWithImages[] = contextData.body
+  const mainBody: CommentWithAttachments[] = contextData.body
     ? [
       {
         ...(isPR
@@ -194,15 +193,17 @@ export async function fetchGitHubData({
     ...reviewComments,
   ];
 
-  const imageUrlMap = await downloadCommentImages(
+  const DownloadResult = await downloadCommentAttachments(
     octokits.rest,
     owner,
     repo,
     allComments,
   );
 
-  console.log(`Outer image to url map size: ${imageUrlMap.size}`);
-  console.log(`Outer image to url map contents:`, Object.fromEntries(imageUrlMap));
+  console.log(`Downloaded path errors: ${JSON.stringify(DownloadResult.errors)}`)
+  console.log(`Downloaded path informtion: ${JSON.stringify(DownloadResult.downloadedFiles)}`)
+  console.log(`Outer path to url map size: ${DownloadResult.urlToPathMap.size}`);
+  console.log(`Outer path to url map contents:`, Object.fromEntries(DownloadResult.urlToPathMap));
 
   // Fetch trigger user display name if username is provided
   let triggerDisplayName: string | null | undefined;
@@ -216,7 +217,7 @@ export async function fetchGitHubData({
     changedFiles,
     changedFilesWithSHA,
     reviewData,
-    imageUrlMap,
+    imageUrlMap: DownloadResult.urlToPathMap,
     triggerDisplayName,
   };
 }
