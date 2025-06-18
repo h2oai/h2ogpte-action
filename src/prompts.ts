@@ -1,7 +1,7 @@
 import dedent from "ts-dedent"
 import { AGENT_GITHUB_ENV_VAR } from "./constants"
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
-import { getGithubApiBase } from "./utils"
+import { getGithubApiUrl } from "./utils"
 import type { ParsedGitHubContext } from "./core/services/github/types"
 
 export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
@@ -10,7 +10,7 @@ export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
     const fileRelativePath = (context.payload as PullRequestReviewCommentEvent).comment.path
     const commitId = (context.payload as PullRequestReviewCommentEvent).comment.commit_id
     const diffHunk = (context.payload as PullRequestReviewCommentEvent).comment.diff_hunk
-    const githubApiBase = getGithubApiBase()
+    const githubApiBase = getGithubApiUrl()
 
     return dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
     Developers interact with you by adding @h2ogpte in their pull request review comments. 

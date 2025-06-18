@@ -40,8 +40,22 @@ export function getGithubToken(): string {
 /**
  * Gets the GitHub API url from environment variable
  */
-export function getGithubApiBase(): string {
-    const githubApiBase = process.env.GITHUB_API_BASE
+export function getGithubApiUrl(): string {
+    const githubApiBase = process.env.GITHUB_API_URL
+
+    if (!githubApiBase) {
+        throw new Error('GitHub API base url is required')
+    }
+
+    return githubApiBase
+}
+
+
+/**
+ * Gets the GitHub API url from environment variable
+ */
+export function getGithubServerUrl(): string {
+    const githubApiBase = process.env.GITHUB_SERVER_URL
 
     if (!githubApiBase) {
         throw new Error('GitHub API base url is required')

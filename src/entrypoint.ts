@@ -82,7 +82,7 @@ export async function run(): Promise<void> {
             core.debug(`Extracted response: ${cleanedResponse}`)
 
             // 7. Update initial review comment
-            const updatedCommentBody = `${header}, see the response below and the full chat history [here](${chatSessionUrl})\n---\n${cleanedResponse}`
+            const updatedCommentBody = `${header}, see the response below and the [full chat history](${chatSessionUrl})\n---\n${cleanedResponse}`
             await updateReviewComment(octokits.rest, updatedCommentBody, context, h2ogpteComment.data.id)
 
         } else {
