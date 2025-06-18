@@ -92,19 +92,13 @@ export type DownloadOptions = {
   downloadsDir?: string;
 };
 
-export type DownloadResult = {
-  urlToPathMap: Map<string, string>;
-  downloadedFiles: DownloadedFile[];
-  errors: Array<{ url: string; error: string }>;
-};
-
 export async function downloadCommentAttachments(
   rest: Octokit,
   owner: string,
   repo: string,
   comments: CommentWithAttachments[],
   options: DownloadOptions = {}
-): Promise<DownloadResult> {
+): Promise<Map<string, string>> {
   const {
     maxFileSize = 50 * 1024 * 1024, // 50MB default
     allowedExtensions,
@@ -113,8 +107,6 @@ export async function downloadCommentAttachments(
   } = options;
 
   const urlToPathMap = new Map<string, string>();
-  const downloadedFiles: DownloadedFile[] = [];
-  const errors: Array<{ url: string; error: string }> = [];
 
   try {
     await fs.mkdir(downloadsDir, { recursive: true });
@@ -244,63 +236,27 @@ export async function downloadCommentAttachments(
 
             urlToPathMap.set(originalUrl, localPath);
 
-            const downloadedFile: DownloadedFile = {
-              originalUrl,
-              localPath,
-              filename,
-              fileType,
-              extension,
-              size: arrayBuffer.byteLength,
-              downloadedAt: new Date(),
-              isImage
-            };
-
-            downloadedFiles.push(downloadedFile);
-
             console.log(`✓ Downloaded ${isImage ? 'image' : 'file'} (${fileType}): ${filename}`);
 
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(`✗ Failed to download ${originalUrl}: ${errorMessage}`);
-            errors.push({ url: originalUrl, error: errorMessage });
           }
         }
       } catch (error) {
         const id = getCommentId(comment);
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`Failed to process attachments for ${comment.type} ${id}: ${errorMessage}`);
-        errors.push({ url: `${comment.type}:${id}`, error: errorMessage });
       }
     }
 
-    console.log(`Download complete: ${downloadedFiles.length} files, ${errors.length} errors`);
     console.log(`Final URL to path map size: ${urlToPathMap.size}`);
 
-    // Log file type summary
-    const fileTypeCounts = downloadedFiles.reduce((acc, file) => {
-      acc[file.fileType] = (acc[file.fileType] || 0) + 1;
-      return acc;
-    }, {} as Record<FileType, number>);
-
-    const imageCount = downloadedFiles.filter(f => f.isImage).length;
-    const fileCount = downloadedFiles.filter(f => !f.isImage).length;
-
-    console.log(`Downloaded ${imageCount} images and ${fileCount} other files`);
-    console.log('File types:', fileTypeCounts);
-
-    return {
-      urlToPathMap,
-      downloadedFiles,
-      errors
-    };
+    return urlToPathMap
 
   } catch (error) {
     console.error('Error in downloadCommentAttachments:', error);
-    return {
-      urlToPathMap,
-      downloadedFiles,
-      errors: [{ url: 'general', error: error instanceof Error ? error.message : String(error) }]
-    };
+    return urlToPathMap
   }
 }
 
@@ -439,17 +395,4 @@ function generateFilename(originalUrl: string, index: number, extension: string,
   const timestamp = Date.now();
   const urlHash = originalUrl.split('/').pop()?.substring(0, 8) || 'unknown';
   return `${fileType}-${urlHash}-${timestamp}-${index}${extension}`;
-}
-
-// Backwards compatibility - keep the old function name as an alias
-export async function downloadCommentImages(
-  rest: Octokit,
-  owner: string,
-  repo: string,
-  comments: CommentWithAttachments[],
-): Promise<Map<string, string>> {
-  const result = await downloadCommentAttachments(rest, owner, repo, comments, {
-    allowedFileTypes: ['images'] // Only download image files for backwards compatibility
-  });
-  return result.urlToPathMap;
 }

@@ -43,9 +43,6 @@ export async function run(): Promise<void> {
             triggerUsername: context.actor,
         });
 
-        core.debug(`GH data fetch result: ${JSON.stringify(githubData, null, 2)}`)
-        core.debug(`imageURLMAP size: ${githubData.imageUrlMap.size}`)
-        core.debug(`imageURLMAP contents: ${JSON.stringify(Object.fromEntries(githubData.imageUrlMap))}`)
         // Handle Github Event
         if (isPullRequestReviewCommentEvent(context)) {
             core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`)

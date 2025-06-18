@@ -37,7 +37,7 @@ export type FetchDataResult = {
   changedFiles: GitHubFile[];
   changedFilesWithSHA: GitHubFileWithSHA[];
   reviewData: { nodes: GitHubReview[] } | null;
-  imageUrlMap: Map<string, string>;
+  attachmentUrlMap: Map<string, string>;
   triggerDisplayName?: string | null;
 };
 
@@ -193,17 +193,12 @@ export async function fetchGitHubData({
     ...reviewComments,
   ];
 
-  const DownloadResult = await downloadCommentAttachments(
+  const urlToPathMap = await downloadCommentAttachments(
     octokits.rest,
     owner,
     repo,
     allComments,
   );
-
-  console.log(`Downloaded path errors: ${JSON.stringify(DownloadResult.errors)}`)
-  console.log(`Downloaded path informtion: ${JSON.stringify(DownloadResult.downloadedFiles)}`)
-  console.log(`Outer path to url map size: ${DownloadResult.urlToPathMap.size}`);
-  console.log(`Outer path to url map contents:`, Object.fromEntries(DownloadResult.urlToPathMap));
 
   // Fetch trigger user display name if username is provided
   let triggerDisplayName: string | null | undefined;
@@ -217,7 +212,7 @@ export async function fetchGitHubData({
     changedFiles,
     changedFilesWithSHA,
     reviewData,
-    imageUrlMap: DownloadResult.urlToPathMap,
+    attachmentUrlMap: urlToPathMap,
     triggerDisplayName,
   };
 }
