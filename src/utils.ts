@@ -55,13 +55,13 @@ export function getGithubApiUrl(): string {
  * Gets the GitHub API url from environment variable
  */
 export function getGithubServerUrl(): string {
-    const githubApiBase = process.env.GITHUB_SERVER_URL
+    const githubServerURL = process.env.GITHUB_SERVER_URL
 
-    if (!githubApiBase) {
-        throw new Error('GitHub API base url is required')
+    if (!githubServerURL) {
+        throw new Error('GitHub server url is required')
     }
 
-    return githubApiBase
+    return githubServerURL
 }
 
 

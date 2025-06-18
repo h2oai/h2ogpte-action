@@ -68,10 +68,12 @@ export async function downloadCommentImages(
     urls: string[];
   }> = [];
 
+  console.log(`Image regex: ${IMAGE_REGEX}`)
   for (const comment of comments) {
     const imageMatches = [...comment.body.matchAll(IMAGE_REGEX)];
+    console.log(`Image Matches: ${imageMatches}`)
     const urls = imageMatches.map((match) => match[1] as string);
-
+    console.log(`URLs: ${urls}`) 
     if (urls.length > 0) {
       commentsWithImages.push({ comment, urls });
       const id =

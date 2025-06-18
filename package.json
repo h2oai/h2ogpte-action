@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test-action": "bun run local-action . index.ts .env"
+    "test-action": "bun run local-action . src/entrypoint.ts .env"
   },
   "devDependencies": {
     "@github/local-action": "^3.2.1",
