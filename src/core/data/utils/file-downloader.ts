@@ -155,7 +155,8 @@ export async function downloadCommentAttachments(
 
         // Extract signed URLs from HTML
         const signedUrlRegex = /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+/g;
-        const signedUrls = bodyHtml.match(signedUrlRegex) || [];
+        const allSignedUrls = bodyHtml.match(signedUrlRegex) || [];
+        const signedUrls = [...new Set(allSignedUrls)];
 
         console.log(`Found ${signedUrls.length} signed URLs`);
         console.log(`Signed urls: ${JSON.stringify(signedUrls)}`)
