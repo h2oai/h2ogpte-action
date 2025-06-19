@@ -8,6 +8,9 @@
  * - Image signed URLs: https://private-user-images.githubusercontent.com/.../file-id.jpeg?jwt=...
  * - File signed URLs: https://github.com/user-attachments/files/...
  * The file extension for images is embedded in the middle of the signed URL path.
+ * 
+ * WARNING: In private repos, we can't directly download issue attachments
+ *  See: https://github.com/orgs/community/discussions/162417#discussioncomment-13428503
  */
 
 import fs from "fs/promises";
@@ -146,19 +149,15 @@ export async function downloadCommentAttachments(
         console.log(`Processing ${urls.length} attachment(s) for ${comment.type}`);
 
         // Extract signed URLs from HTML
-        const signedUrlPatterns = [
-          /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+/g, // Images with JWT
-          /https:\/\/github\.com\/user-attachments\/files\/[^"'>\s]+/g, // Files (no JWT)
-          /https:\/\/user-images\.githubusercontent\.com\/[^"'>\s]+/g, // Alternative image pattern
-        ];
+        // Combined regex pattern to preserve order
+        const combinedPattern = /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+|https:\/\/github\.com\/user-attachments\/files\/[^"'>\s]+|https:\/\/user-images\.githubusercontent\.com\/[^"'>\s]+/g;
 
-        const allSignedUrls = [];
-        for (const pattern of signedUrlPatterns) {
-          const matches = bodyHtml.match(pattern) || [];
-          allSignedUrls.push(...matches);
-        }
+        // Find all matches
+        const matches = [...bodyHtml.matchAll(combinedPattern)];
+        const allSignedUrls = matches.map(match => match[0]);
 
-        const signedUrls = [...new Set(allSignedUrls)];
+        // Remove duplicates while preserving order
+        const signedUrls = [...new Map(allSignedUrls.map(url => [url, url])).values()];
 
         console.log(`Found ${allSignedUrls.length} signed URLs, only ${signedUrls.length} after deduplicating`);
         console.log(`All Signed urls: ${JSON.stringify(allSignedUrls)}`)
@@ -205,13 +204,7 @@ export async function downloadCommentAttachments(
           try {
             console.log(`Downloading ${isImage ? 'image' : 'file'} (${fileType}): ${originalUrl}...`);
 
-            const response = await fetch(signedUrl, {
-              headers: {
-                'Authorization': `Bearer ${getGithubToken()}`,
-                'User-Agent': 'Mozilla/5.0 (compatible; GitHub-Attachment-Downloader/1.0)',
-                'Accept': '*/*',
-              },
-            });
+            const response = await fetch(signedUrl);
 
             if (!response.ok) {
               throw new Error(`HTTP ${response.status}: ${response.statusText}`);
