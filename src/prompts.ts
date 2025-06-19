@@ -17,17 +17,17 @@ export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
     .diff_hunk;
   const githubApiBase = getGithubApiUrl();
 
-  return dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub. 
-    Developers interact with you by adding @h2ogpte in their pull request review comments. 
+  return dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
+    Developers interact with you by adding @h2ogpte in their pull request review comments.
     You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
     You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
     You should use the GitHub API directly (${githubApiBase}) with the api key as a bearer token.
     You should only ever respond to the users query by reading code and creating commits (if required) on the branch of the pull request.
     Don't create any comments on the pull request yourself.
-    
+
     Here is the user's instruction: '${commentBody}'.
     You must only work in the user's repository, ${context.repository.full_name}, on pull request number ${pullRequestNumber}.
-    You must only work on the section of code they've selected which may be a diff hunk or an entire file/s. 
+    You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
     Use the commit id, ${commitId}, and the relative file path, ${fileRelativePath}, to pull any necessary files.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
 

@@ -52,6 +52,8 @@ export async function run(): Promise<void> {
       triggerUsername: context.actor,
     });
 
+    core.debug(JSON.stringify(githubData));
+
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);

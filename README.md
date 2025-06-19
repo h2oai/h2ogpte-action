@@ -40,6 +40,7 @@ Once configured, developers can immediately start using the AI-powered code revi
 1. Install [Bun](https://bun.sh/docs/installation) (JavaScript runtime and package manager)
 2. Clone this repository
 3. Run `bun install` to install dependencies
+4. Install the pre-commit configuration `pre-commit install` (ensure you've installed [pre-commit](https://pre-commit.com/) first)
 
 ### Usage
 
