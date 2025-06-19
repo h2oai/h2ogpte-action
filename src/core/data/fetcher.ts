@@ -17,7 +17,10 @@ import type {
   PullRequestQueryResponse,
 } from "./queries/types";
 import type { Octokits } from "../services/github/octokits";
-import { downloadCommentAttachments, type CommentWithAttachments } from "./utils/file-downloader";
+import {
+  downloadCommentAttachments,
+  type CommentWithAttachments,
+} from "./utils/file-downloader";
 
 type FetchDataParams = {
   octokits: Octokits;
@@ -170,20 +173,20 @@ export async function fetchGitHubData({
   // Add the main issue/PR body if it has content
   const mainBody: CommentWithAttachments[] = contextData.body
     ? [
-      {
-        ...(isPR
-          ? {
-            type: "pr_body" as const,
-            pullNumber: prNumber,
-            body: contextData.body,
-          }
-          : {
-            type: "issue_body" as const,
-            issueNumber: prNumber,
-            body: contextData.body,
-          }),
-      },
-    ]
+        {
+          ...(isPR
+            ? {
+                type: "pr_body" as const,
+                pullNumber: prNumber,
+                body: contextData.body,
+              }
+            : {
+                type: "issue_body" as const,
+                issueNumber: prNumber,
+                body: contextData.body,
+              }),
+        },
+      ]
     : [];
 
   const allComments = [
@@ -203,7 +206,10 @@ export async function fetchGitHubData({
   // Fetch trigger user display name if username is provided
   let triggerDisplayName: string | null | undefined;
   if (triggerUsername) {
-    triggerDisplayName = await fetchUserDisplayName(octokits.graphql, triggerUsername);
+    triggerDisplayName = await fetchUserDisplayName(
+      octokits.graphql,
+      triggerUsername,
+    );
   }
 
   return {

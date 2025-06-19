@@ -1,1 +1,1 @@
-export const AGENT_GITHUB_ENV_VAR = 'GITHUB_PAT_TMP'
+export const AGENT_GITHUB_ENV_VAR = "GITHUB_PAT_TMP";

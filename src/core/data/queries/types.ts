@@ -4,7 +4,6 @@
  * License: MIT
  */
 
-
 // Types for GitHub GraphQL query responses
 export type GitHubAuthor = {
   login: string;

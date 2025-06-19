@@ -3,12 +3,12 @@
  * Adapted from: https://github.com/anthropics/claude-code-action/blob/main/src/github/utils/image-downloader.ts
  * Original author: Anthropic
  * License: MIT
- * 
+ *
  * NOTE: Images are identified by their signed URLs containing "user-images":
  * - Image signed URLs: https://private-user-images.githubusercontent.com/.../file-id.jpeg?jwt=...
  * - File signed URLs: https://github.com/user-attachments/files/...
  * The file extension for images is embedded in the middle of the signed URL path.
- * 
+ *
  * WARNING: In private repos, we can't directly download issue attachments
  *  See: https://github.com/orgs/community/discussions/162417#discussioncomment-13428503
  */
@@ -26,16 +26,69 @@ const GITHUB_ATTACHMENT_REGEX = new RegExp(
 
 // File type categories for organisation
 const FILE_TYPE_CATEGORIES = {
-  images: ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.ico', '.tiff', '.heic', '.avif'],
-  documents: ['.pdf', '.doc', '.docx', '.txt', '.md', '.rtf', '.odt', '.pages'],
-  spreadsheets: ['.xls', '.xlsx', '.csv', '.ods', '.numbers'],
-  presentations: ['.ppt', '.pptx', '.odp', '.key'],
-  archives: ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz'],
-  code: ['.js', '.ts', '.py', '.java', '.cpp', '.c', '.h', '.css', '.html', '.xml', '.json', '.yaml', '.yml', '.go', '.rs', '.php', '.rb', '.swift'],
-  data: ['.json', '.xml', '.yaml', '.yml', '.sql', '.db', '.sqlite', '.csv', '.tsv'],
-  media: ['.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv', '.mp3', '.wav', '.ogg', '.flac', '.aac'],
-  other: ['.bin'] // fallback category
-}
+  images: [
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".svg",
+    ".bmp",
+    ".ico",
+    ".tiff",
+    ".heic",
+    ".avif",
+  ],
+  documents: [".pdf", ".doc", ".docx", ".txt", ".md", ".rtf", ".odt", ".pages"],
+  spreadsheets: [".xls", ".xlsx", ".csv", ".ods", ".numbers"],
+  presentations: [".ppt", ".pptx", ".odp", ".key"],
+  archives: [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"],
+  code: [
+    ".js",
+    ".ts",
+    ".py",
+    ".java",
+    ".cpp",
+    ".c",
+    ".h",
+    ".css",
+    ".html",
+    ".xml",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".go",
+    ".rs",
+    ".php",
+    ".rb",
+    ".swift",
+  ],
+  data: [
+    ".json",
+    ".xml",
+    ".yaml",
+    ".yml",
+    ".sql",
+    ".db",
+    ".sqlite",
+    ".csv",
+    ".tsv",
+  ],
+  media: [
+    ".mp4",
+    ".avi",
+    ".mkv",
+    ".mov",
+    ".wmv",
+    ".flv",
+    ".mp3",
+    ".wav",
+    ".ogg",
+    ".flac",
+    ".aac",
+  ],
+  other: [".bin"], // fallback category
+};
 
 export type FileType = keyof typeof FILE_TYPE_CATEGORIES;
 
@@ -100,13 +153,13 @@ export async function downloadCommentAttachments(
   owner: string,
   repo: string,
   comments: CommentWithAttachments[],
-  options: DownloadOptions = {}
+  options: DownloadOptions = {},
 ): Promise<Map<string, string>> {
   const {
     maxFileSize = 50 * 1024 * 1024, // 50MB default
     allowedExtensions,
     allowedFileTypes,
-    downloadsDir = "/tmp/github-attachments"
+    downloadsDir = "/tmp/github-attachments",
   } = options;
 
   const urlToPathMap = new Map<string, string>();
@@ -123,17 +176,25 @@ export async function downloadCommentAttachments(
 
     // First pass: find all attachments using single regex
     for (const comment of comments) {
-      const attachmentMatches = [...comment.body.matchAll(GITHUB_ATTACHMENT_REGEX)];
-      const urls = attachmentMatches.map((match) => match[1] as string).filter(Boolean);
+      const attachmentMatches = [
+        ...comment.body.matchAll(GITHUB_ATTACHMENT_REGEX),
+      ];
+      const urls = attachmentMatches
+        .map((match) => match[1] as string)
+        .filter(Boolean);
 
       if (urls.length > 0) {
         commentsWithAttachments.push({ comment, urls });
         const id = getCommentId(comment);
-        console.log(`Found ${urls.length} attachment(s) in ${comment.type} ${id}`);
+        console.log(
+          `Found ${urls.length} attachment(s) in ${comment.type} ${id}`,
+        );
       }
     }
 
-    console.log(`Total comments with attachments: ${commentsWithAttachments.length}`);
+    console.log(
+      `Total comments with attachments: ${commentsWithAttachments.length}`,
+    );
 
     // Process each comment with attachments
     for (const { comment, urls } of commentsWithAttachments) {
@@ -146,22 +207,29 @@ export async function downloadCommentAttachments(
           continue;
         }
 
-        console.log(`Processing ${urls.length} attachment(s) for ${comment.type}`);
+        console.log(
+          `Processing ${urls.length} attachment(s) for ${comment.type}`,
+        );
 
         // Extract signed URLs from HTML
         // Combined regex pattern to preserve order
-        const combinedPattern = /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+|https:\/\/github\.com\/user-attachments\/files\/[^"'>\s]+|https:\/\/user-images\.githubusercontent\.com\/[^"'>\s]+/g;
+        const combinedPattern =
+          /https:\/\/private-user-images\.githubusercontent\.com\/[^"]+\?jwt=[^"]+|https:\/\/github\.com\/user-attachments\/files\/[^"'>\s]+|https:\/\/user-images\.githubusercontent\.com\/[^"'>\s]+/g;
 
         // Find all matches
         const matches = [...bodyHtml.matchAll(combinedPattern)];
-        const allSignedUrls = matches.map(match => match[0]);
+        const allSignedUrls = matches.map((match) => match[0]);
 
         // Remove duplicates while preserving order
-        const signedUrls = [...new Map(allSignedUrls.map(url => [url, url])).values()];
+        const signedUrls = [
+          ...new Map(allSignedUrls.map((url) => [url, url])).values(),
+        ];
 
-        console.log(`Found ${allSignedUrls.length} signed URLs, only ${signedUrls.length} after deduplicating`);
-        console.log(`All Signed urls: ${JSON.stringify(allSignedUrls)}`)
-        console.log(`Final Signed urls: ${JSON.stringify(signedUrls)}`)
+        console.log(
+          `Found ${allSignedUrls.length} signed URLs, only ${signedUrls.length} after deduplicating`,
+        );
+        console.log(`All Signed urls: ${JSON.stringify(allSignedUrls)}`);
+        console.log(`Final Signed urls: ${JSON.stringify(signedUrls)}`);
 
         // Download each attachment - assume signed URLs match original URLs in order
         for (let i = 0; i < Math.min(signedUrls.length, urls.length); i++) {
@@ -179,78 +247,105 @@ export async function downloadCommentAttachments(
           }
 
           // Determine if this is an image based on the signed URL containing "user-images"
-          const isImage = signedUrl.includes('user-images');
+          const isImage = signedUrl.includes("user-images");
 
           // Get file extension - handle images differently due to their signed URL structure
           const extension = getFileExtension(originalUrl, signedUrl, isImage);
           const fileType = categoriseFile(extension);
 
-          console.log(`Detected ${isImage ? 'image' : 'file'}: ${originalUrl} -> extension: ${extension}, type: ${fileType}`);
+          console.log(
+            `Detected ${isImage ? "image" : "file"}: ${originalUrl} -> extension: ${extension}, type: ${fileType}`,
+          );
 
           // Check if file type/extension is allowed
           if (allowedExtensions && !allowedExtensions.includes(extension)) {
-            console.log(`Skipping ${originalUrl} - extension ${extension} not allowed`);
+            console.log(
+              `Skipping ${originalUrl} - extension ${extension} not allowed`,
+            );
             continue;
           }
 
           if (allowedFileTypes && !allowedFileTypes.includes(fileType)) {
-            console.log(`Skipping ${originalUrl} - file type ${fileType} not allowed`);
+            console.log(
+              `Skipping ${originalUrl} - file type ${fileType} not allowed`,
+            );
             continue;
           }
 
-          const filename = generateFilename(originalUrl, i, extension, fileType);
+          const filename = generateFilename(
+            originalUrl,
+            i,
+            extension,
+            fileType,
+          );
           const localPath = path.join(downloadsDir, filename);
 
           try {
-            console.log(`Downloading ${isImage ? 'image' : 'file'} (${fileType}): ${originalUrl}...`);
+            console.log(
+              `Downloading ${isImage ? "image" : "file"} (${fileType}): ${originalUrl}...`,
+            );
 
             const response = await fetch(signedUrl);
 
             if (!response.ok) {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`,
+              );
             }
 
             // Check file size
-            const contentLength = response.headers.get('content-length');
+            const contentLength = response.headers.get("content-length");
             if (contentLength && parseInt(contentLength) > maxFileSize) {
-              throw new Error(`File too large: ${contentLength} bytes (max: ${maxFileSize} bytes)`);
+              throw new Error(
+                `File too large: ${contentLength} bytes (max: ${maxFileSize} bytes)`,
+              );
             }
 
             const arrayBuffer = await response.arrayBuffer();
 
             // Double-check size after download
             if (arrayBuffer.byteLength > maxFileSize) {
-              throw new Error(`File too large: ${arrayBuffer.byteLength} bytes (max: ${maxFileSize} bytes)`);
+              throw new Error(
+                `File too large: ${arrayBuffer.byteLength} bytes (max: ${maxFileSize} bytes)`,
+              );
             }
 
             const buffer = Buffer.from(arrayBuffer);
             await fs.writeFile(localPath, buffer);
 
-            console.log(`✓ Saved: ${localPath} (${arrayBuffer.byteLength} bytes)`);
+            console.log(
+              `✓ Saved: ${localPath} (${arrayBuffer.byteLength} bytes)`,
+            );
 
             urlToPathMap.set(originalUrl, localPath);
 
-            console.log(`✓ Downloaded ${isImage ? 'image' : 'file'} (${fileType}): ${filename}`);
-
+            console.log(
+              `✓ Downloaded ${isImage ? "image" : "file"} (${fileType}): ${filename}`,
+            );
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error(`✗ Failed to download ${originalUrl}: ${errorMessage}`);
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            console.error(
+              `✗ Failed to download ${originalUrl}: ${errorMessage}`,
+            );
           }
         }
       } catch (error) {
         const id = getCommentId(comment);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Failed to process attachments for ${comment.type} ${id}: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(
+          `Failed to process attachments for ${comment.type} ${id}: ${errorMessage}`,
+        );
       }
     }
 
     console.log(`Final URL to path map size: ${urlToPathMap.size}`);
 
-    return urlToPathMap
-
+    return urlToPathMap;
   } catch (error) {
-    console.error('Error in downloadCommentAttachments:', error);
-    return urlToPathMap
+    console.error("Error in downloadCommentAttachments:", error);
+    return urlToPathMap;
   }
 }
 
@@ -258,7 +353,7 @@ async function getCommentHtml(
   rest: Octokit,
   owner: string,
   repo: string,
-  comment: CommentWithAttachments
+  comment: CommentWithAttachments,
 ): Promise<string | undefined> {
   switch (comment.type) {
     case "issue_comment": {
@@ -321,19 +416,23 @@ function getCommentId(comment: CommentWithAttachments): string {
 
 /**
  * Extract file extension from URLs, with special handling for images
- * 
+ *
  * Images have different signed URL structure where the extension is embedded in the path:
  * - Original: https://github.com/user-attachments/assets/416e686f-3fe1-40aa-885d-bb54c4a6cbdb
  * - Signed: https://private-user-images.githubusercontent.com/.../416e686f-3fe1-40aa-885d-bb54c4a6cbdb.jpeg?jwt=...
- * 
+ *
  * For images, we need to check the signed URL for the extension, not just the original URL.
  */
-function getFileExtension(originalUrl: string, signedUrl: string, isImage: boolean): string {
+function getFileExtension(
+  originalUrl: string,
+  signedUrl: string,
+  isImage: boolean,
+): string {
   try {
     // For images, prioritize checking the signed URL since it contains the actual extension
     if (isImage) {
       // Extract extension from signed URL path - look for pattern like "file-id.ext" before query params
-      const signedUrlPath = signedUrl.split('?')[0]; // Remove query parameters
+      const signedUrlPath = signedUrl.split("?")[0]; // Remove query parameters
       const pathMatch = signedUrlPath?.match(/\/([^/]+)\.([a-zA-Z0-9]+)$/);
       if (pathMatch && pathMatch[2]) {
         const ext = `.${pathMatch[2].toLowerCase()}`;
@@ -383,11 +482,16 @@ function categoriseFile(extension: string): FileType {
     }
   }
 
-  return 'other';
+  return "other";
 }
 
-function generateFilename(originalUrl: string, index: number, extension: string, fileType: FileType): string {
+function generateFilename(
+  originalUrl: string,
+  index: number,
+  extension: string,
+  fileType: FileType,
+): string {
   const timestamp = Date.now();
-  const urlHash = originalUrl.split('/').pop()?.substring(0, 8) || 'unknown';
+  const urlHash = originalUrl.split("/").pop()?.substring(0, 8) || "unknown";
   return `${fileType}-${urlHash}-${timestamp}-${index}${extension}`;
 }

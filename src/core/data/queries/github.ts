@@ -4,7 +4,6 @@
  * License: MIT
  */
 
-
 export const PR_QUERY = `
   query($owner: String!, $repo: String!, $number: Int!) {
     repository(owner: $owner, name: $repo) {
