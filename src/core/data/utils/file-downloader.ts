@@ -83,6 +83,8 @@ const FILE_TYPE_CATEGORIES = {
   other: [] as Array<string>, // fallback category - empty since only specific files are supported
 };
 
+const IGNORE_FILE_EXT = ".ignore";
+
 export type FileType = keyof typeof FILE_TYPE_CATEGORIES;
 
 export type DownloadedFile = {
@@ -150,8 +152,6 @@ export async function downloadCommentAttachments(
 ): Promise<Map<string, string>> {
   const {
     maxFileSize = 50 * 1024 * 1024, // 50MB default
-    allowedExtensions,
-    allowedFileTypes,
     downloadsDir = "/tmp/github-attachments",
   } = options;
 
@@ -250,17 +250,10 @@ export async function downloadCommentAttachments(
             `Detected ${isImage ? "image" : "file"}: ${originalUrl} -> extension: ${extension}, type: ${fileType}`,
           );
 
-          // Check if file type/extension is allowed
-          if (allowedExtensions && !allowedExtensions.includes(extension)) {
+          // Ignore file if it is categorised as other
+          if (fileType == "other") {
             console.log(
-              `Skipping ${originalUrl} - extension ${extension} not allowed`,
-            );
-            continue;
-          }
-
-          if (allowedFileTypes && !allowedFileTypes.includes(fileType)) {
-            console.log(
-              `Skipping ${originalUrl} - file type ${fileType} not allowed`,
+              `Skipping ${originalUrl} - extension ${extension} unsupported`,
             );
             continue;
           }
@@ -449,7 +442,7 @@ function getFileExtension(
     const filename = urlParts[urlParts.length - 1];
 
     if (!filename) {
-      return isImage ? ".png" : ".bin"; // Default fallbacks
+      return isImage ? ".png" : IGNORE_FILE_EXT; // Default fallbacks
     }
 
     // Try to extract extension from filename
@@ -459,10 +452,10 @@ function getFileExtension(
     }
 
     // If no extension found, use defaults based on type
-    return isImage ? ".png" : ".bin";
+    return isImage ? ".png" : IGNORE_FILE_EXT;
   } catch (error) {
     console.warn(`Error getting extension for ${originalUrl}:`, error);
-    return isImage ? ".png" : ".bin";
+    return isImage ? ".png" : IGNORE_FILE_EXT;
   }
 }
 
