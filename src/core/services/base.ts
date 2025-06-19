@@ -59,11 +59,11 @@ export async function fetchWithRetry(
                 await new Promise((resolve) => setTimeout(resolve, delay))
 
                 // Reset timeout for next attempt
-                const newTimeoutId = setTimeout(() => {
+                setTimeout(() => {
                     controller.abort()
                     core.warning(`Request timed out after ${timeoutMs} ms`)
                 }, timeoutMs)
-                timeoutId && clearTimeout(timeoutId)
+                if (timeoutId) clearTimeout(timeoutId)
             }
         }
     }

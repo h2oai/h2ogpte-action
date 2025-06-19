@@ -48,7 +48,7 @@ export async function run(): Promise<void> {
             core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`)
 
             // 1. Setup the GitHub secret in h2oGPTe
-            const keyUuid = await createSecretAndToolAssociation(githubToken)
+            keyUuid = await createSecretAndToolAssociation(githubToken)
 
             // 2. Create a Chat Session in h2oGPTe
             const chatSessionId = await h2ogpte.createChatSession()

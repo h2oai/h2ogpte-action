@@ -16,7 +16,7 @@
 import fs from "fs/promises";
 import path from "path";
 import type { Octokit } from "@octokit/rest";
-import { getGithubServerUrl, getGithubToken } from "../../../utils";
+import { getGithubServerUrl } from "../../../utils";
 
 // Single regex to match any GitHub user-attachments URL (both ![](url) and [](url) formats)
 const GITHUB_ATTACHMENT_REGEX = new RegExp(
@@ -305,6 +305,7 @@ async function getCommentHtml(
         pull_number: parseInt(comment.pullNumber),
         mediaType: { format: "full+json" },
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (response.data as any).body_html;
     }
   }
@@ -333,7 +334,7 @@ function getFileExtension(originalUrl: string, signedUrl: string, isImage: boole
     if (isImage) {
       // Extract extension from signed URL path - look for pattern like "file-id.ext" before query params
       const signedUrlPath = signedUrl.split('?')[0]; // Remove query parameters
-      const pathMatch = signedUrlPath?.match(/\/([^\/]+)\.([a-zA-Z0-9]+)$/);
+      const pathMatch = signedUrlPath?.match(/\/([^/]+)\.([a-zA-Z0-9]+)$/);
       if (pathMatch && pathMatch[2]) {
         const ext = `.${pathMatch[2].toLowerCase()}`;
         console.log(`Extracted extension from signed URL: ${ext}`);
