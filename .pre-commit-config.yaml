@@ -30,3 +30,11 @@ repos:
         language: system
         files: \.(ts|tsx)$
         pass_filenames: false
+
+      - id: unit-tests
+        name: Unit Tests
+        entry: bun run test
+        language: system
+        pass_filenames: false
+        verbose: false
+        always_run: true
