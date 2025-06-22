@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+
+  - repo: local
+    hooks:
+      - id: eslint-fix
+        name: ESLint (with auto-fix)
+        entry: bun run lint:fix
+        language: system
+        files: \.(ts|js)$
+        pass_filenames: false
+
+      - id: prettier-fix
+        name: Prettier (auto-format)
+        entry: bun run format
+        language: system
+        files: \.(ts|js|json|md|yaml|yml)$
+        pass_filenames: false
+
+      - id: typescript-check
+        name: TypeScript Type Check
+        entry: bun run type-check
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+
+      - id: unit-tests
+        name: Unit Tests
+        entry: bun run test
+        language: system
+        pass_filenames: false
+        verbose: false
+        always_run: true
