@@ -27,7 +27,7 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
-  const collectionId: string | null = null;
+  let collectionId: string | null = null;
 
   try {
     // Fetch context
@@ -57,11 +57,11 @@ export async function run(): Promise<void> {
 
     core.debug(JSON.stringify(githubData));
 
-    const collectionId = await h2ogpte.createCollection();
+    collectionId = await h2ogpte.createCollection();
     githubData.attachmentUrlMap.forEach(async (localPath) => {
       const uploadResult = await processFileWithJobMonitoring(
         localPath,
-        collectionId,
+        collectionId!,
       );
       if (!uploadResult.success) {
         core.error(
