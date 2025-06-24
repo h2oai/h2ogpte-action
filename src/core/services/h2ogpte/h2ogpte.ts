@@ -127,7 +127,7 @@ export async function createToolAssociation(
  * Creates chat session with retry mechanism
  */
 export async function createChatSession(
-  collectionId?: string,
+  collectionId: string | null,
   maxRetries: number = 3,
   retryDelay: number = 1000,
 ): Promise<types.ChatSession> {
