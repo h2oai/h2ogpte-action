@@ -53,6 +53,10 @@ export async function run(): Promise<void> {
       triggerUsername: context.actor,
     });
 
+    core.debug("Github Data:");
+
+    core.debug(JSON.stringify(githubData));
+
     core.debug("All events in order:");
 
     core.debug(JSON.stringify(getAllEventsInOrder(githubData)));
