@@ -69,8 +69,6 @@ export async function run(): Promise<void> {
         );
       }
     });
-    // TODO: Is the full file path uploaded or just the file name? - A: just the file name
-    // we need to also delete the collection after the action is completed
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
