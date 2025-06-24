@@ -78,7 +78,7 @@ export async function run(): Promise<void> {
       keyUuid = await createSecretAndToolAssociation(githubToken);
 
       // 2. Create a Chat Session in h2oGPTe
-      const chatSessionId = await h2ogpte.createChatSession();
+      const chatSessionId = await h2ogpte.createChatSession(collectionId);
       const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
 
       // 3. Create the initial review reply comment
