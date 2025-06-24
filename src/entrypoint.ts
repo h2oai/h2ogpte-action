@@ -13,6 +13,7 @@ import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { createAgentInstructionPrompt } from "./prompts";
 import {
   checkWritePermissions,
+  cleanup,
   createSecretAndToolAssociation,
   extractFinalAgentResponse,
   getGithubToken,
@@ -26,6 +27,7 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
+  const collectionId: string | null = null;
 
   try {
     // Fetch context
@@ -125,16 +127,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    // Always try to clean up the agent key
-    if (keyUuid) {
-      try {
-        await h2ogpte.deleteAgentKey(keyUuid);
-      } catch (error) {
-        core.warning(
-          `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
+    await cleanup(keyUuid, collectionId);
   }
 }
 

@@ -272,6 +272,13 @@ export async function createCollection(
     { maxRetries, retryDelay },
   );
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to create collection: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
   const data = (await response.json()) as types.Collection;
 
   console.log(
@@ -311,7 +318,7 @@ export async function uploadFile(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to upload file: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
   return (await response.json()) as types.UploadResponse;
@@ -360,7 +367,7 @@ export async function createIngestionJob(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to create ingestion job: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
   return (await response.json()) as types.JobDetails;
@@ -389,8 +396,38 @@ export async function getJobDetails(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to get job details: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
   return (await response.json()) as types.JobDetails;
+}
+
+export async function deleteCollection(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+  timeout: number = 300,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}?timeout=${timeout}`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
 }
