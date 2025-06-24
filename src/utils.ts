@@ -290,6 +290,8 @@ export async function cleanup(
         `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  } else {
+    console.log(`No agent key to clean up`);
   }
   if (collectionId) {
     try {
@@ -299,5 +301,7 @@ export async function cleanup(
         `Failed to clean up collection: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
+  } else {
+    console.log(`No collection to clean up`);
   }
 }

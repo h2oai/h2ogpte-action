@@ -430,4 +430,7 @@ export async function deleteCollection(
       `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
+  console.log(
+    `${response.status} - Successfully deleted collection: ${collectionId}`,
+  );
 }
