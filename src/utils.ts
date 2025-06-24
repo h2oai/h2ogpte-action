@@ -7,13 +7,10 @@ import {
   createIngestionJob,
   createToolAssociation,
   getAgentKeyId,
-  getJobStatus,
+  getJobDetails,
   uploadFile,
 } from "./core/services/h2ogpte/h2ogpte";
-import type {
-  JobStatusResponse,
-  UploadResponse,
-} from "./core/services/h2ogpte/types";
+import type { JobDetails, UploadResponse } from "./core/services/h2ogpte/types";
 
 /**
  * Waits for a job to complete, polling at intervals
@@ -24,16 +21,15 @@ export async function waitForJobCompletion(
   timeoutMs: number = 300000,
   maxRetries: number = 3,
   retryDelay: number = 1000,
-): Promise<JobStatusResponse> {
+): Promise<JobDetails> {
   const startTime = Date.now();
   while (Date.now() - startTime < timeoutMs) {
-    const jobStatusArray = await getJobStatus(jobId, maxRetries, retryDelay);
-    const jobStatus = jobStatusArray[0];
+    const jobStatus = await getJobDetails(jobId, maxRetries, retryDelay);
     if (!jobStatus) {
-      throw new Error("Job status not found");
+      throw new Error(`Job status not found for jobId '${jobId}'`);
     }
     if (jobStatus.overall_status === "completed") {
-      return jobStatusArray;
+      return jobStatus;
     }
     if (jobStatus.overall_status === "failed") {
       throw new Error(
@@ -233,7 +229,7 @@ export async function processFileWithJobMonitoring(
   } = {},
 ): Promise<{
   upload?: UploadResponse;
-  job?: JobStatusResponse;
+  job?: JobDetails;
   collectionId: string;
   success: boolean;
   error?: string;

@@ -332,7 +332,7 @@ export async function createIngestionJob(
     retryDelay?: number;
     ingest_mode?: string;
   } = {},
-): Promise<types.IngestionJobResponse> {
+): Promise<types.JobDetails> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const params = new URLSearchParams({
     collection_id: collectionId,
@@ -363,17 +363,17 @@ export async function createIngestionJob(
       `API Error: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  return (await response.json()) as types.IngestionJobResponse;
+  return (await response.json()) as types.JobDetails;
 }
 
 /**
  * Gets the status of a job by jobId
  */
-export async function getJobStatus(
+export async function getJobDetails(
   jobId: string,
   maxRetries: number = 3,
   retryDelay: number = 1000,
-): Promise<types.JobStatusResponse> {
+): Promise<types.JobDetails> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
     method: "GET",
@@ -392,5 +392,5 @@ export async function getJobStatus(
       `API Error: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  return (await response.json()) as types.JobStatusResponse;
+  return (await response.json()) as types.JobDetails;
 }
