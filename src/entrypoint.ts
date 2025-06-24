@@ -17,6 +17,7 @@ import {
   updateReviewComment,
 } from "./core/services/github/api";
 import { fetchGitHubData } from "./core/data/fetcher";
+import { getAllEventsInOrder } from "./core/data/formatter";
 
 /**
  * The main function for the action.
@@ -52,7 +53,9 @@ export async function run(): Promise<void> {
       triggerUsername: context.actor,
     });
 
-    core.debug(JSON.stringify(githubData));
+    core.debug("All events in order:");
+
+    core.debug(JSON.stringify(getAllEventsInOrder(githubData)));
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
