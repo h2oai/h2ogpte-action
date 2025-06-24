@@ -272,6 +272,13 @@ export async function createCollection(
     { maxRetries, retryDelay },
   );
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to create collection: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
   const data = (await response.json()) as types.Collection;
 
   console.log(
@@ -311,7 +318,7 @@ export async function uploadFile(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to upload file: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
   return (await response.json()) as types.UploadResponse;
@@ -332,7 +339,7 @@ export async function createIngestionJob(
     retryDelay?: number;
     ingest_mode?: string;
   } = {},
-): Promise<types.IngestionJobResponse> {
+): Promise<types.JobDetails> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const params = new URLSearchParams({
     collection_id: collectionId,
@@ -360,20 +367,20 @@ export async function createIngestionJob(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to create ingestion job: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  return (await response.json()) as types.IngestionJobResponse;
+  return (await response.json()) as types.JobDetails;
 }
 
 /**
  * Gets the status of a job by jobId
  */
-export async function getJobStatus(
+export async function getJobDetails(
   jobId: string,
   maxRetries: number = 3,
   retryDelay: number = 1000,
-): Promise<types.JobStatusResponse> {
+): Promise<types.JobDetails> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
     method: "GET",
@@ -389,8 +396,41 @@ export async function getJobStatus(
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to get job details: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  return (await response.json()) as types.JobStatusResponse;
+  return (await response.json()) as types.JobDetails;
+}
+
+export async function deleteCollection(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+  timeout: number = 300,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}?timeout=${timeout}`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  console.log(
+    `${response.status} - Successfully deleted collection: ${collectionId}`,
+  );
 }

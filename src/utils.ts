@@ -2,18 +2,16 @@ import { Octokit } from "@octokit/rest";
 import { basename } from "path";
 import { AGENT_GITHUB_ENV_VAR } from "./constants";
 import type { ParsedGitHubContext } from "./core/services/github/types";
+import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   createAgentKey,
   createIngestionJob,
   createToolAssociation,
   getAgentKeyId,
-  getJobStatus,
+  getJobDetails,
   uploadFile,
 } from "./core/services/h2ogpte/h2ogpte";
-import type {
-  JobStatusResponse,
-  UploadResponse,
-} from "./core/services/h2ogpte/types";
+import type { JobDetails, UploadResponse } from "./core/services/h2ogpte/types";
 
 /**
  * Waits for a job to complete, polling at intervals
@@ -24,16 +22,15 @@ export async function waitForJobCompletion(
   timeoutMs: number = 300000,
   maxRetries: number = 3,
   retryDelay: number = 1000,
-): Promise<JobStatusResponse> {
+): Promise<JobDetails> {
   const startTime = Date.now();
   while (Date.now() - startTime < timeoutMs) {
-    const jobStatusArray = await getJobStatus(jobId, maxRetries, retryDelay);
-    const jobStatus = jobStatusArray[0];
+    const jobStatus = await getJobDetails(jobId, maxRetries, retryDelay);
     if (!jobStatus) {
-      throw new Error("Job status not found");
+      throw new Error(`Job status not found for jobId '${jobId}'`);
     }
     if (jobStatus.overall_status === "completed") {
-      return jobStatusArray;
+      return jobStatus;
     }
     if (jobStatus.overall_status === "failed") {
       throw new Error(
@@ -216,10 +213,6 @@ export async function createSecretAndToolAssociation(
   return keyUuid;
 }
 
-/**
- * Complete workflow: Upload file and process with job monitoring
- * (Collection creation is already implemented, so expects collectionId as input)
- */
 export async function processFileWithJobMonitoring(
   filePath: string,
   collectionId: string,
@@ -236,65 +229,79 @@ export async function processFileWithJobMonitoring(
     retryDelay?: number;
   } = {},
 ): Promise<{
-  upload: UploadResponse;
-  job: JobStatusResponse;
+  upload?: UploadResponse;
+  job?: JobDetails;
   collectionId: string;
   success: boolean;
+  error?: string;
 }> {
   const maxRetries = options.maxRetries ?? 3;
   const retryDelay = options.retryDelay ?? 1000;
-  // Step 1: Upload file
-  const upload = await uploadFile(filePath, maxRetries, retryDelay);
-  // Step 2: Create ingestion job
-  const job = await createIngestionJob(upload.id, collectionId, {
-    metadata: {
-      filename: basename(filePath),
-      timestamp: new Date().toISOString(),
-      ...options.metadata,
-    },
-    timeout: options.timeout || 600,
-    gen_doc_summaries: options.gen_doc_summaries,
-    gen_doc_questions: options.gen_doc_questions,
-    maxRetries,
-    retryDelay,
-  });
-  // Step 3: Monitor job completion
-  const completedJob = await waitForJobCompletion(
-    job.id,
-    options.checkIntervalMs || 2000,
-    options.timeoutMs || 300000,
-    maxRetries,
-    retryDelay,
-  );
-  return {
-    upload,
-    job: completedJob,
-    collectionId,
-    success: true,
-  };
+  try {
+    // Step 1: Upload file
+    const upload = await uploadFile(filePath, maxRetries, retryDelay);
+    // Step 2: Create ingestion job
+    const job = await createIngestionJob(upload.id, collectionId, {
+      metadata: {
+        filename: basename(filePath),
+        timestamp: new Date().toISOString(),
+        ...options.metadata,
+      },
+      timeout: options.timeout || 600,
+      gen_doc_summaries: options.gen_doc_summaries,
+      gen_doc_questions: options.gen_doc_questions,
+      maxRetries,
+      retryDelay,
+    });
+    // Step 3: Monitor job completion
+    const completedJob = await waitForJobCompletion(
+      job.id,
+      options.checkIntervalMs || 2000,
+      options.timeoutMs || 300000,
+      maxRetries,
+      retryDelay,
+    );
+    return {
+      upload,
+      job: completedJob,
+      collectionId,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      upload: undefined,
+      job: undefined,
+      collectionId,
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
-/**
- * Upload to existing collection with job monitoring
- */
-export async function uploadToExistingCollectionWithJob(
-  filePath: string,
-  collectionId: string,
-  options: {
-    metadata?: Record<string, unknown>;
-    timeout?: number;
-    checkIntervalMs?: number;
-    timeoutMs?: number;
-    gen_doc_summaries?: boolean;
-    gen_doc_questions?: boolean;
-    maxRetries?: number;
-    retryDelay?: number;
-  } = {},
-): Promise<{
-  upload: UploadResponse;
-  job: JobStatusResponse;
-  collectionId: string;
-  success: boolean;
-}> {
-  return processFileWithJobMonitoring(filePath, collectionId, options);
+export async function cleanup(
+  keyUuid: string | null,
+  collectionId: string | null,
+): Promise<void> {
+  if (keyUuid) {
+    try {
+      await h2ogpte.deleteAgentKey(keyUuid);
+    } catch (error) {
+      console.warn(
+        `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  } else {
+    console.log(`No agent key to clean up`);
+  }
+  if (collectionId) {
+    try {
+      await h2ogpte.deleteCollection(collectionId);
+    } catch (error) {
+      console.warn(
+        `Failed to clean up collection: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  } else {
+    console.log(`No collection to clean up`);
+  }
 }

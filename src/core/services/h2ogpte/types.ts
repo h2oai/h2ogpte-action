@@ -94,7 +94,3 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
-
-export type IngestionJobResponse = JobDetails;
-
-export type JobStatusResponse = JobDetails[];

@@ -13,9 +13,11 @@ import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { createAgentInstructionPrompt } from "./prompts";
 import {
   checkWritePermissions,
+  cleanup,
   createSecretAndToolAssociation,
   extractFinalAgentResponse,
   getGithubToken,
+  processFileWithJobMonitoring,
 } from "./utils";
 
 /**
@@ -25,6 +27,7 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
+  let collectionId: string | null = null;
 
   try {
     // Fetch context
@@ -53,6 +56,19 @@ export async function run(): Promise<void> {
     });
 
     core.debug(JSON.stringify(githubData));
+
+    collectionId = await h2ogpte.createCollection();
+    githubData.attachmentUrlMap.forEach(async (localPath) => {
+      const uploadResult = await processFileWithJobMonitoring(
+        localPath,
+        collectionId!,
+      );
+      if (!uploadResult.success) {
+        core.error(
+          `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
+        );
+      }
+    });
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
@@ -109,16 +125,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    // Always try to clean up the agent key
-    if (keyUuid) {
-      try {
-        await h2ogpte.deleteAgentKey(keyUuid);
-      } catch (error) {
-        core.warning(
-          `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
+    await cleanup(keyUuid, collectionId);
   }
 }
 
