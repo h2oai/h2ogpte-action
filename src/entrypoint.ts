@@ -1,22 +1,22 @@
 import * as core from "@actions/core";
+import {
+  isPullRequestReviewCommentEvent,
+  parseGitHubContext,
+} from "./core/data/context";
+import { fetchGitHubData } from "./core/data/fetcher";
+import {
+  createReplyForReviewComment,
+  updateReviewComment,
+} from "./core/services/github/api";
+import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
+import { createAgentInstructionPrompt } from "./prompts";
 import {
   checkWritePermissions,
   createSecretAndToolAssociation,
   extractFinalAgentResponse,
   getGithubToken,
 } from "./utils";
-import { createAgentInstructionPrompt } from "./prompts";
-import { createOctokits } from "./core/services/github/octokits";
-import {
-  isPullRequestReviewCommentEvent,
-  parseGitHubContext,
-} from "./core/data/context";
-import {
-  createReplyForReviewComment,
-  updateReviewComment,
-} from "./core/services/github/api";
-import { fetchGitHubData } from "./core/data/fetcher";
 
 /**
  * The main function for the action.
