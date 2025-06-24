@@ -56,14 +56,14 @@ export async function run(): Promise<void> {
     core.debug(JSON.stringify(githubData));
 
     const collectionId = await h2ogpte.createCollection();
-    githubData.attachmentUrlMap.forEach(async (_, filePath) => {
+    githubData.attachmentUrlMap.forEach(async (localPath) => {
       const uploadResult = await processFileWithJobMonitoring(
-        filePath,
+        localPath,
         collectionId,
       );
       if (!uploadResult.success) {
         core.error(
-          `Failed to upload file to h2oGPTe: ${filePath} with error: ${uploadResult.error}`,
+          `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
         );
       }
     });
