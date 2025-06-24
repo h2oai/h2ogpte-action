@@ -16,6 +16,7 @@ import {
   createSecretAndToolAssociation,
   extractFinalAgentResponse,
   getGithubToken,
+  processFileWithJobMonitoring,
 } from "./utils";
 
 /**
@@ -53,6 +54,21 @@ export async function run(): Promise<void> {
     });
 
     core.debug(JSON.stringify(githubData));
+
+    const collectionId = await h2ogpte.createCollection();
+    githubData.attachmentUrlMap.forEach(async (_, filePath) => {
+      const uploadResult = await processFileWithJobMonitoring(
+        filePath,
+        collectionId,
+      );
+      if (!uploadResult.success) {
+        core.error(
+          `Failed to upload file to h2oGPTe: ${filePath} with error: ${uploadResult.error}`,
+        );
+      }
+    });
+    // TODO: Is the full file path uploaded or just the file name?
+    // we need to also delete the collection after the action is completed
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {

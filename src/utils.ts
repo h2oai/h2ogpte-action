@@ -216,10 +216,6 @@ export async function createSecretAndToolAssociation(
   return keyUuid;
 }
 
-/**
- * Complete workflow: Upload file and process with job monitoring
- * (Collection creation is already implemented, so expects collectionId as input)
- */
 export async function processFileWithJobMonitoring(
   filePath: string,
   collectionId: string,
@@ -236,65 +232,51 @@ export async function processFileWithJobMonitoring(
     retryDelay?: number;
   } = {},
 ): Promise<{
-  upload: UploadResponse;
-  job: JobStatusResponse;
+  upload?: UploadResponse;
+  job?: JobStatusResponse;
   collectionId: string;
   success: boolean;
+  error?: string;
 }> {
   const maxRetries = options.maxRetries ?? 3;
   const retryDelay = options.retryDelay ?? 1000;
-  // Step 1: Upload file
-  const upload = await uploadFile(filePath, maxRetries, retryDelay);
-  // Step 2: Create ingestion job
-  const job = await createIngestionJob(upload.id, collectionId, {
-    metadata: {
-      filename: basename(filePath),
-      timestamp: new Date().toISOString(),
-      ...options.metadata,
-    },
-    timeout: options.timeout || 600,
-    gen_doc_summaries: options.gen_doc_summaries,
-    gen_doc_questions: options.gen_doc_questions,
-    maxRetries,
-    retryDelay,
-  });
-  // Step 3: Monitor job completion
-  const completedJob = await waitForJobCompletion(
-    job.id,
-    options.checkIntervalMs || 2000,
-    options.timeoutMs || 300000,
-    maxRetries,
-    retryDelay,
-  );
-  return {
-    upload,
-    job: completedJob,
-    collectionId,
-    success: true,
-  };
-}
-
-/**
- * Upload to existing collection with job monitoring
- */
-export async function uploadToExistingCollectionWithJob(
-  filePath: string,
-  collectionId: string,
-  options: {
-    metadata?: Record<string, unknown>;
-    timeout?: number;
-    checkIntervalMs?: number;
-    timeoutMs?: number;
-    gen_doc_summaries?: boolean;
-    gen_doc_questions?: boolean;
-    maxRetries?: number;
-    retryDelay?: number;
-  } = {},
-): Promise<{
-  upload: UploadResponse;
-  job: JobStatusResponse;
-  collectionId: string;
-  success: boolean;
-}> {
-  return processFileWithJobMonitoring(filePath, collectionId, options);
+  try {
+    // Step 1: Upload file
+    const upload = await uploadFile(filePath, maxRetries, retryDelay);
+    // Step 2: Create ingestion job
+    const job = await createIngestionJob(upload.id, collectionId, {
+      metadata: {
+        filename: basename(filePath),
+        timestamp: new Date().toISOString(),
+        ...options.metadata,
+      },
+      timeout: options.timeout || 600,
+      gen_doc_summaries: options.gen_doc_summaries,
+      gen_doc_questions: options.gen_doc_questions,
+      maxRetries,
+      retryDelay,
+    });
+    // Step 3: Monitor job completion
+    const completedJob = await waitForJobCompletion(
+      job.id,
+      options.checkIntervalMs || 2000,
+      options.timeoutMs || 300000,
+      maxRetries,
+      retryDelay,
+    );
+    return {
+      upload,
+      job: completedJob,
+      collectionId,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      upload: undefined,
+      job: undefined,
+      collectionId,
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
