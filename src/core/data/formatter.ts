@@ -80,7 +80,8 @@ export function getAllEventsInOrder(githubData: FetchDataResult) {
     );
   });
 
-  return events.map(({ title, body, createdAt }) => ({
+  return events.map(({ type, title, body, createdAt }) => ({
+    type,
     title,
     body,
     createdAt,
