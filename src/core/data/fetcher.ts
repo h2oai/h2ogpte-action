@@ -212,6 +212,10 @@ export async function fetchGitHubData({
     );
   }
 
+  // TODO: Remove this after checking
+  console.log("Image URL Map in fetcher:");
+  console.log(JSON.stringify(urlToPathMap));
+
   return {
     contextData,
     comments,
