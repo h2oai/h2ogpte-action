@@ -1,5 +1,4 @@
 import * as types from "./h2ogpte/types";
-import * as core from "@actions/core";
 
 /**
  * Generic fetch function with retry, exponential backoff, and timeout support
@@ -18,7 +17,7 @@ export async function fetchWithRetry(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-    core.warning(`Request timed out after ${timeoutMs} ms`);
+    console.warn(`Request timed out after ${timeoutMs} ms`);
   }, timeoutMs);
 
   // Merge the abort signal with existing options
@@ -31,7 +30,7 @@ export async function fetchWithRetry(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      core.debug(`Attempt ${attempt}/${maxRetries} for ${url}`);
+      console.log(`Attempt ${attempt}/${maxRetries} for ${url}`);
 
       const response = await fetch(url, fetchOptions);
       clearTimeout(timeoutId);
@@ -50,20 +49,20 @@ export async function fetchWithRetry(
       clearTimeout(timeoutId);
 
       lastError = error instanceof Error ? error : new Error(String(error));
-      core.warning(
+      console.warn(
         `Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`,
       );
 
       if (attempt < maxRetries) {
         // Exponential backoff
         const delay = retryDelay * Math.pow(2, attempt - 1);
-        core.debug(`Retrying after ${delay}ms`);
+        console.log(`Retrying after ${delay}ms`);
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Reset timeout for next attempt
         setTimeout(() => {
           controller.abort();
-          core.warning(`Request timed out after ${timeoutMs} ms`);
+          console.warn(`Request timed out after ${timeoutMs} ms`);
         }, timeoutMs);
         if (timeoutId) clearTimeout(timeoutId);
       }
@@ -72,6 +71,5 @@ export async function fetchWithRetry(
 
   // If we've exhausted all retries
   const errorMessage = `Failed to fetch ${url} after ${maxRetries} attempts: ${lastError?.message}`;
-  core.setFailed(errorMessage);
   throw new Error(errorMessage);
 }
