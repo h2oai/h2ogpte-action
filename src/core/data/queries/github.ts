@@ -24,6 +24,7 @@ export const PR_QUERY = `
           totalCount
           nodes {
             commit {
+              committedDate
               oid
               message
               author {
