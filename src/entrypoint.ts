@@ -19,7 +19,6 @@ import {
   getGithubToken,
   processFileWithJobMonitoring,
 } from "./utils";
-import { getAllEventsInOrder } from "./core/data/formatter";
 
 /**
  * The main function for the action.
@@ -58,16 +57,6 @@ export async function run(): Promise<void> {
 
     core.debug("Github Data:");
     core.debug(JSON.stringify(githubData));
-
-    const eventsInOrder = getAllEventsInOrder(githubData);
-
-    core.debug("Events in order:");
-    core.debug(JSON.stringify(eventsInOrder));
-
-    core.debug("Image URL Map:");
-    githubData.attachmentUrlMap.forEach((value, key) => {
-      core.debug(`${key}: ${value}`);
-    });
 
     // This should be refactored later
     try {
@@ -111,7 +100,7 @@ export async function run(): Promise<void> {
       // 4. Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
         context,
-        eventsInOrder,
+        githubData,
       );
 
       // 5. Query h2oGPTe for Agent completion

@@ -1,23 +1,16 @@
 import type { FetchDataResult } from "../data/fetcher";
-import type { GitHubPullRequest } from "../data/queries/types";
+import type { GitHubPullRequest } from "./queries/types";
 
-function isPullRequest(
-  contextData: FetchDataResult["contextData"],
-): contextData is GitHubPullRequest {
-  return (contextData as GitHubPullRequest).commits !== undefined;
-}
-
-export function getAllEventsInOrder(githubData: FetchDataResult) {
+export function getAllEventsInOrder(
+  githubData: FetchDataResult,
+  isPR: boolean,
+) {
   const events = [];
 
-  // 1. Commits (only for PRs)
-  if (
-    githubData.contextData &&
-    isPullRequest(githubData.contextData) &&
-    githubData.contextData.commits &&
-    githubData.contextData.commits.nodes
-  ) {
-    for (const node of githubData.contextData.commits.nodes) {
+  if (isPR) {
+    const data = githubData.contextData as GitHubPullRequest;
+
+    for (const node of data.commits.nodes) {
       const commit = node.commit;
       events.push({
         type: "commit",
@@ -26,11 +19,29 @@ export function getAllEventsInOrder(githubData: FetchDataResult) {
         createdAt: commit.committedDate,
       });
     }
+
+    for (const review of data.reviews.nodes) {
+      events.push({
+        type: "review",
+        title: data.title || "",
+        body: review.body,
+        createdAt: review.submittedAt,
+      });
+      if (review.comments && review.comments.nodes) {
+        for (const reviewComment of review.comments.nodes) {
+          events.push({
+            type: "review_comment",
+            title: data.title || "",
+            body: reviewComment.body,
+            createdAt: reviewComment.createdAt,
+          });
+        }
+      }
+    }
   }
 
   // 2. Comments (for both PRs and Issues)
   if (
-    githubData.contextData &&
     githubData.contextData.comments &&
     githubData.contextData.comments.nodes
   ) {
@@ -41,33 +52,6 @@ export function getAllEventsInOrder(githubData: FetchDataResult) {
         body: comment.body,
         createdAt: comment.createdAt,
       });
-    }
-  }
-
-  // 3. Reviews (only for PRs)
-  if (
-    githubData.contextData &&
-    isPullRequest(githubData.contextData) &&
-    githubData.contextData.reviews &&
-    githubData.contextData.reviews.nodes
-  ) {
-    for (const review of githubData.contextData.reviews.nodes) {
-      events.push({
-        type: "review",
-        title: githubData.contextData.title || "",
-        body: review.body,
-        createdAt: review.submittedAt,
-      });
-      if (review.comments && review.comments.nodes) {
-        for (const reviewComment of review.comments.nodes) {
-          events.push({
-            type: "review_comment",
-            title: githubData.contextData.title || "",
-            body: reviewComment.body,
-            createdAt: reviewComment.createdAt,
-          });
-        }
-      }
     }
   }
 
@@ -86,4 +70,20 @@ export function getAllEventsInOrder(githubData: FetchDataResult) {
     body,
     createdAt,
   }));
+}
+
+export function replaceAttachmentUrlsWithLocalPaths(
+  text: string,
+  attachmentUrlMap: Map<string, string>,
+): string {
+  let result = text;
+
+  // Replace each attachment URL with just the filename from its corresponding local path
+  attachmentUrlMap.forEach((localPath, attachmentUrl) => {
+    // Extract just the filename from the local path
+    const filename = localPath.split("/").pop() || localPath;
+    result = result.replace(new RegExp(attachmentUrl, "g"), filename);
+  });
+
+  return result;
 }
