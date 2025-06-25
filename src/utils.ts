@@ -2,7 +2,7 @@ import { Octokit } from "@octokit/rest";
 import { basename } from "path";
 import { AGENT_GITHUB_ENV_VAR } from "./constants";
 import type { ParsedGitHubContext } from "./core/services/github/types";
-import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
+// import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   createAgentKey,
   createIngestionJob,
@@ -282,26 +282,29 @@ export async function cleanup(
   keyUuid: string | null,
   collectionId: string | null,
 ): Promise<void> {
-  if (keyUuid) {
-    try {
-      await h2ogpte.deleteAgentKey(keyUuid);
-    } catch (error) {
-      console.warn(
-        `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  } else {
-    console.log(`No agent key to clean up`);
-  }
-  if (collectionId) {
-    try {
-      await h2ogpte.deleteCollection(collectionId);
-    } catch (error) {
-      console.warn(
-        `Failed to clean up collection: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  } else {
-    console.log(`No collection to clean up`);
-  }
+  console.log("Cleaning up...");
+  console.log("Key UUID:", keyUuid);
+  console.log("Collection ID:", collectionId);
+  // if (keyUuid) {
+  //   try {
+  //     await h2ogpte.deleteAgentKey(keyUuid);
+  //   } catch (error) {
+  //     console.warn(
+  //       `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
+  //     );
+  //   }
+  // } else {
+  //   console.log(`No agent key to clean up`);
+  // }
+  // if (collectionId) {
+  //   try {
+  //     await h2ogpte.deleteCollection(collectionId);
+  //   } catch (error) {
+  //     console.warn(
+  //       `Failed to clean up collection: ${error instanceof Error ? error.message : String(error)}`,
+  //     );
+  //   }
+  // } else {
+  //   console.log(`No collection to clean up`);
+  // }
 }
