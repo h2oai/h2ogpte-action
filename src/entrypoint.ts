@@ -54,14 +54,15 @@ export async function run(): Promise<void> {
     });
 
     core.debug("Github Data:");
-
     core.debug(JSON.stringify(githubData));
 
     const eventsInOrder = getAllEventsInOrder(githubData);
 
     core.debug("Events in order:");
-
     core.debug(JSON.stringify(eventsInOrder));
+
+    core.debug("Image URL Map:");
+    core.debug(JSON.stringify(githubData.attachmentUrlMap));
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
