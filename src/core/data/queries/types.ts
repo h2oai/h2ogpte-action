@@ -24,6 +24,7 @@ export type GitHubReviewComment = GitHubComment & {
 };
 
 export type GitHubCommit = {
+  committedDate: string;
   oid: string;
   message: string;
   author: {

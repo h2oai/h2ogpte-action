@@ -23,7 +23,7 @@ export function getAllEventsInOrder(githubData: FetchDataResult) {
         type: "commit",
         title: commit.message,
         body: commit.message,
-        createdAt: null,
+        createdAt: commit.committedDate,
       });
     }
   }
