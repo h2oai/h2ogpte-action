@@ -55,6 +55,7 @@ export async function run(): Promise<void> {
       triggerUsername: context.actor,
     });
 
+    core.debug("Github Data:");
     core.debug(JSON.stringify(githubData));
 
     // This should be refactored later
@@ -97,7 +98,10 @@ export async function run(): Promise<void> {
       );
 
       // 4. Create the agent instruction prompt
-      const instructionPrompt = createAgentInstructionPrompt(context);
+      const instructionPrompt = createAgentInstructionPrompt(
+        context,
+        githubData,
+      );
 
       // 5. Query h2oGPTe for Agent completion
       const chatCompletion = await h2ogpte.requestAgentCompletion(
