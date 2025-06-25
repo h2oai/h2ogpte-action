@@ -174,6 +174,72 @@ describe("downloadCommentAttachments", () => {
     );
   });
 
+  test("should detect and download HTML style image tags with attributes", async () => {
+    const mockOctokit = createMockOctokit();
+    const imageUrl =
+      "https://github.com/user-attachments/assets/test-image.png";
+    const signedUrl =
+      "https://private-user-images.githubusercontent.com/test.png?jwt=token";
+
+    // Mock octokit response with HTML img tag containing attributes
+    // @ts-expect-error Mock implementation doesn't match full type signature
+    mockOctokit.rest.issues.getComment = jest.fn().mockResolvedValue({
+      data: {
+        body_html: `<img width="475" alt="Screenshot 2025-06-23 at 4 04 31 PM" src="${signedUrl}" />`,
+      },
+    });
+
+    // Mock fetch for image download
+    const mockArrayBuffer = new ArrayBuffer(8);
+    fetchSpy = spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => mockArrayBuffer,
+      headers: new Headers({ "content-length": "8" }),
+    } as Response);
+
+    const comments: CommentWithAttachments[] = [
+      {
+        type: "issue_comment",
+        id: "456",
+        body: `Here's an image: <img width="475" alt="Screenshot 2025-06-23 at 4 04 31 PM" src="${imageUrl}" />`,
+      },
+    ];
+
+    const result = await downloadCommentAttachments(
+      mockOctokit.rest,
+      "owner",
+      "repo",
+      comments,
+    );
+
+    expect(mockOctokit.rest.issues.getComment).toHaveBeenCalledWith({
+      owner: "owner",
+      repo: "repo",
+      comment_id: 456,
+      mediaType: { format: "full+json" },
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(signedUrl);
+    expect(fsWriteFileSpy).toHaveBeenCalledWith(
+      "/tmp/github-attachments/images-test-ima-1704067200000-0.png",
+      Buffer.from(mockArrayBuffer),
+    );
+
+    expect(result.size).toBe(1);
+    expect(result.get(imageUrl)).toBe(
+      "/tmp/github-attachments/images-test-ima-1704067200000-0.png",
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      "Found 1 attachment(s) in issue_comment 456",
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      `Downloading image (images): https://github.com/user-attachments/assets/test-image.png...`,
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      "✓ Downloaded image (images): images-test-ima-1704067200000-0.png",
+    );
+  });
+
   test("should handle review comments", async () => {
     const mockOctokit = createMockOctokit();
     const imageUrl =

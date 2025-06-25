@@ -18,9 +18,9 @@ import path from "path";
 import type { Octokit } from "@octokit/rest";
 import { getGithubServerUrl } from "../../../utils";
 
-// Single regex to match any GitHub user-attachments URL (both ![](url) and [](url) formats)
+// Simple regex to match any GitHub user-attachments URL
 const GITHUB_ATTACHMENT_REGEX = new RegExp(
-  `\\[[^\\]]*\\]\\((${getGithubServerUrl().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/user-attachments\\/(?:assets|files)\\/[^)]+)\\)`,
+  `${getGithubServerUrl().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/user-attachments\\/(?:assets|files)\\/[^\\s"'>)]+`,
   "g",
 );
 
@@ -173,7 +173,7 @@ export async function downloadCommentAttachments(
         ...comment.body.matchAll(GITHUB_ATTACHMENT_REGEX),
       ];
       const urls = attachmentMatches
-        .map((match) => match[1] as string)
+        .map((match) => match[0] as string)
         .filter(Boolean);
 
       if (urls.length > 0) {

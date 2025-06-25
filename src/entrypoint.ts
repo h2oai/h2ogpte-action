@@ -1,22 +1,24 @@
 import * as core from "@actions/core";
-import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
-import {
-  checkWritePermissions,
-  createSecretAndToolAssociation,
-  extractFinalAgentResponse,
-  getGithubToken,
-} from "./utils";
-import { createAgentInstructionPrompt } from "./prompts";
-import { createOctokits } from "./core/services/github/octokits";
 import {
   isPullRequestReviewCommentEvent,
   parseGitHubContext,
 } from "./core/data/context";
+import { fetchGitHubData } from "./core/data/fetcher";
 import {
   createReplyForReviewComment,
   updateReviewComment,
 } from "./core/services/github/api";
-import { fetchGitHubData } from "./core/data/fetcher";
+import { createOctokits } from "./core/services/github/octokits";
+import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
+import { createAgentInstructionPrompt } from "./prompts";
+import {
+  checkWritePermissions,
+  cleanup,
+  createSecretAndToolAssociation,
+  extractFinalAgentResponse,
+  getGithubToken,
+  processFileWithJobMonitoring,
+} from "./utils";
 import { getAllEventsInOrder } from "./core/data/formatter";
 
 /**
@@ -26,6 +28,7 @@ import { getAllEventsInOrder } from "./core/data/formatter";
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
+  let collectionId: string | null = null;
 
   try {
     // Fetch context
@@ -64,6 +67,26 @@ export async function run(): Promise<void> {
     core.debug("Image URL Map:");
     core.debug(JSON.stringify(githubData.attachmentUrlMap));
 
+    // This should be refactored later
+    try {
+      collectionId = await h2ogpte.createCollection();
+      githubData.attachmentUrlMap.forEach(async (localPath) => {
+        const uploadResult = await processFileWithJobMonitoring(
+          localPath,
+          collectionId!,
+        );
+        if (!uploadResult.success) {
+          core.warning(
+            `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
+          );
+        }
+      });
+    } catch (error) {
+      core.warning(
+        `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
@@ -72,7 +95,7 @@ export async function run(): Promise<void> {
       keyUuid = await createSecretAndToolAssociation(githubToken);
 
       // 2. Create a Chat Session in h2oGPTe
-      const chatSessionId = await h2ogpte.createChatSession();
+      const chatSessionId = await h2ogpte.createChatSession(collectionId);
       const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
 
       // 3. Create the initial review reply comment
@@ -122,16 +145,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    // Always try to clean up the agent key
-    if (keyUuid) {
-      try {
-        await h2ogpte.deleteAgentKey(keyUuid);
-      } catch (error) {
-        core.warning(
-          `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
+    await cleanup(keyUuid, collectionId);
   }
 }
 
