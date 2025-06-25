@@ -65,7 +65,9 @@ export async function run(): Promise<void> {
     core.debug(JSON.stringify(eventsInOrder));
 
     core.debug("Image URL Map:");
-    core.debug(JSON.stringify(githubData.attachmentUrlMap));
+    githubData.attachmentUrlMap.forEach((value, key) => {
+      core.debug(`${key}: ${value}`);
+    });
 
     // This should be refactored later
     try {

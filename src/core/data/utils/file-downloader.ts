@@ -328,7 +328,9 @@ export async function downloadCommentAttachments(
 
     console.log(`Final URL to path map size: ${urlToPathMap.size}`);
     console.log("Image URL Map in file-downloader:");
-    console.log(JSON.stringify(urlToPathMap));
+    urlToPathMap.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
 
     return urlToPathMap;
   } catch (error) {
