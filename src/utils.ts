@@ -278,11 +278,11 @@ export async function processFileWithJobMonitoring(
   }
 }
 
+// TODO: This should be uncommented and implemented when cleaning is possible
 export async function cleanup(
   keyUuid: string | null,
   collectionId: string | null,
 ): Promise<void> {
-  console.log("Cleaning up...");
   console.log("Key UUID:", keyUuid);
   console.log("Collection ID:", collectionId);
   // if (keyUuid) {
