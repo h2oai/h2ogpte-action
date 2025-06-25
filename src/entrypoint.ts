@@ -57,9 +57,11 @@ export async function run(): Promise<void> {
 
     core.debug(JSON.stringify(githubData));
 
-    core.debug("All events in order:");
+    const eventsInOrder = getAllEventsInOrder(githubData);
 
-    core.debug(JSON.stringify(getAllEventsInOrder(githubData)));
+    core.debug("Events in order:");
+
+    core.debug(JSON.stringify(eventsInOrder));
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
@@ -81,7 +83,10 @@ export async function run(): Promise<void> {
       );
 
       // 4. Create the agent instruction prompt
-      const instructionPrompt = createAgentInstructionPrompt(context);
+      const instructionPrompt = createAgentInstructionPrompt(
+        context,
+        eventsInOrder,
+      );
 
       // 5. Query h2oGPTe for Agent completion
       const chatCompletion = await h2ogpte.requestAgentCompletion(

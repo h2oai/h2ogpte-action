@@ -4,7 +4,15 @@ import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
 import { getGithubApiUrl } from "./utils";
 import type { ParsedGitHubContext } from "./core/services/github/types";
 
-export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
+export function createAgentInstructionPrompt(
+  context: ParsedGitHubContext,
+  eventsInOrder: Array<{
+    type: string;
+    title: string;
+    body: string;
+    createdAt: string;
+  }>,
+) {
   const commentBody = (context.payload as PullRequestReviewCommentEvent).comment
     .body;
   const pullRequestNumber = (context.payload as PullRequestReviewCommentEvent)
@@ -16,6 +24,11 @@ export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
   const diffHunk = (context.payload as PullRequestReviewCommentEvent).comment
     .diff_hunk;
   const githubApiBase = getGithubApiUrl();
+
+  // Format events for the prompt
+  const eventsText = eventsInOrder
+    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+    .join("\n");
 
   return dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
@@ -30,6 +43,9 @@ export function createAgentInstructionPrompt(context: ParsedGitHubContext) {
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
     Use the commit id, ${commitId}, and the relative file path, ${fileRelativePath}, to pull any necessary files.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
+
+    For context, here are the previous events on the pull request in chronological order:
+    ${eventsText}
 
     Please respond and execute actions according to the user's instruction.
     `;
