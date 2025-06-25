@@ -127,6 +127,7 @@ export async function createToolAssociation(
  * Creates chat session with retry mechanism
  */
 export async function createChatSession(
+  collectionId: string | null,
   maxRetries: number = 3,
   retryDelay: number = 1000,
 ): Promise<types.ChatSession> {
@@ -139,10 +140,14 @@ export async function createChatSession(
     },
   };
 
-  const response = await fetchWithRetry(`${apiBase}/api/v1/chats`, options, {
-    maxRetries,
-    retryDelay,
-  });
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/chats${collectionId ? `?collection_id=${collectionId}` : ""}`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
 
   const data = (await response.json()) as types.ChatSession;
   console.log(

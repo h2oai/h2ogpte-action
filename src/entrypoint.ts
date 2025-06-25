@@ -57,18 +57,25 @@ export async function run(): Promise<void> {
 
     core.debug(JSON.stringify(githubData));
 
-    collectionId = await h2ogpte.createCollection();
-    githubData.attachmentUrlMap.forEach(async (localPath) => {
-      const uploadResult = await processFileWithJobMonitoring(
-        localPath,
-        collectionId!,
-      );
-      if (!uploadResult.success) {
-        core.error(
-          `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
+    // This should be refactored later
+    try {
+      collectionId = await h2ogpte.createCollection();
+      githubData.attachmentUrlMap.forEach(async (localPath) => {
+        const uploadResult = await processFileWithJobMonitoring(
+          localPath,
+          collectionId!,
         );
-      }
-    });
+        if (!uploadResult.success) {
+          core.warning(
+            `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
+          );
+        }
+      });
+    } catch (error) {
+      core.warning(
+        `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
 
     // Handle Github Event
     if (isPullRequestReviewCommentEvent(context)) {
@@ -78,7 +85,7 @@ export async function run(): Promise<void> {
       keyUuid = await createSecretAndToolAssociation(githubToken);
 
       // 2. Create a Chat Session in h2oGPTe
-      const chatSessionId = await h2ogpte.createChatSession();
+      const chatSessionId = await h2ogpte.createChatSession(collectionId);
       const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
 
       // 3. Create the initial review reply comment
