@@ -30,3 +30,31 @@ export async function updateReviewComment(
     body: comment_body,
   });
 }
+
+export async function createReplyForIssueComment(
+  octokit: Octokit,
+  comment_body: string,
+  context: ParsedGitHubContext,
+) {
+  const comment = await octokit.issues.createComment({
+    owner: context.repository.owner,
+    repo: context.repository.repo,
+    issue_number: context.entityNumber,
+    body: comment_body,
+  });
+  return comment;
+}
+
+export async function updateIssueComment(
+  octokit: Octokit,
+  comment_body: string,
+  context: ParsedGitHubContext,
+  initialh2ogpteCommentId: number,
+) {
+  await octokit.issues.updateComment({
+    owner: context.repository.owner,
+    repo: context.repository.repo,
+    comment_id: initialh2ogpteCommentId,
+    body: comment_body,
+  });
+}
