@@ -3,6 +3,7 @@ import { AGENT_GITHUB_ENV_VAR } from "./constants";
 import type {
   PullRequestReviewCommentEvent,
   IssuesEvent,
+  PullRequestEvent,
 } from "@octokit/webhooks-types";
 import { getGithubApiUrl } from "./utils";
 import type { ParsedGitHubContext } from "./core/services/github/types";
@@ -23,14 +24,24 @@ export function createAgentInstructionPrompt(
     ? (context.payload as PullRequestReviewCommentEvent).comment.body
     : (context.payload as IssuesEvent).issue.body;
 
-  const pullRequestNumber = (context.payload as PullRequestReviewCommentEvent)
-    .pull_request.number;
-  const fileRelativePath = (context.payload as PullRequestReviewCommentEvent)
-    .comment.path;
-  const commitId = (context.payload as PullRequestReviewCommentEvent).comment
-    .commit_id;
-  const diffHunk = (context.payload as PullRequestReviewCommentEvent).comment
-    .diff_hunk;
+  // All PR events
+  const pullRequestNumber = context.isPR
+    ? (context.payload as PullRequestEvent).pull_request.number
+    : undefined;
+
+  // Exclusive for PR Review Comment Event
+  const commitId =
+    context.eventName === "pull_request_review_comment"
+      ? (context.payload as PullRequestReviewCommentEvent).comment.commit_id
+      : undefined;
+  const fileRelativePath =
+    context.eventName === "pull_request_review_comment"
+      ? (context.payload as PullRequestReviewCommentEvent).comment.path
+      : undefined;
+  const diffHunk =
+    context.eventName === "pull_request_review_comment"
+      ? (context.payload as PullRequestReviewCommentEvent).comment.diff_hunk
+      : undefined;
 
   // Format events for the prompt
   const eventsText = getAllEventsInOrder(githubData, context.isPR)
@@ -54,14 +65,13 @@ export function createAgentInstructionPrompt(
     Don't create any comments on the pull request yourself.`;
 
   const prompt_pr_review = dedent`
-    Use the relative file path, ${fileRelativePath}, to pull any necessary files.
+    Use the commit id, ${commitId}, and the relative file path, ${fileRelativePath}, to pull any necessary files.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
   `;
 
   const prompt_pr = dedent`
     You must only work on pull request number ${pullRequestNumber}.
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
-    Use the commit id, ${commitId}, to pull any necessary files.
     ${context.eventName === "pull_request_review_comment" ? prompt_pr_review : ""}
   `;
 
