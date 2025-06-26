@@ -1,11 +1,14 @@
 import * as core from "@actions/core";
 import {
+  isIssuesEvent,
   isPullRequestReviewCommentEvent,
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
 import {
+  createReplyForIssueComment,
   createReplyForReviewComment,
+  updateIssueComment,
   updateReviewComment,
 } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
@@ -78,9 +81,44 @@ export async function run(): Promise<void> {
       );
     }
 
-    // Handle Github Event
-    if (isPullRequestReviewCommentEvent(context)) {
+    // Handle GitHub Event
+    if (isPullRequestReviewCommentEvent(context) || isIssuesEvent(context)) {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
+
+      // Define callback functions for different event types
+      const createInitialComment = async (commentBody: string) => {
+        if (isPullRequestReviewCommentEvent(context)) {
+          return await createReplyForReviewComment(
+            octokits.rest,
+            commentBody,
+            context,
+          );
+        } else {
+          return await createReplyForIssueComment(
+            octokits.rest,
+            commentBody,
+            context,
+          );
+        }
+      };
+
+      const updateComment = async (commentBody: string, commentId: number) => {
+        if (isPullRequestReviewCommentEvent(context)) {
+          return await updateReviewComment(
+            octokits.rest,
+            commentBody,
+            context,
+            commentId,
+          );
+        } else {
+          return await updateIssueComment(
+            octokits.rest,
+            commentBody,
+            context,
+            commentId,
+          );
+        }
+      };
 
       // 1. Setup the GitHub secret in h2oGPTe
       keyUuid = await createSecretAndToolAssociation(githubToken);
@@ -89,13 +127,9 @@ export async function run(): Promise<void> {
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
       const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
 
-      // 3. Create the initial review reply comment
-      const intialCommentBody = `⏳ h2oGPTe is working on it, see the chat [here](${chatSessionUrl})`;
-      const h2ogpteComment = await createReplyForReviewComment(
-        octokits.rest,
-        intialCommentBody,
-        context,
-      );
+      // 3. Create the initial comment
+      const initialCommentBody = `⏳ h2oGPTe is working on it, see the chat [here](${chatSessionUrl})`;
+      const h2ogpteComment = await createInitialComment(initialCommentBody);
 
       // 4. Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
@@ -121,14 +155,9 @@ export async function run(): Promise<void> {
       }
       core.debug(`Extracted response: ${cleanedResponse}`);
 
-      // 7. Update initial review comment
+      // 7. Update initial comment
       const updatedCommentBody = `${header}, see the response below and the [full chat history](${chatSessionUrl})\n---\n${cleanedResponse}`;
-      await updateReviewComment(
-        octokits.rest,
-        updatedCommentBody,
-        context,
-        h2ogpteComment.data.id,
-      );
+      await updateComment(updatedCommentBody, h2ogpteComment.data.id);
     } else {
       throw new Error(`Unexpected event: ${context.eventName}`);
     }

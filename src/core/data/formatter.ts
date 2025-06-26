@@ -7,6 +7,7 @@ export function getAllEventsInOrder(
 ) {
   const events = [];
 
+  // 1. Events in PRs
   if (isPR) {
     const data = githubData.contextData as GitHubPullRequest;
 
@@ -41,18 +42,13 @@ export function getAllEventsInOrder(
   }
 
   // 2. Comments (for both PRs and Issues)
-  if (
-    githubData.contextData.comments &&
-    githubData.contextData.comments.nodes
-  ) {
-    for (const comment of githubData.contextData.comments.nodes) {
-      events.push({
-        type: "comment",
-        title: githubData.contextData.title || "",
-        body: comment.body,
-        createdAt: comment.createdAt,
-      });
-    }
+  for (const comment of githubData.contextData.comments.nodes) {
+    events.push({
+      type: "comment",
+      title: githubData.contextData.title || "",
+      body: comment.body,
+      createdAt: comment.createdAt,
+    });
   }
 
   events.sort((a, b) => {
