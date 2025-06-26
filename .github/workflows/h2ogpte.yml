@@ -15,7 +15,7 @@ jobs:
     name: GitHub Actions Test
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@h2ogpte'))
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@h2ogpte')) ||
       (github.event_name == 'issues' && contains(github.event.issue.body, '@h2ogpte'))
     steps:
       - name: Checkout
