@@ -86,18 +86,18 @@ export async function run(): Promise<void> {
 
     // Handle GitHub Event
     const isIssue: boolean =
-      isIssuesEvent(context) || isIssueCommentEvent(context);
-    const isPR: boolean =
+      isIssuesEvent(context) ||
+      isIssueCommentEvent(context) ||
       isPullRequestEvent(context) ||
-      isPullRequestReviewEvent(context) ||
-      isPullRequestReviewCommentEvent(context);
+      isPullRequestReviewEvent(context);
+    const isPRReviewComment: boolean = isPullRequestReviewCommentEvent(context);
 
-    if (isIssue || isPR) {
+    if (isIssue || isPRReviewComment) {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
       // Define callback functions for different event types
       const createInitialComment = async (commentBody: string) => {
-        if (isPR) {
+        if (isPRReviewComment) {
           return await createReplyForReviewComment(
             octokits.rest,
             commentBody,
@@ -113,7 +113,7 @@ export async function run(): Promise<void> {
       };
 
       const updateComment = async (commentBody: string, commentId: number) => {
-        if (isPR) {
+        if (isPRReviewComment) {
           return await updateReviewComment(
             octokits.rest,
             commentBody,
