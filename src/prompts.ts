@@ -4,6 +4,8 @@ import type {
   PullRequestReviewCommentEvent,
   IssuesEvent,
   PullRequestEvent,
+  PullRequestReviewEvent,
+  IssueCommentEvent,
 } from "@octokit/webhooks-types";
 import { getGithubApiUrl } from "./utils";
 import type { ParsedGitHubContext } from "./core/services/github/types";
@@ -12,6 +14,13 @@ import {
   getAllEventsInOrder,
   replaceAttachmentUrlsWithLocalPaths,
 } from "./core/data/formatter";
+import {
+  isIssueCommentEvent,
+  isIssuesEvent,
+  isPullRequestEvent,
+  isPullRequestReviewCommentEvent,
+  isPullRequestReviewEvent,
+} from "./core/data/context";
 
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
@@ -19,29 +28,53 @@ export function createAgentInstructionPrompt(
 ): string {
   const githubApiBase = getGithubApiUrl();
 
-  // Extract instruction based on event type
-  const instruction = context.isPR
-    ? (context.payload as PullRequestReviewCommentEvent).comment.body
-    : (context.payload as IssuesEvent).issue.body;
+  const isPRReviewComment = isPullRequestReviewCommentEvent(context);
+  const isPREvent =
+    isPullRequestEvent(context) ||
+    isPullRequestReviewEvent(context) ||
+    isPRReviewComment;
+  const isIssueComment = isIssueCommentEvent(context);
 
-  // All PR events
-  const pullRequestNumber = context.isPR
-    ? (context.payload as PullRequestEvent).pull_request.number
-    : undefined;
+  // Extract instruction based on event type
+  let instruction: string;
+
+  if (isIssuesEvent(context)) {
+    instruction = (context.payload as IssuesEvent).issue.body || "";
+  } else if (isPullRequestEvent(context)) {
+    instruction = (context.payload as PullRequestEvent).pull_request.body || "";
+  } else if (isPullRequestReviewEvent(context)) {
+    instruction = (context.payload as PullRequestReviewEvent).review.body || "";
+  } else if (isPRReviewComment) {
+    instruction =
+      (context.payload as PullRequestReviewCommentEvent).comment.body || "";
+  } else {
+    instruction = (context.payload as IssueCommentEvent).comment.body || "";
+  }
+
+  // Find PR/Issue number
+  let idNumber: number | undefined;
+
+  if (isIssueComment) {
+    idNumber = (context.payload as IssueCommentEvent).issue.number;
+  } else if (isPRReviewComment) {
+    idNumber = (context.payload as PullRequestReviewCommentEvent).pull_request
+      .number;
+  } else if (isPREvent) {
+    idNumber = (context.payload as PullRequestEvent).pull_request.number;
+  } else {
+    idNumber = (context.payload as IssuesEvent).issue.number;
+  }
 
   // Exclusive for PR Review Comment Event
-  const commitId =
-    context.eventName === "pull_request_review_comment"
-      ? (context.payload as PullRequestReviewCommentEvent).comment.commit_id
-      : undefined;
-  const fileRelativePath =
-    context.eventName === "pull_request_review_comment"
-      ? (context.payload as PullRequestReviewCommentEvent).comment.path
-      : undefined;
-  const diffHunk =
-    context.eventName === "pull_request_review_comment"
-      ? (context.payload as PullRequestReviewCommentEvent).comment.diff_hunk
-      : undefined;
+  const commitId = isPRReviewComment
+    ? (context.payload as PullRequestReviewCommentEvent).comment.commit_id
+    : undefined;
+  const fileRelativePath = isPRReviewComment
+    ? (context.payload as PullRequestReviewCommentEvent).comment.path
+    : undefined;
+  const diffHunk = isPRReviewComment
+    ? (context.payload as PullRequestReviewCommentEvent).comment.diff_hunk
+    : undefined;
 
   // Format events for the prompt
   const eventsText = getAllEventsInOrder(githubData, context.isPR)
@@ -70,9 +103,9 @@ export function createAgentInstructionPrompt(
   `;
 
   const prompt_pr = dedent`
-    You must only work on pull request number ${pullRequestNumber}.
+    You must only work on pull request number ${idNumber}.
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
-    ${context.eventName === "pull_request_review_comment" ? prompt_pr_review : ""}
+    ${isPRReviewComment ? prompt_pr_review : ""}
   `;
 
   const prompt_issue = dedent`
