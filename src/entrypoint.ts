@@ -1,7 +1,10 @@
 import * as core from "@actions/core";
 import {
+  isIssueCommentEvent,
   isIssuesEvent,
+  isPullRequestEvent,
   isPullRequestReviewCommentEvent,
+  isPullRequestReviewEvent,
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
@@ -82,12 +85,19 @@ export async function run(): Promise<void> {
     }
 
     // Handle GitHub Event
-    if (isPullRequestReviewCommentEvent(context) || isIssuesEvent(context)) {
+    const isIssue: boolean =
+      isIssuesEvent(context) || isIssueCommentEvent(context);
+    const isPR: boolean =
+      isPullRequestEvent(context) ||
+      isPullRequestReviewEvent(context) ||
+      isPullRequestReviewCommentEvent(context);
+
+    if (isIssue || isPR) {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
       // Define callback functions for different event types
       const createInitialComment = async (commentBody: string) => {
-        if (isPullRequestReviewCommentEvent(context)) {
+        if (isPR) {
           return await createReplyForReviewComment(
             octokits.rest,
             commentBody,
@@ -103,7 +113,7 @@ export async function run(): Promise<void> {
       };
 
       const updateComment = async (commentBody: string, commentId: number) => {
-        if (isPullRequestReviewCommentEvent(context)) {
+        if (isPR) {
           return await updateReviewComment(
             octokits.rest,
             commentBody,
