@@ -44,7 +44,7 @@ export function createAgentInstructionPrompt(
     instruction = (context.payload as PullRequestEvent).pull_request.body || "";
   } else if (isPullRequestReviewEvent(context)) {
     instruction = (context.payload as PullRequestReviewEvent).review.body || "";
-  } else if (isPullRequestReviewCommentEvent(context)) {
+  } else if (isPRReviewComment) {
     instruction =
       (context.payload as PullRequestReviewCommentEvent).comment.body || "";
   } else {
