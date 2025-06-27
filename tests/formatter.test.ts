@@ -260,7 +260,7 @@ describe("replaceAttachmentUrlsWithLocalPaths", () => {
     ]);
 
     const input = "Here is an image: <img width='1345' alt='Image' src='https://github.com/user-attachments/assets/5ab1099e-11a2-476a-b826-51c1fc24f533' />";
-    const expected = 'Here is an image: <img width=\'1345\' alt=\'Image\' src="images-5ab1099e-1750992516732-0.png" />';
+    const expected = "Here is an image: <img width=\'1345\' alt=\'Image\' src='images-5ab1099e-1750992516732-0.png' />";
 
     const result = replaceAttachmentUrlsWithLocalPaths(input, attachmentUrlMap);
     expect(result).toBe(expected);
