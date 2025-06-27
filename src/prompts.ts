@@ -81,19 +81,6 @@ export function createAgentInstructionPrompt(
     .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
     .join("\n");
 
-  const attachmentUrlMap = githubData.attachmentUrlMap;
-
-  // Replace attachment URLs with local file paths in the events text
-  const processedEventsText = replaceAttachmentUrlsWithLocalPaths(
-    eventsText,
-    attachmentUrlMap,
-  );
-
-  console.log("EVENTS TEXT");
-  console.log(eventsText);
-  console.log("PROCESSED EVENTS TEXT");
-  console.log(processedEventsText);
-
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
     You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
@@ -126,10 +113,16 @@ export function createAgentInstructionPrompt(
 
   const prompt_outro = dedent`
     For context, here are the previous events on the ${context.isPR ? "pull request" : "issue"} in chronological order:
-    ${processedEventsText}
+    ${eventsText}
 
     Please respond and execute actions according to the user's instruction.
   `;
 
-  return `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
+  const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
+
+  // Replace attachment URLs with local file paths
+  return replaceAttachmentUrlsWithLocalPaths(
+    prompt,
+    githubData.attachmentUrlMap,
+  );
 }
