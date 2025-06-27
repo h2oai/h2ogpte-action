@@ -89,6 +89,11 @@ export function createAgentInstructionPrompt(
     attachmentUrlMap,
   );
 
+  console.log("EVENTS TEXT");
+  console.log(eventsText);
+  console.log("PROCESSED EVENTS TEXT");
+  console.log(processedEventsText);
+
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
     You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
