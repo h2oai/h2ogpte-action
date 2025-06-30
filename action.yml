@@ -20,7 +20,7 @@ inputs:
   h2ogpte_api_base:
     description: h2oGPTe API base url address (no trailing slash)
     required: false
-    default: https://h2ogpte.cloud-dev.h2o.dev
+    default: https://h2ogpte.internal.dedicated.h2o.ai
   github_api_url:
     description: github api base url (no trailing slash)
     required: false
