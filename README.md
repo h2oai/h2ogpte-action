@@ -22,8 +22,8 @@ The solution helps developers better understand issues by:
 
 These tests verify that the h2oGPTe GitHub Action can be implemented in any GitHub repository with minimal configuration. The only requirements are:
 
-1. GitHub Actions enabled in the repository (currently only [cloud-dev](https://h2ogpte.cloud-dev.h2o.dev/) supported)
-2. h2oGPTe API key and base URL configured as secrets
+1. GitHub Actions enabled in the repository
+2. h2oGPTe API key and base URL configured as secrets (by default use [internal dedicated](https://h2ogpte.internal.dedicated.h2o.ai))
 3. GitHub token with appropriate permissions
 
 Once configured, developers can immediately start using the AI-powered code review capabilities by simply mentioning @h2ogpte in their pull request review comments.
