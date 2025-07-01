@@ -277,12 +277,7 @@ export async function processFileWithJobMonitoring(
 }
 
 // TODO: This should be uncommented and implemented when cleaning is possible
-export async function cleanup(
-  keyUuid: string | null,
-  collectionId: string | null,
-): Promise<void> {
-  console.log("Key UUID:", keyUuid);
-  console.log("Collection ID:", collectionId);
+export async function cleanup(keyUuid: string | null): Promise<void> {
   if (keyUuid) {
     try {
       await deleteAgentKey(keyUuid);
@@ -294,15 +289,4 @@ export async function cleanup(
   } else {
     console.log(`No agent key to clean up`);
   }
-  // if (collectionId) {
-  //   try {
-  //     await h2ogpte.deleteCollection(collectionId);
-  //   } catch (error) {
-  //     console.warn(
-  //       `Failed to clean up collection: ${error instanceof Error ? error.message : String(error)}`,
-  //     );
-  //   }
-  // } else {
-  //   console.log(`No collection to clean up`);
-  // }
 }
