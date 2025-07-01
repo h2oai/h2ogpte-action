@@ -64,6 +64,9 @@ export async function run(): Promise<void> {
     core.debug("Github Data:");
     core.debug(JSON.stringify(githubData));
 
+    const runId = process.env.GITHUB_RUN_ID;
+    core.debug(`This run id is ${runId}`);
+
     // This should be refactored later
     try {
       collectionId = await h2ogpte.createCollection();
