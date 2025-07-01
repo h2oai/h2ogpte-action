@@ -37,52 +37,12 @@ export async function createAgentKey(
     { maxRetries, retryDelay },
   );
 
-  const data = await response.json();
+  const data = (await response.json()) as types.AgentKey;
   console.log(
     `Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
-  return tokenName;
-}
-
-/**
- * Gets agent key ID with retry mechanism
- */
-export async function getAgentKeyId(
-  keyName: string,
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<string> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-
-  const options = {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  };
-
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/agents/keys`,
-    options,
-    { maxRetries, retryDelay },
-  );
-
-  const data = (await response.json()) as types.AgentKeys;
-  console.log(
-    `Successfully retrieved agent keys and got response: ${JSON.stringify(data, null, 2)}`,
-  );
-
-  // Search for agent key
-  const keyId = data.find((k) => k.name === keyName);
-  if (keyId === undefined) {
-    throw new Error(
-      `Could not find ${keyName} in the list of keys. Check debug logs.`,
-    );
-  }
-
-  console.log(`Retrieved agent key uuid: ${keyId.id}`);
-  return keyId.id;
+  return data.id;
 }
 
 /**
