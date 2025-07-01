@@ -64,6 +64,11 @@ export async function run(): Promise<void> {
     core.debug("Github Data:");
     core.debug(JSON.stringify(githubData));
 
+    const runId = process.env.GITHUB_RUN_ID;
+    const repo = process.env.GITHUB_REPOSITORY; // owner/repo
+    const url = `https://github.com/${repo}/actions/runs/${runId}`;
+    core.debug(`This run url is ${url}`);
+
     // This should be refactored later
     try {
       collectionId = await h2ogpte.createCollection();
@@ -136,9 +141,10 @@ export async function run(): Promise<void> {
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
       const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
+      core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const initialCommentBody = `⏳ h2oGPTe is working on it, see the chat [here](${chatSessionUrl})`;
+      const initialCommentBody = `⏳ h2oGPTe is working on it, see the github action run [here](${url})`;
       const h2ogpteComment = await createInitialComment(initialCommentBody);
 
       // 4. Create the agent instruction prompt
@@ -166,7 +172,7 @@ export async function run(): Promise<void> {
       core.debug(`Extracted response: ${cleanedResponse}`);
 
       // 7. Update initial comment
-      const updatedCommentBody = `${header}, see the response below and the [full chat history](${chatSessionUrl})\n---\n${cleanedResponse}`;
+      const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n${cleanedResponse}`;
       await updateComment(updatedCommentBody, h2ogpteComment.data.id);
     } else {
       throw new Error(`Unexpected event: ${context.eventName}`);

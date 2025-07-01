@@ -7,7 +7,6 @@ import {
   createAgentKey,
   createIngestionJob,
   createToolAssociation,
-  getAgentKeyId,
   getJobDetails,
   uploadFile,
 } from "./core/services/h2ogpte/h2ogpte";
@@ -201,9 +200,7 @@ export async function createAgentGitHubSecret(
 export async function createSecretAndToolAssociation(
   githubToken: string,
 ): Promise<string> {
-  const gitHubTokenKeyName = await createAgentGitHubSecret(githubToken);
-
-  const keyUuid = await getAgentKeyId(gitHubTokenKeyName);
+  const keyUuid = await createAgentGitHubSecret(githubToken);
 
   await Promise.all([
     createToolAssociation("python", keyUuid, AGENT_GITHUB_ENV_VAR),

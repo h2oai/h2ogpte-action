@@ -5,16 +5,14 @@ export interface FetchWithRetryOptions {
 }
 
 export interface AgentKey {
-  createdAt: string;
-  description: string;
   id: string;
   name: string;
-  ownerEmail: string;
-  type: string;
-  updatedAt: string;
+  type: "private" | "shared" | "built_in";
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+  owner_email?: string;
 }
-
-export type AgentKeys = Array<AgentKey>;
 
 export interface ToolAssociation {
   associateId: string;
@@ -30,7 +28,12 @@ export interface ToolAssociations {
 
 export interface ChatSession {
   id: string;
-  updatedAt: string;
+  name?: string;
+  collection_id?: string;
+  collection_name?: string;
+  prompt_template_id?: string;
+  latest_message_content?: string;
+  updated_at: string;
 }
 
 export interface ChatResponse {
