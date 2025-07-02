@@ -32,7 +32,9 @@ We welcome contributions! To contribute, please follow these steps:
 
 3. **Make your changes and commit with clear messages**
 
-4. **Submit a pull request (PR) from your feature branch to the upstream `main` branch**
+4. **Submit a pull request (PR) from your feature branch to a feature branch in the upstream repository**
+
+   - Do not submit PRs directly to the `main` branch. Maintainers will review and merge feature branches into `main` as appropriate.
 
 5. **Request a review from a maintainer**
    - Tag a maintainer in your PR or use GitHub's review request feature.
