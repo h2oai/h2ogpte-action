@@ -25,7 +25,7 @@ export async function fetchWithRetry(
     ...options,
     signal: controller.signal,
     verbose: "curl",
-    timeout: false,
+    timeout: timeoutMs,
   };
 
   let lastError: Error | null = null;
