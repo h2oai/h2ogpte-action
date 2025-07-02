@@ -151,6 +151,9 @@ export async function requestAgentCompletion(
   };
 
   try {
+    console.log(
+      `Requesting agent completion for session ${sessionId}, waiting for ${timeoutMinutes} minutes`,
+    );
     const response = await fetchWithRetry(
       `${apiBase}/api/v1/chats/${sessionId}/completions`,
       options,

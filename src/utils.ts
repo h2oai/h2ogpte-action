@@ -276,7 +276,6 @@ export async function processFileWithJobMonitoring(
   }
 }
 
-// TODO: This should be uncommented and implemented when cleaning is possible
 export async function cleanup(keyUuid: string | null): Promise<void> {
   if (keyUuid) {
     try {
