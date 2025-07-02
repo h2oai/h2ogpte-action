@@ -1,4 +1,9 @@
 import * as types from "./h2ogpte/types";
+import fetch from "node-fetch";
+import type {
+  RequestInit as NodeFetchRequestInit,
+  Response as NodeFetchResponse,
+} from "node-fetch";
 
 /**
  * Generic fetch function with retry, exponential backoff, and timeout support
@@ -11,7 +16,7 @@ export async function fetchWithRetry(
   const {
     maxRetries = 3,
     retryDelay = 1000, // 1 second
-    timeoutMs = 50000, // 5 seconds
+    timeoutMs = 5000, // 5 seconds
   } = retryOptions;
 
   const controller = new AbortController();
@@ -21,10 +26,10 @@ export async function fetchWithRetry(
   }, timeoutMs);
 
   // Merge the abort signal with existing options
-  const fetchOptions = {
+  const fetchOptions: NodeFetchRequestInit = {
     ...options,
     signal: controller.signal,
-  };
+  } as NodeFetchRequestInit;
 
   let lastError: Error | null = null;
 
@@ -32,7 +37,7 @@ export async function fetchWithRetry(
     try {
       console.log(`Attempt ${attempt}/${maxRetries} for ${url}`);
 
-      const response = await fetch(url, fetchOptions);
+      const response: NodeFetchResponse = await fetch(url, fetchOptions);
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -44,7 +49,7 @@ export async function fetchWithRetry(
         );
       }
 
-      return response;
+      return response as unknown as Response;
     } catch (error) {
       clearTimeout(timeoutId);
 
@@ -58,13 +63,6 @@ export async function fetchWithRetry(
         const delay = retryDelay * Math.pow(2, attempt - 1);
         console.log(`Retrying after ${delay}ms`);
         await new Promise((resolve) => setTimeout(resolve, delay));
-
-        // Reset timeout for next attempt
-        setTimeout(() => {
-          controller.abort();
-          console.warn(`Request timed out after ${timeoutMs} ms`);
-        }, timeoutMs);
-        if (timeoutId) clearTimeout(timeoutId);
       }
     }
   }
