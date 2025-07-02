@@ -11,7 +11,7 @@ export async function fetchWithRetry(
   const {
     maxRetries = 3,
     retryDelay = 1000, // 1 second
-    timeoutMs = 50000, // 5 seconds
+    timeoutMs = 5000, // 5 seconds
   } = retryOptions;
 
   const controller = new AbortController();
