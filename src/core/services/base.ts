@@ -14,10 +14,13 @@ export async function fetchWithRetry(
     timeoutMs = 5000, // 5 seconds
   } = retryOptions;
 
+  // TODO: Remove this after
+  console.log(`Waiting for ${timeoutMs} ms`);
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-    console.warn(`Request timed out after ${timeoutMs} ms`);
+    console.log(`Request timed out after ${timeoutMs} ms`);
   }, timeoutMs);
 
   // Merge the abort signal with existing options
