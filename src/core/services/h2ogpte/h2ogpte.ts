@@ -38,7 +38,7 @@ export async function createAgentKey(
   );
 
   const data = (await response.json()) as types.AgentKey;
-  console.log(
+  console.debug(
     `Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -76,7 +76,7 @@ export async function createToolAssociation(
   );
 
   const data = (await response.json()) as types.ToolAssociations;
-  console.log(
+  console.debug(
     `Successfully created tool association and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -110,7 +110,7 @@ export async function createChatSession(
   );
 
   const data = (await response.json()) as types.ChatSession;
-  console.log(
+  console.debug(
     `Successfully created chat session and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -139,7 +139,7 @@ export async function requestAgentCompletion(
     ...(systemPrompt && { system_prompt: systemPrompt }),
   };
 
-  console.log(
+  console.debug(
     `Agent completion config: ${JSON.stringify(agentCompletionConfig)}`,
   );
 
@@ -216,7 +216,7 @@ export async function deleteAgentKey(
     retryDelay,
   });
 
-  console.log(`Successfully deleted agent key: ${keyId}`);
+  console.debug(`Successfully deleted agent key: ${keyId}`);
 }
 
 export function getChatSessionUrl(chatSessionId: string) {
@@ -258,7 +258,7 @@ export async function createCollection(
 
   const data = (await response.json()) as types.Collection;
 
-  console.log(
+  console.debug(
     `Successfully created collection and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -407,7 +407,7 @@ export async function deleteCollection(
       `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  console.log(
+  console.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
 }
