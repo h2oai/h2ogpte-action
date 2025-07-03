@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test-action": "bun run local-action . src/entrypoint.ts .env",
     "lint": "eslint . --ext .ts,.js",
     "lint:fix": "eslint . --ext .ts,.js --fix",
     "format": "prettier --write .",
@@ -13,7 +12,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
-    "@github/local-action": "^3.2.1",
     "@types/bun": "latest",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
