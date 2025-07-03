@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
-import { getH2ogpteConfig } from "../../../utils";
-import { fetchWithRetry } from "../base";
+import { getH2ogpteConfig, parseStreamingAgentResponse } from "../../../utils";
+import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 
 /**
@@ -38,7 +38,7 @@ export async function createAgentKey(
   );
 
   const data = (await response.json()) as types.AgentKey;
-  console.log(
+  console.debug(
     `Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -76,7 +76,7 @@ export async function createToolAssociation(
   );
 
   const data = (await response.json()) as types.ToolAssociations;
-  console.log(
+  console.debug(
     `Successfully created tool association and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -110,7 +110,7 @@ export async function createChatSession(
   );
 
   const data = (await response.json()) as types.ChatSession;
-  console.log(
+  console.debug(
     `Successfully created chat session and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -119,6 +119,7 @@ export async function createChatSession(
 
 /**
  * Requests agent completion with improved error handling and timeout management
+ * Now properly handles streaming responses when stream: true is set
  */
 export async function requestAgentCompletion(
   sessionId: string,
@@ -134,10 +135,11 @@ export async function requestAgentCompletion(
     message: prompt,
     llm_args: { use_agent: true },
     tags: ["github_action_trigger"],
+    stream: true,
     ...(systemPrompt && { system_prompt: systemPrompt }),
   };
 
-  console.log(
+  console.debug(
     `Agent completion config: ${JSON.stringify(agentCompletionConfig)}`,
   );
 
@@ -151,23 +153,33 @@ export async function requestAgentCompletion(
   };
 
   try {
-    const response = await fetchWithRetry(
+    const rawResponse = await fetchWithRetryStreaming(
       `${apiBase}/api/v1/chats/${sessionId}/completions`,
       options,
       { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000 },
     );
 
-    const data = (await response.json()) as types.H2oRawResponse;
+    console.log(`Received streaming response: ${rawResponse}`);
 
-    if (!data || !data.body) {
-      throw new Error("Received empty or invalid response from h2oGPTe API");
+    try {
+      const lastChunk = parseStreamingAgentResponse(rawResponse);
+      if (lastChunk) {
+        console.log("Returning last complete chunk from streaming response");
+        console.log(lastChunk);
+        return { success: true, body: lastChunk.body };
+      }
+      console.log("No valid chunks found");
+      return {
+        success: false,
+        body: "The agent did not return a complete response. Please check h2oGPTe.",
+      };
+    } catch (parseError) {
+      console.error("Failed to parse streaming response:", parseError);
+      return {
+        success: false,
+        body: "Failed to parse the agent response. Please check h2oGPTe.",
+      };
     }
-
-    console.log(
-      `Successfully received chat completion and got response: ${JSON.stringify(data, null, 2)}`,
-    );
-
-    return { success: true, body: data.body };
   } catch (error) {
     if (error instanceof Error) {
       const errorMsg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;
@@ -204,7 +216,7 @@ export async function deleteAgentKey(
     retryDelay,
   });
 
-  console.log(`Successfully deleted agent key: ${keyId}`);
+  console.debug(`Successfully deleted agent key: ${keyId}`);
 }
 
 export function getChatSessionUrl(chatSessionId: string) {
@@ -246,7 +258,7 @@ export async function createCollection(
 
   const data = (await response.json()) as types.Collection;
 
-  console.log(
+  console.debug(
     `Successfully created collection and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -395,7 +407,7 @@ export async function deleteCollection(
       `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  console.log(
+  console.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
 }

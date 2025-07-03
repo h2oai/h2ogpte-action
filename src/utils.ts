@@ -11,7 +11,11 @@ import {
   getJobDetails,
   uploadFile,
 } from "./core/services/h2ogpte/h2ogpte";
-import type { JobDetails, UploadResponse } from "./core/services/h2ogpte/types";
+import type {
+  JobDetails,
+  UploadResponse,
+  StreamingChunk,
+} from "./core/services/h2ogpte/types";
 
 /**
  * Waits for a job to complete, polling at intervals
@@ -152,34 +156,34 @@ export function extractFinalAgentResponse(input: string): string {
   const endOfTurnMatches = Array.from(input.matchAll(/ENDOFTURN/g));
 
   if (!endOfTurnMatches || endOfTurnMatches.length < 2) {
-    // If there's less than 2 ENDOFTURN markers, return empty string
+    // If there's less than 2 ENDOFTURN markers, return the input as-is
     console.log(
-      `Could not find any end of turn markers, returning raw agent response: '${input}'`,
+      `Could not find sufficient end of turn markers, returning raw agent response'${input}'`,
     );
     return input;
   }
 
   // Get the position of the second-to-last ENDOFTURN
   const secondToLastMatch = endOfTurnMatches[endOfTurnMatches.length - 2];
-  const lastMatch = endOfTurnMatches[endOfTurnMatches.length - 1];
 
-  // Check that both matches exist and have valid index values
-  if (
-    !secondToLastMatch ||
-    !lastMatch ||
-    secondToLastMatch.index === undefined ||
-    lastMatch.index === undefined
-  ) {
-    console.log(`h2oGPTe response is invalid: '${input}'`);
+  // Find the ENDOFTURN before the second-to-last (i.e., third-to-last)
+  const thirdToLastMatch =
+    endOfTurnMatches.length >= 3
+      ? endOfTurnMatches[endOfTurnMatches.length - 3]
+      : null;
+
+  if (!secondToLastMatch || secondToLastMatch.index === undefined) {
+    console.log(`h2oGPTe response is invalid '${input}'`);
     return "The agent did not return a complete response. Please check h2oGPTe.";
   }
 
-  const secondToLastIndex = secondToLastMatch.index;
-  const lastIndex = lastMatch.index;
-
-  // Extract text between second-to-last and last ENDOFTURN
-  const startPosition = secondToLastIndex + "ENDOFTURN".length;
-  const textSection = input.substring(startPosition, lastIndex);
+  // Extract text between third-to-last and second-to-last ENDOFTURN, or from start if not present
+  const startPosition =
+    thirdToLastMatch && thirdToLastMatch.index !== undefined
+      ? thirdToLastMatch.index + "ENDOFTURN".length
+      : 0;
+  const endPosition = secondToLastMatch.index;
+  const textSection = input.substring(startPosition, endPosition);
 
   // Remove <stream_turn_title> tags and their content
   const cleanText = textSection.replace(
@@ -187,8 +191,18 @@ export function extractFinalAgentResponse(input: string): string {
     "",
   );
 
-  // Trim newlines and whitespace from the beginning and end
-  return cleanText.replace(/^\n+|\n+$/g, "").trim();
+  // Remove execution timestamps and metadata
+  const cleanedText = cleanText
+    .replace(/\*\*Completed LLM call in.*?\*\*/g, "")
+    .replace(/\*\* \[.*?\] .*?\*\*/g, "")
+    .replace(/\*\*Executing python code blocks\*\*/g, "")
+    .replace(
+      /\*\*No executable code blocks found, terminating conversation\.*\*\*/g,
+      "",
+    );
+
+  const collapsed = cleanedText.replace(/\n{2,}/g, "\n");
+  return collapsed.replace(/^\n+|\n+$/g, "").trim();
 }
 
 export async function createAgentGitHubSecret(
@@ -276,7 +290,6 @@ export async function processFileWithJobMonitoring(
   }
 }
 
-// TODO: This should be uncommented and implemented when cleaning is possible
 export async function cleanup(keyUuid: string | null): Promise<void> {
   if (keyUuid) {
     try {
@@ -289,4 +302,29 @@ export async function cleanup(keyUuid: string | null): Promise<void> {
   } else {
     console.log(`No agent key to clean up`);
   }
+}
+
+/**
+ * Parses a newline-delimited streaming agent response and returns the last valid chunk (with body and finished)
+ */
+export function parseStreamingAgentResponse(
+  rawResponse: string,
+): StreamingChunk | null {
+  if (!rawResponse || typeof rawResponse !== "string") return null;
+  const lines = rawResponse.trim().split("\n");
+  const streamingChunks = lines
+    .filter((line) => line.trim() !== "")
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter((chunk) => chunk !== null);
+  const lastChunk = streamingChunks[streamingChunks.length - 1];
+  if (lastChunk && lastChunk.body && lastChunk.finished) {
+    return lastChunk;
+  }
+  return null;
 }
