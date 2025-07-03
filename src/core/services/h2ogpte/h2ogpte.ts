@@ -175,27 +175,15 @@ export async function requestAgentCompletion(
         })
         .filter((chunk) => chunk !== null);
 
-      // Look for the chunk with "finished":true
-      const finishedChunk = streamingChunks.find(
-        (chunk) => chunk && chunk.finished === true,
-      );
-
-      if (finishedChunk && finishedChunk.body) {
-        console.log("Found streaming response with finished:true");
-        return { success: true, body: finishedChunk.body };
-      }
-
-      // If no finished chunk found, try to get the last meaningful chunk
-      const lastChunk = streamingChunks
-        .filter((chunk) => chunk && chunk.body)
-        .pop();
+      // Get the last complete chunk
+      const lastChunk = streamingChunks[streamingChunks.length - 1];
 
       if (lastChunk && lastChunk.body) {
-        console.log("Using last streaming chunk as fallback");
+        console.log("Returning last complete chunk from streaming response");
         return { success: true, body: lastChunk.body };
       }
 
-      console.log("No valid streaming chunks found");
+      console.log("No valid chunks found");
       return {
         success: false,
         body: "The agent did not return a complete response. Please check h2oGPTe.",
