@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
 import { getH2ogpteConfig } from "../../../utils";
-import { fetchWithRetry } from "../base";
+import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 
 /**
@@ -119,6 +119,7 @@ export async function createChatSession(
 
 /**
  * Requests agent completion with improved error handling and timeout management
+ * Now properly handles streaming responses when stream: true is set
  */
 export async function requestAgentCompletion(
   sessionId: string,
@@ -134,6 +135,7 @@ export async function requestAgentCompletion(
     message: prompt,
     llm_args: { use_agent: true },
     tags: ["github_action_trigger"],
+    stream: true,
     ...(systemPrompt && { system_prompt: systemPrompt }),
   };
 
@@ -151,23 +153,49 @@ export async function requestAgentCompletion(
   };
 
   try {
-    const response = await fetchWithRetry(
+    const rawResponse = await fetchWithRetryStreaming(
       `${apiBase}/api/v1/chats/${sessionId}/completions`,
       options,
       { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000 },
     );
 
-    const data = (await response.json()) as types.H2oRawResponse;
+    console.log(`Received streaming response: ${rawResponse}`);
 
-    if (!data || !data.body) {
-      throw new Error("Received empty or invalid response from h2oGPTe API");
+    // Parse the streaming response (newline-delimited JSON)
+    try {
+      const lines = rawResponse.trim().split("\n");
+      const streamingChunks = lines
+        .filter((line) => line.trim() !== "")
+        .map((line) => {
+          try {
+            return JSON.parse(line);
+          } catch {
+            return null;
+          }
+        })
+        .filter((chunk) => chunk !== null);
+
+      // Get the last complete chunk
+      const lastChunk = streamingChunks[streamingChunks.length - 1];
+
+      if (lastChunk && lastChunk.body && lastChunk.finished) {
+        console.log("Returning last complete chunk from streaming response");
+        console.log(lastChunk);
+        return { success: true, body: lastChunk.body };
+      }
+
+      console.log("No valid chunks found");
+      return {
+        success: false,
+        body: "The agent did not return a complete response. Please check h2oGPTe.",
+      };
+    } catch (parseError) {
+      console.error("Failed to parse streaming response:", parseError);
+      return {
+        success: false,
+        body: "Failed to parse the agent response. Please check h2oGPTe.",
+      };
     }
-
-    console.log(
-      `Successfully received chat completion and got response: ${JSON.stringify(data, null, 2)}`,
-    );
-
-    return { success: true, body: data.body };
   } catch (error) {
     if (error instanceof Error) {
       const errorMsg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;
