@@ -41,25 +41,10 @@ export interface ChatResponse {
   body: string;
 }
 
-export interface H2oRawResponse {
-  body: string;
-}
-
 export interface StreamingChunk {
-  type: string;
-  data?: {
-    content?: string;
-    role?: string;
-    [key: string]: unknown;
-  };
-  content?: string;
-  done?: boolean;
-}
-
-export interface StreamingResponse {
-  success: boolean;
   body: string;
-  chunks?: StreamingChunk[];
+  finished: boolean;
+  [key: string]: unknown;
 }
 
 export interface Collection {
