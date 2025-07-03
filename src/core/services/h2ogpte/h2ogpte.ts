@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
 import { getH2ogpteConfig } from "../../../utils";
-import { fetchWithRetry } from "../base";
+import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 
 /**
@@ -119,6 +119,7 @@ export async function createChatSession(
 
 /**
  * Requests agent completion with improved error handling and timeout management
+ * Now properly handles streaming responses when stream: true is set
  */
 export async function requestAgentCompletion(
   sessionId: string,
@@ -134,6 +135,7 @@ export async function requestAgentCompletion(
     message: prompt,
     llm_args: { use_agent: true },
     tags: ["github_action_trigger"],
+    stream: true,
     ...(systemPrompt && { system_prompt: systemPrompt }),
   };
 
@@ -151,23 +153,79 @@ export async function requestAgentCompletion(
   };
 
   try {
-    const response = await fetchWithRetry(
+    const rawResponse = await fetchWithRetryStreaming(
       `${apiBase}/api/v1/chats/${sessionId}/completions`,
       options,
       { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000 },
     );
 
-    const data = (await response.json()) as types.H2oRawResponse;
+    console.log(`Received streaming response: ${rawResponse}`);
 
-    if (!data || !data.body) {
+    // Try to parse the streaming response
+    let parsedResponse: types.H2oRawResponse | null = null;
+    let streamingChunks: types.StreamingChunk[] = [];
+
+    try {
+      // First, try to parse as regular JSON (non-streaming response)
+      parsedResponse = JSON.parse(rawResponse) as types.H2oRawResponse;
+    } catch {
+      // If that fails, try to parse as streaming response (newline-delimited JSON)
+      try {
+        const lines = rawResponse.trim().split("\n");
+        streamingChunks = lines
+          .filter((line) => line.trim() !== "")
+          .map((line) => {
+            if (line.startsWith("data: ")) {
+              const jsonStr = line.slice(6); // Remove 'data: ' prefix
+              if (jsonStr === "[DONE]") {
+                return { type: "done", done: true };
+              }
+              try {
+                return JSON.parse(jsonStr);
+              } catch {
+                return { type: "error", content: jsonStr };
+              }
+            }
+            return { type: "unknown", content: line };
+          });
+
+        // Extract the final response from streaming chunks
+        const finalChunk = streamingChunks.find(
+          (chunk) => chunk.type === "message" || chunk.type === "completion",
+        );
+
+        if (finalChunk && finalChunk.data) {
+          parsedResponse = {
+            body: finalChunk.data.content || JSON.stringify(finalChunk.data),
+          };
+        } else {
+          // Fallback: concatenate all content from chunks
+          const content = streamingChunks
+            .map((chunk) => chunk.content || chunk.data?.content || "")
+            .join("");
+          parsedResponse = { body: content };
+        }
+      } catch {
+        console.warn(
+          "Failed to parse streaming response, using raw response as body",
+        );
+        parsedResponse = { body: rawResponse };
+      }
+    }
+
+    if (!parsedResponse || !parsedResponse.body) {
       throw new Error("Received empty or invalid response from h2oGPTe API");
     }
 
     console.log(
-      `Successfully received chat completion and got response: ${JSON.stringify(data, null, 2)}`,
+      `Successfully processed streaming response. Body: ${parsedResponse.body}`,
     );
 
-    return { success: true, body: data.body };
+    if (streamingChunks.length > 0) {
+      console.log(`Processed ${streamingChunks.length} streaming chunks`);
+    }
+
+    return { success: true, body: parsedResponse.body };
   } catch (error) {
     if (error instanceof Error) {
       const errorMsg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;
