@@ -38,7 +38,7 @@ export async function createAgentKey(
   );
 
   const data = (await response.json()) as types.AgentKey;
-  console.log(
+  console.debug(
     `Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -76,7 +76,7 @@ export async function createToolAssociation(
   );
 
   const data = (await response.json()) as types.ToolAssociations;
-  console.log(
+  console.debug(
     `Successfully created tool association and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -110,7 +110,7 @@ export async function createChatSession(
   );
 
   const data = (await response.json()) as types.ChatSession;
-  console.log(
+  console.debug(
     `Successfully created chat session and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -139,7 +139,7 @@ export async function requestAgentCompletion(
     ...(systemPrompt && { system_prompt: systemPrompt }),
   };
 
-  console.log(
+  console.debug(
     `Agent completion config: ${JSON.stringify(agentCompletionConfig)}`,
   );
 
@@ -159,7 +159,7 @@ export async function requestAgentCompletion(
       { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000 },
     );
 
-    console.log(`Received streaming response: ${rawResponse}`);
+    console.debug(`Received streaming response: ${rawResponse}`);
 
     // Parse the streaming response (newline-delimited JSON)
     try {
@@ -179,12 +179,12 @@ export async function requestAgentCompletion(
       const lastChunk = streamingChunks[streamingChunks.length - 1];
 
       if (lastChunk && lastChunk.body && lastChunk.finished) {
-        console.log("Returning last complete chunk from streaming response");
-        console.log(lastChunk);
+        console.debug("Returning last complete chunk from streaming response");
+        console.debug(lastChunk);
         return { success: true, body: lastChunk.body };
       }
 
-      console.log("No valid chunks found");
+      console.debug("No valid chunks found");
       return {
         success: false,
         body: "The agent did not return a complete response. Please check h2oGPTe.",
@@ -232,7 +232,7 @@ export async function deleteAgentKey(
     retryDelay,
   });
 
-  console.log(`Successfully deleted agent key: ${keyId}`);
+  console.debug(`Successfully deleted agent key: ${keyId}`);
 }
 
 export function getChatSessionUrl(chatSessionId: string) {
@@ -274,7 +274,7 @@ export async function createCollection(
 
   const data = (await response.json()) as types.Collection;
 
-  console.log(
+  console.debug(
     `Successfully created collection and got response: ${JSON.stringify(data, null, 2)}`,
   );
 
@@ -423,7 +423,7 @@ export async function deleteCollection(
       `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  console.log(
+  console.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
 }
