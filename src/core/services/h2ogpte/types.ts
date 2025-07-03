@@ -45,6 +45,23 @@ export interface H2oRawResponse {
   body: string;
 }
 
+export interface StreamingChunk {
+  type: string;
+  data?: {
+    content?: string;
+    role?: string;
+    [key: string]: unknown;
+  };
+  content?: string;
+  done?: boolean;
+}
+
+export interface StreamingResponse {
+  success: boolean;
+  body: string;
+  chunks?: StreamingChunk[];
+}
+
 export interface Collection {
   id: string;
   name: string;
