@@ -177,9 +177,11 @@ export async function requestAgentCompletion(
 
       // Get the last complete chunk
       const lastChunk = streamingChunks[streamingChunks.length - 1];
+      console.log("streamingChunks", streamingChunks);
 
       if (lastChunk && lastChunk.body) {
         console.log("Returning last complete chunk from streaming response");
+        console.log(lastChunk);
         return { success: true, body: lastChunk.body };
       }
 
