@@ -161,52 +161,71 @@ export async function requestAgentCompletion(
 
     console.log(`Received streaming response: ${rawResponse}`);
 
-    // Parse the streaming response (newline-delimited JSON)
+    // Try to parse the streaming response
+    let parsedResponse: types.H2oRawResponse | null = null;
+    let streamingChunks: types.StreamingChunk[] = [];
+
     try {
-      const lines = rawResponse.trim().split("\n");
-      const streamingChunks = lines
-        .filter((line) => line.trim() !== "")
-        .map((line) => {
-          try {
-            return JSON.parse(line);
-          } catch {
-            return null;
-          }
-        })
-        .filter((chunk) => chunk !== null);
+      // First, try to parse as regular JSON (non-streaming response)
+      parsedResponse = JSON.parse(rawResponse) as types.H2oRawResponse;
+    } catch {
+      // If that fails, try to parse as streaming response (newline-delimited JSON)
+      try {
+        const lines = rawResponse.trim().split("\n");
+        streamingChunks = lines
+          .filter((line) => line.trim() !== "")
+          .map((line) => {
+            if (line.startsWith("data: ")) {
+              const jsonStr = line.slice(6); // Remove 'data: ' prefix
+              if (jsonStr === "[DONE]") {
+                return { type: "done", done: true };
+              }
+              try {
+                return JSON.parse(jsonStr);
+              } catch {
+                return { type: "error", content: jsonStr };
+              }
+            }
+            return { type: "unknown", content: line };
+          });
 
-      // Look for the chunk with "finished":true
-      const finishedChunk = streamingChunks.find(
-        (chunk) => chunk && chunk.finished === true,
-      );
+        // Extract the final response from streaming chunks
+        const finalChunk = streamingChunks.find(
+          (chunk) => chunk.type === "message" || chunk.type === "completion",
+        );
 
-      if (finishedChunk && finishedChunk.body) {
-        console.log("Found streaming response with finished:true");
-        return { success: true, body: finishedChunk.body };
+        if (finalChunk && finalChunk.data) {
+          parsedResponse = {
+            body: finalChunk.data.content || JSON.stringify(finalChunk.data),
+          };
+        } else {
+          // Fallback: concatenate all content from chunks
+          const content = streamingChunks
+            .map((chunk) => chunk.content || chunk.data?.content || "")
+            .join("");
+          parsedResponse = { body: content };
+        }
+      } catch {
+        console.warn(
+          "Failed to parse streaming response, using raw response as body",
+        );
+        parsedResponse = { body: rawResponse };
       }
-
-      // If no finished chunk found, try to get the last meaningful chunk
-      const lastChunk = streamingChunks
-        .filter((chunk) => chunk && chunk.body)
-        .pop();
-
-      if (lastChunk && lastChunk.body) {
-        console.log("Using last streaming chunk as fallback");
-        return { success: true, body: lastChunk.body };
-      }
-
-      console.log("No valid streaming chunks found");
-      return {
-        success: false,
-        body: "The agent did not return a complete response. Please check h2oGPTe.",
-      };
-    } catch (parseError) {
-      console.error("Failed to parse streaming response:", parseError);
-      return {
-        success: false,
-        body: "Failed to parse the agent response. Please check h2oGPTe.",
-      };
     }
+
+    if (!parsedResponse || !parsedResponse.body) {
+      throw new Error("Received empty or invalid response from h2oGPTe API");
+    }
+
+    console.log(
+      `Successfully processed streaming response. Body: ${parsedResponse.body}`,
+    );
+
+    if (streamingChunks.length > 0) {
+      console.log(`Processed ${streamingChunks.length} streaming chunks`);
+    }
+
+    return { success: true, body: parsedResponse.body };
   } catch (error) {
     if (error instanceof Error) {
       const errorMsg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;

@@ -141,53 +141,54 @@ export async function checkWritePermissions(
 }
 
 /**
- * Extracts the final agent response from the streaming response
- * Looks for the chunk with "finished":true to get the final response
+ * Extracts the final agent response from the raw response
  */
 export function extractFinalAgentResponse(input: string): string {
   if (!input || typeof input !== "string") {
     return "The agent did not return a valid response. Please check h2oGPTe.";
   }
 
-  try {
-    const lines = input.trim().split("\n");
-    const streamingChunks = lines
-      .filter((line) => line.trim() !== "")
-      .map((line) => {
-        try {
-          return JSON.parse(line);
-        } catch {
-          return null;
-        }
-      })
-      .filter((chunk) => chunk !== null);
+  // Find all occurrences of "ENDOFTURN"
+  const endOfTurnMatches = Array.from(input.matchAll(/ENDOFTURN/g));
 
-    // Look for the chunk with "finished":true
-    const finishedChunk = streamingChunks.find(
-      (chunk) => chunk && chunk.finished === true,
+  if (!endOfTurnMatches || endOfTurnMatches.length < 2) {
+    // If there's less than 2 ENDOFTURN markers, return empty string
+    console.log(
+      `Could not find any end of turn markers, returning raw agent response: '${input}'`,
     );
-
-    if (finishedChunk && finishedChunk.body) {
-      console.log("Found streaming response with finished:true");
-      return finishedChunk.body.trim();
-    }
-
-    // If no finished chunk found, try to get the last meaningful chunk
-    const lastChunk = streamingChunks
-      .filter((chunk) => chunk && chunk.body)
-      .pop();
-
-    if (lastChunk && lastChunk.body) {
-      console.log("Using last streaming chunk as fallback");
-      return lastChunk.body.trim();
-    }
-
-    console.log("No valid streaming chunks found");
-    return "The agent did not return a complete response. Please check h2oGPTe.";
-  } catch (error) {
-    console.error("Failed to parse streaming response:", error);
-    return "Failed to parse the agent response. Please check h2oGPTe.";
+    return input;
   }
+
+  // Get the position of the second-to-last ENDOFTURN
+  const secondToLastMatch = endOfTurnMatches[endOfTurnMatches.length - 2];
+  const lastMatch = endOfTurnMatches[endOfTurnMatches.length - 1];
+
+  // Check that both matches exist and have valid index values
+  if (
+    !secondToLastMatch ||
+    !lastMatch ||
+    secondToLastMatch.index === undefined ||
+    lastMatch.index === undefined
+  ) {
+    console.log(`h2oGPTe response is invalid: '${input}'`);
+    return "The agent did not return a complete response. Please check h2oGPTe.";
+  }
+
+  const secondToLastIndex = secondToLastMatch.index;
+  const lastIndex = lastMatch.index;
+
+  // Extract text between second-to-last and last ENDOFTURN
+  const startPosition = secondToLastIndex + "ENDOFTURN".length;
+  const textSection = input.substring(startPosition, lastIndex);
+
+  // Remove <stream_turn_title> tags and their content
+  const cleanText = textSection.replace(
+    /<stream_turn_title>.*?<\/stream_turn_title>/gs,
+    "",
+  );
+
+  // Trim newlines and whitespace from the beginning and end
+  return cleanText.replace(/^\n+|\n+$/g, "").trim();
 }
 
 export async function createAgentGitHubSecret(
