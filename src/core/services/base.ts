@@ -139,9 +139,6 @@ export async function fetchWithRetryStreaming(
 
           const chunk = decoder.decode(value, { stream: true });
           result += chunk;
-
-          // Log chunks for debugging (optional)
-          console.log("Received chunk:", chunk);
         }
       } finally {
         reader.releaseLock();

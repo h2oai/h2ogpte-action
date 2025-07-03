@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
-import { getH2ogpteConfig } from "../../../utils";
+import { getH2ogpteConfig, parseStreamingAgentResponse } from "../../../utils";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 
@@ -159,32 +159,16 @@ export async function requestAgentCompletion(
       { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000 },
     );
 
-    console.debug(`Received streaming response: ${rawResponse}`);
+    console.log(`Received streaming response: ${rawResponse}`);
 
-    // Parse the streaming response (newline-delimited JSON)
     try {
-      const lines = rawResponse.trim().split("\n");
-      const streamingChunks = lines
-        .filter((line) => line.trim() !== "")
-        .map((line) => {
-          try {
-            return JSON.parse(line);
-          } catch {
-            return null;
-          }
-        })
-        .filter((chunk) => chunk !== null);
-
-      // Get the last complete chunk
-      const lastChunk = streamingChunks[streamingChunks.length - 1];
-
-      if (lastChunk && lastChunk.body && lastChunk.finished) {
-        console.debug("Returning last complete chunk from streaming response");
-        console.debug(lastChunk);
+      const lastChunk = parseStreamingAgentResponse(rawResponse);
+      if (lastChunk) {
+        console.log("Returning last complete chunk from streaming response");
+        console.log(lastChunk);
         return { success: true, body: lastChunk.body };
       }
-
-      console.debug("No valid chunks found");
+      console.log("No valid chunks found");
       return {
         success: false,
         body: "The agent did not return a complete response. Please check h2oGPTe.",

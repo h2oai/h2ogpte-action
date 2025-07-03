@@ -41,8 +41,10 @@ export interface ChatResponse {
   body: string;
 }
 
-export interface H2oRawResponse {
+export interface StreamingChunk {
   body: string;
+  finished: boolean;
+  [key: string]: unknown;
 }
 
 export interface StreamingChunk {

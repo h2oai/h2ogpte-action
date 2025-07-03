@@ -11,7 +11,11 @@ import {
   getJobDetails,
   uploadFile,
 } from "./core/services/h2ogpte/h2ogpte";
-import type { JobDetails, UploadResponse } from "./core/services/h2ogpte/types";
+import type {
+  JobDetails,
+  UploadResponse,
+  StreamingChunk,
+} from "./core/services/h2ogpte/types";
 
 /**
  * Waits for a job to complete, polling at intervals
@@ -197,8 +201,8 @@ export function extractFinalAgentResponse(input: string): string {
       "",
     );
 
-  // Trim newlines and whitespace from the beginning and end
-  return cleanedText.replace(/^\n+|\n+$/g, "").trim();
+  const collapsed = cleanedText.replace(/\n{2,}/g, "\n");
+  return collapsed.replace(/^\n+|\n+$/g, "").trim();
 }
 
 export async function createAgentGitHubSecret(
@@ -298,4 +302,29 @@ export async function cleanup(keyUuid: string | null): Promise<void> {
   } else {
     console.log(`No agent key to clean up`);
   }
+}
+
+/**
+ * Parses a newline-delimited streaming agent response and returns the last valid chunk (with body and finished)
+ */
+export function parseStreamingAgentResponse(
+  rawResponse: string,
+): StreamingChunk | null {
+  if (!rawResponse || typeof rawResponse !== "string") return null;
+  const lines = rawResponse.trim().split("\n");
+  const streamingChunks = lines
+    .filter((line) => line.trim() !== "")
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter((chunk) => chunk !== null);
+  const lastChunk = streamingChunks[streamingChunks.length - 1];
+  if (lastChunk && lastChunk.body && lastChunk.finished) {
+    return lastChunk;
+  }
+  return null;
 }
