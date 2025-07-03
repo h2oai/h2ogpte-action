@@ -99,6 +99,7 @@ export async function fetchWithRetryStreaming(
   const fetchOptions = {
     ...options,
     signal: controller.signal,
+    verbose: "curl",
   };
 
   let lastError: Error | null = null;
