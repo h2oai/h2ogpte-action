@@ -70,23 +70,29 @@ export async function run(): Promise<void> {
     core.debug(`This run url is ${url}`);
 
     // This should be refactored later
-    try {
-      collectionId = await h2ogpte.createCollection();
-      githubData.attachmentUrlMap.forEach(async (localPath) => {
-        const uploadResult = await processFileWithJobMonitoring(
-          localPath,
-          collectionId!,
-        );
-        if (!uploadResult.success) {
-          core.warning(
-            `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
+    if (githubData.attachmentUrlMap.size > 0) {
+      try {
+        collectionId = await h2ogpte.createCollection();
+        githubData.attachmentUrlMap.forEach(async (localPath) => {
+          const uploadResult = await processFileWithJobMonitoring(
+            localPath,
+            collectionId!,
           );
-        }
-      });
-    } catch (error) {
-      core.warning(
-        `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
-      );
+          if (!uploadResult.success) {
+            core.warning(
+              `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
+            );
+          } else {
+            core.debug(`Uploaded file to h2oGPTe: ${localPath}`);
+          }
+        });
+      } catch (error) {
+        core.warning(
+          `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    } else {
+      core.debug("No attachments found, skipping collection creation");
     }
 
     // Handle GitHub Event
