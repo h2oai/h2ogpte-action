@@ -199,10 +199,12 @@ export function extractFinalAgentResponse(input: string): string {
     .replace(
       /\*\*No executable code blocks found, terminating conversation\.*\*\*/g,
       "",
-    );
+    )
+    .replace(/\s*\[citation:\s*\d+\]\s*/g, " ")
+    .replace(/\s+\./g, ".")
+    .replace(/\n{2,}/g, "\n");
 
-  const collapsed = cleanedText.replace(/\n{2,}/g, "\n");
-  return collapsed.replace(/^\n+|\n+$/g, "").trim();
+  return cleanedText.replace(/^\n+|\n+$/g, "").trim();
 }
 
 export async function createAgentGitHubSecret(
