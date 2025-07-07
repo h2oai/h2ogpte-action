@@ -23,8 +23,8 @@ import {
   createSecretAndToolAssociation,
   extractFinalAgentResponse,
   getGithubToken,
-  processFileWithJobMonitoring,
 } from "./utils";
+import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
 
 /**
  * The main function for the action.
@@ -69,24 +69,12 @@ export async function run(): Promise<void> {
     const url = `https://github.com/${repo}/actions/runs/${runId}`;
     core.debug(`This run url is ${url}`);
 
-    // This should be refactored later
-    try {
-      collectionId = await h2ogpte.createCollection();
-      githubData.attachmentUrlMap.forEach(async (localPath) => {
-        const uploadResult = await processFileWithJobMonitoring(
-          localPath,
-          collectionId!,
-        );
-        if (!uploadResult.success) {
-          core.warning(
-            `Failed to upload file to h2oGPTe: ${localPath} with error: ${uploadResult.error}`,
-          );
-        }
-      });
-    } catch (error) {
-      core.warning(
-        `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
+    if (githubData.attachmentUrlMap.size > 0) {
+      collectionId = await uploadAttachmentsToH2oGPTe(
+        githubData.attachmentUrlMap,
       );
+    } else {
+      core.debug("No attachments found, skipping collection creation");
     }
 
     // Handle GitHub Event
