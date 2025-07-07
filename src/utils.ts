@@ -191,7 +191,7 @@ export function extractFinalAgentResponse(input: string): string {
     "",
   );
 
-  // Remove execution timestamps and metadata
+  // Remove agent metadata and clean up the whitespace in the text
   const cleanedText = cleanText
     .replace(/\*\*Completed LLM call in.*?\*\*/g, "")
     .replace(/\*\* \[.*?\] .*?\*\*/g, "")
@@ -202,9 +202,11 @@ export function extractFinalAgentResponse(input: string): string {
     )
     .replace(/\s*\[citation:\s*\d+\]\s*/g, " ")
     .replace(/\s+\./g, ".")
-    .replace(/\n{2,}/g, "\n");
+    .replace(/\n{2,}/g, "\n")
+    .replace(/^\n+|\n+$/g, "")
+    .trim();
 
-  return cleanedText.replace(/^\n+|\n+$/g, "").trim();
+  return cleanedText;
 }
 
 export async function createAgentGitHubSecret(
