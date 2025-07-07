@@ -80,6 +80,19 @@ describe("extractFinalAgentResponse", () => {
     expect(result).toBe("Some text\nFinal output!");
   });
 
+  test("should remove citation patterns", () => {
+    const input = [
+      "ENDOFTURN",
+      "Here is some information [citation: 1] and more details [citation:42]. Also check this [citation: 123] and that [citation:1].",
+      "ENDOFTURN",
+      "ENDOFTURN",
+    ].join("\n");
+    const result = extractFinalAgentResponse(input);
+    expect(result).toBe(
+      "Here is some information and more details. Also check this and that.",
+    );
+  });
+
   test("should handle null, undefined, or empty input", () => {
     expect(extractFinalAgentResponse("")).toBe(
       "The agent did not return a valid response. Please check h2oGPTe.",
