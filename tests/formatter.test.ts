@@ -81,10 +81,120 @@ describe("getAllEventsInOrder", () => {
 
     const events = getAllEventsInOrder(issueData, false);
 
-    // Should only have comments (no commits or reviews for issues)
+    // Should have issue body + comments
+    expect(events).toHaveLength(2);
+
+    // Check issue body event
+    const issueBodyEvent = events.find((event) => event.type === "issue_body");
+    expect(issueBodyEvent).toBeDefined();
+    expect(issueBodyEvent?.title).toBe("Test Issue");
+    expect(issueBodyEvent?.body).toBe("This is a test issue");
+    expect(issueBodyEvent?.createdAt).toBe("2025-06-24T07:00:00Z");
+
+    // Check comment event
+    const commentEvent = events.find((event) => event.type === "comment");
+    expect(commentEvent).toBeDefined();
+    expect(commentEvent?.body).toBe("Issue comment");
+  });
+
+  test("should handle issue with empty body", () => {
+    const issueData = {
+      ...mockFetchDataResult,
+      contextData: {
+        title: "Test Issue",
+        body: "", // Empty body
+        author: { login: "testuser", name: "Test User" },
+        createdAt: "2025-06-24T07:00:00Z",
+        state: "OPEN",
+        comments: {
+          nodes: [
+            {
+              id: "issue_comment1",
+              databaseId: "1",
+              body: "Issue comment",
+              createdAt: "2025-06-24T07:16:09Z",
+              author: { login: "user1", name: "User One" },
+            },
+          ],
+        },
+      },
+    };
+
+    const events = getAllEventsInOrder(issueData, false);
+
+    // Should only have comments (no issue body event for empty body)
     expect(events).toHaveLength(1);
     expect(events[0]?.type).toBe("comment");
     expect(events[0]?.body).toBe("Issue comment");
+  });
+
+  test("should handle issue with null body", () => {
+    const issueData = {
+      ...mockFetchDataResult,
+      contextData: {
+        title: "Test Issue",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body: null as any, // Null body
+        author: { login: "testuser", name: "Test User" },
+        createdAt: "2025-06-24T07:00:00Z",
+        state: "OPEN",
+        comments: {
+          nodes: [
+            {
+              id: "issue_comment1",
+              databaseId: "1",
+              body: "Issue comment",
+              createdAt: "2025-06-24T07:16:09Z",
+              author: { login: "user1", name: "User One" },
+            },
+          ],
+        },
+      },
+    };
+
+    const events = getAllEventsInOrder(issueData, false);
+
+    // Should only have comments (no issue body event for null body)
+    expect(events).toHaveLength(1);
+    expect(events[0]?.type).toBe("comment");
+    expect(events[0]?.body).toBe("Issue comment");
+  });
+
+  test("should order issue body and comments chronologically", () => {
+    const issueData = {
+      ...mockFetchDataResult,
+      contextData: {
+        title: "Test Issue",
+        body: "This is a test issue",
+        author: { login: "testuser", name: "Test User" },
+        createdAt: "2025-06-24T07:10:00Z", // Issue created after comment
+        state: "OPEN",
+        comments: {
+          nodes: [
+            {
+              id: "issue_comment1",
+              databaseId: "1",
+              body: "Issue comment",
+              createdAt: "2025-06-24T07:05:00Z", // Comment created before issue
+              author: { login: "user1", name: "User One" },
+            },
+          ],
+        },
+      },
+    };
+
+    const events = getAllEventsInOrder(issueData, false);
+
+    // Should have 2 events in chronological order
+    expect(events).toHaveLength(2);
+
+    // Comment should come first (earlier timestamp)
+    expect(events[0]?.type).toBe("comment");
+    expect(events[0]?.createdAt).toBe("2025-06-24T07:05:00Z");
+
+    // Issue body should come second (later timestamp)
+    expect(events[1]?.type).toBe("issue_body");
+    expect(events[1]?.createdAt).toBe("2025-06-24T07:10:00Z");
   });
 
   test("should handle events with missing timestamps", () => {
