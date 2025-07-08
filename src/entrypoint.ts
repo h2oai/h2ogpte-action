@@ -23,6 +23,7 @@ import {
   createSecretAndToolAssociation,
   extractFinalAgentResponse,
   getGithubToken,
+  parseH2ogpteConfig,
 } from "./utils";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
 
@@ -141,13 +142,18 @@ export async function run(): Promise<void> {
         githubData,
       );
 
-      // 5. Query h2oGPTe for Agent completion
+      // 5. Parse h2oGPTe configuration
+      const h2ogpteConfig = parseH2ogpteConfig();
+      core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
+
+      // 6. Query h2oGPTe for Agent completion
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
+        h2ogpteConfig,
       );
 
-      // 6. Extract response from agent completion
+      // 7. Extract response from agent completion
       let cleanedResponse = "";
       let header = "";
       if (chatCompletion.success) {
@@ -159,7 +165,7 @@ export async function run(): Promise<void> {
       }
       core.debug(`Extracted response: ${cleanedResponse}`);
 
-      // 7. Update initial comment
+      // 8. Update initial comment
       const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n${cleanedResponse}`;
       await updateComment(updatedCommentBody, h2ogpteComment.data.id);
     } else {

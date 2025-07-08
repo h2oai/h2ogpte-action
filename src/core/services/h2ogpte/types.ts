@@ -4,6 +4,12 @@ export interface FetchWithRetryOptions {
   timeoutMs?: number;
 }
 
+// TODO: Add more configuration options
+export interface H2ogpteConfig {
+  llm?: string;
+  agent_max_turns?: number;
+}
+
 export interface AgentKey {
   id: string;
   name: string;

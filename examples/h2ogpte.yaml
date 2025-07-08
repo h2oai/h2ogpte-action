@@ -35,3 +35,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          # h2oGPTe Configuration (optional)
+          # TODO: Add more configuration options
+          llm: "gpt-4o"
+          agent_max_turns: "10"

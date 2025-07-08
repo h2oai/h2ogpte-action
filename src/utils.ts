@@ -15,7 +15,9 @@ import type {
   JobDetails,
   UploadResponse,
   StreamingChunk,
+  H2ogpteConfig,
 } from "./core/services/h2ogpte/types";
+import * as core from "@actions/core";
 
 /**
  * Waits for a job to complete, polling at intervals
@@ -331,4 +333,17 @@ export function parseStreamingAgentResponse(
     return lastChunk;
   }
   return null;
+}
+
+/**
+ * Parse h2oGPTe configuration from GitHub action inputs
+ */
+// TODO: Add more configuration options
+export function parseH2ogpteConfig(): H2ogpteConfig {
+  const config: H2ogpteConfig = {};
+  const llm = core.getInput("llm");
+  const agent_max_turns = core.getInput("agent_max_turns");
+  if (llm) config.llm = llm;
+  if (agent_max_turns) config.agent_max_turns = parseInt(agent_max_turns);
+  return config;
 }
