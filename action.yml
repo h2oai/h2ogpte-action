@@ -30,10 +30,15 @@ inputs:
     required: false
     default: https://github.com
   # h2oGPTe Configuration
+  # TODO: Add more configuration options
   llm:
     description: Language model to use (e.g., "llama3.2-70b-instruct", "mistral-7b-instruct")
     required: false
     default: ""
+  agent_max_turns:
+    description: Maximum number of turns the agent can take
+    required: false
+    default: "10"
 
 runs:
   using: composite
