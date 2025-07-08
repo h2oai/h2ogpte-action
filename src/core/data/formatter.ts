@@ -1,5 +1,5 @@
 import type { FetchDataResult } from "../data/fetcher";
-import type { GitHubPullRequest } from "./queries/types";
+import type { GitHubIssue, GitHubPullRequest } from "./queries/types";
 
 export function getAllEventsInOrder(
   githubData: FetchDataResult,
@@ -41,7 +41,20 @@ export function getAllEventsInOrder(
     }
   }
 
-  // 2. Comments (for both PRs and Issues)
+  // 2. Events in Issues
+  if (!isPR) {
+    const data = githubData.contextData as GitHubIssue;
+    if (data.body) {
+      events.push({
+        type: "issue_body",
+        title: data.title || "",
+        body: data.body,
+        createdAt: data.createdAt,
+      });
+    }
+  }
+
+  // 3. Comments (for both PRs and Issues)
   for (const comment of githubData.contextData.comments.nodes) {
     events.push({
       type: "comment",
