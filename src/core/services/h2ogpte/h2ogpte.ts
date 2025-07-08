@@ -124,6 +124,7 @@ export async function createChatSession(
 export async function requestAgentCompletion(
   sessionId: string,
   prompt: string,
+  config?: types.H2ogpteConfig,
   systemPrompt?: string,
   timeoutMinutes: number = 30,
   maxRetries: number = 1,
@@ -133,6 +134,7 @@ export async function requestAgentCompletion(
 
   const agentCompletionConfig = {
     message: prompt,
+    llm: config?.llm,
     llm_args: { use_agent: true },
     tags: ["github_action_trigger"],
     stream: true,
