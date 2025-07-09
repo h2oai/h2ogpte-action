@@ -29,6 +29,15 @@ inputs:
     description: github server base url (no trailing slash)
     required: false
     default: https://github.com
+  # h2oGPTe Configuration
+  llm:
+    description: Language model to use (e.g., "llama3.2-70b-instruct", "mistral-7b-instruct")
+    required: false
+    default: ""
+  agent_max_turns:
+    description: Maximum number of turns the agent can take (must be one of {5, 10, 15, 20})
+    required: false
+    default: "10"
 
 runs:
   using: composite
@@ -54,3 +63,6 @@ runs:
         GITHUB_SERVER_URL: ${{ inputs.github_server_url }}
         H2OGPTE_API_KEY: ${{ inputs.h2ogpte_api_key }}
         H2OGPTE_API_BASE: ${{ inputs.h2ogpte_api_base }}
+        # h2oGPTe Configuration
+        LLM: ${{ inputs.llm }}
+        AGENT_MAX_TURNS: ${{ inputs.agent_max_turns }}
