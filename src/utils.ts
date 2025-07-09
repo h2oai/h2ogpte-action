@@ -357,6 +357,5 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
 
     config.agent_max_turns = maxTurns;
   }
-
   return config;
 }
