@@ -1,14 +1,14 @@
-name: PR Comment
+name: h2oGPTe Agent Assistant
 
 on:
   issues:
-    types: [opened, edited, assigned]
+    types: [opened, edited]
   issue_comment:
     types: [created, edited]
   pull_request:
-    types: [opened, edited, assigned]
+    types: [opened, edited]
   pull_request_review:
-    types: [submitted, edited]
+    types: [submitted]
   pull_request_review_comment:
     types: [created, edited]
 
