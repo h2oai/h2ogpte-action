@@ -2,15 +2,15 @@ name: h2oGPTe Agent Assistant
 
 on:
   issues:
-    types: [opened, assigned]
+    types: [opened, edited]
   issue_comment:
-    types: [created]
+    types: [created, edited]
   pull_request:
-    types: [opened, assigned]
+    types: [opened, edited]
   pull_request_review:
     types: [submitted]
   pull_request_review_comment:
-    types: [created]
+    types: [created, edited]
 
 permissions:
   contents: write
