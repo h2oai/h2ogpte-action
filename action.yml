@@ -30,13 +30,12 @@ inputs:
     required: false
     default: https://github.com
   # h2oGPTe Configuration
-  # TODO: Add more configuration options
   llm:
     description: Language model to use (e.g., "llama3.2-70b-instruct", "mistral-7b-instruct")
     required: false
     default: ""
   agent_max_turns:
-    description: Maximum number of turns the agent can take
+    description: Maximum number of turns the agent can take (must be one of {5, 10, 15, 20})
     required: false
     default: "10"
 
@@ -65,6 +64,5 @@ runs:
         H2OGPTE_API_KEY: ${{ inputs.h2ogpte_api_key }}
         H2OGPTE_API_BASE: ${{ inputs.h2ogpte_api_base }}
         # h2oGPTe Configuration
-        # TODO: Add more configuration options
         LLM: ${{ inputs.llm }}
         AGENT_MAX_TURNS: ${{ inputs.agent_max_turns }}
