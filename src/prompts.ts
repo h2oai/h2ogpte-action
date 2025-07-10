@@ -112,8 +112,19 @@ export function createAgentInstructionPrompt(
   `;
 
   const prompt_outro = dedent`
-    For context, here are the previous events on the ${context.isPR ? "pull request" : "issue"} in chronological order:
+    For context, you have been provided the previous events on the ${context.isPR ? "pull request" : "issue"}.
+    You can reference the previous events in the repo itself by their id provided.
+    Here are the previous events in chronological order:
     ${eventsText}
+
+    First read the previous events and understand the context of the conversation.
+    Then read the user's instruction and understand the task they want to complete.
+    Then read the code in the repository and understand the context of the code.
+    Once you have a good understanding of the context, you can begin to respond to the user's instruction.
+
+    If necessary, include GitHub referencing (e.g. #23) when referring to any other issues or PRs. Don't respond with the literal link.
+    Begin your final response by quoting the initial instruction in a code block as markdown, labelling it as "User's Instruction".
+    Remove any files that were in the instruction from your response.
 
     Please respond and execute actions according to the user's instruction.
   `;
