@@ -18,6 +18,7 @@ export function getAllEventsInOrder(
         title: commit.message,
         body: commit.message,
         createdAt: commit.committedDate,
+        id: commit.oid,
       });
     }
 
@@ -27,6 +28,7 @@ export function getAllEventsInOrder(
         title: data.title || "",
         body: review.body,
         createdAt: review.submittedAt,
+        id: review.id,
       });
       if (review.comments && review.comments.nodes) {
         for (const reviewComment of review.comments.nodes) {
@@ -35,6 +37,7 @@ export function getAllEventsInOrder(
             title: data.title || "",
             body: reviewComment.body,
             createdAt: reviewComment.createdAt,
+            id: reviewComment.id,
           });
         }
       }
@@ -50,6 +53,7 @@ export function getAllEventsInOrder(
         title: data.title || "",
         body: data.body,
         createdAt: data.createdAt,
+        id: null,
       });
     }
   }
@@ -61,6 +65,7 @@ export function getAllEventsInOrder(
       title: githubData.contextData.title || "",
       body: comment.body,
       createdAt: comment.createdAt,
+      id: comment.id,
     });
   }
 
@@ -73,11 +78,12 @@ export function getAllEventsInOrder(
     );
   });
 
-  return events.map(({ type, title, body, createdAt }) => ({
+  return events.map(({ type, title, body, createdAt, id }) => ({
     type,
     title,
     body,
     createdAt,
+    id,
   }));
 }
 
