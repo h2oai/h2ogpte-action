@@ -1,5 +1,11 @@
 import * as core from "@actions/core";
 import {
+  checkWritePermissions,
+  cleanup,
+  createSecretAndToolAssociation,
+  getGithubToken,
+} from "./core/utils";
+import {
   isIssueCommentEvent,
   isIssuesEvent,
   isPullRequestEvent,
@@ -8,24 +14,13 @@ import {
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
-import {
-  createReplyForIssueComment,
-  createReplyForReviewComment,
-  updateIssueComment,
-  updateReviewComment,
-} from "./core/services/github/api";
+import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
-import { createAgentInstructionPrompt } from "./prompts";
-import {
-  checkWritePermissions,
-  cleanup,
-  createSecretAndToolAssociation,
-  extractFinalAgentResponse,
-  getGithubToken,
-  parseH2ogpteConfig,
-} from "./utils";
+import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
+import { extractFinalAgentResponse } from "./core/response/utils/extract-response";
 
 /**
  * The main function for the action.
@@ -61,22 +56,16 @@ export async function run(): Promise<void> {
       isPR: context.isPR,
       triggerUsername: context.actor,
     });
-
-    core.debug("Github Data:");
-    core.debug(JSON.stringify(githubData));
+    core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
     const runId = process.env.GITHUB_RUN_ID;
     const repo = process.env.GITHUB_REPOSITORY; // owner/repo
     const url = `https://github.com/${repo}/actions/runs/${runId}`;
     core.debug(`This run url is ${url}`);
 
-    if (githubData.attachmentUrlMap.size > 0) {
-      collectionId = await uploadAttachmentsToH2oGPTe(
-        githubData.attachmentUrlMap,
-      );
-    } else {
-      core.debug("No attachments found, skipping collection creation");
-    }
+    collectionId = await uploadAttachmentsToH2oGPTe(
+      githubData.attachmentUrlMap,
+    );
 
     // Handle GitHub Event
     const isIssue: boolean =
@@ -89,41 +78,6 @@ export async function run(): Promise<void> {
     if (isIssue || isPRReviewComment) {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
-      // Define callback functions for different event types
-      const createInitialComment = async (commentBody: string) => {
-        if (isPRReviewComment) {
-          return await createReplyForReviewComment(
-            octokits.rest,
-            commentBody,
-            context,
-          );
-        } else {
-          return await createReplyForIssueComment(
-            octokits.rest,
-            commentBody,
-            context,
-          );
-        }
-      };
-
-      const updateComment = async (commentBody: string, commentId: number) => {
-        if (isPRReviewComment) {
-          return await updateReviewComment(
-            octokits.rest,
-            commentBody,
-            context,
-            commentId,
-          );
-        } else {
-          return await updateIssueComment(
-            octokits.rest,
-            commentBody,
-            context,
-            commentId,
-          );
-        }
-      };
-
       // 1. Setup the GitHub secret in h2oGPTe
       keyUuid = await createSecretAndToolAssociation(githubToken);
 
@@ -134,7 +88,12 @@ export async function run(): Promise<void> {
 
       // 3. Create the initial comment
       const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url})`;
-      const h2ogpteComment = await createInitialComment(initialCommentBody);
+      const h2ogpteComment = await createReply(
+        octokits.rest,
+        initialCommentBody,
+        context,
+        isPRReviewComment,
+      );
 
       // 4. Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
@@ -167,7 +126,13 @@ export async function run(): Promise<void> {
 
       // 8. Update initial comment
       const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n${cleanedResponse}`;
-      await updateComment(updatedCommentBody, h2ogpteComment.data.id);
+      await updateComment(
+        octokits.rest,
+        updatedCommentBody,
+        context,
+        h2ogpteComment.data.id,
+        isPRReviewComment,
+      );
     } else {
       throw new Error(`Unexpected event: ${context.eventName}`);
     }

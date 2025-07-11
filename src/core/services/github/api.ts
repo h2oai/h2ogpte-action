@@ -2,7 +2,20 @@ import { Octokit } from "@octokit/rest";
 import type { ParsedGitHubContext } from "./types";
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
 
-export async function createReplyForReviewComment(
+export async function createReply(
+  octokit: Octokit,
+  comment_body: string,
+  context: ParsedGitHubContext,
+  isPR: boolean,
+) {
+  if (isPR) {
+    return await createReplyForReviewComment(octokit, comment_body, context);
+  } else {
+    return await createReplyForIssueComment(octokit, comment_body, context);
+  }
+}
+
+async function createReplyForReviewComment(
   octokit: Octokit,
   comment_body: string,
   context: ParsedGitHubContext,
@@ -17,21 +30,7 @@ export async function createReplyForReviewComment(
   return comment;
 }
 
-export async function updateReviewComment(
-  octokit: Octokit,
-  comment_body: string,
-  context: ParsedGitHubContext,
-  initialh2ogpteCommentId: number,
-) {
-  await octokit.pulls.updateReviewComment({
-    owner: context.repository.owner,
-    repo: context.repository.repo,
-    comment_id: initialh2ogpteCommentId,
-    body: comment_body,
-  });
-}
-
-export async function createReplyForIssueComment(
+async function createReplyForIssueComment(
   octokit: Octokit,
   comment_body: string,
   context: ParsedGitHubContext,
@@ -45,7 +44,45 @@ export async function createReplyForIssueComment(
   return comment;
 }
 
-export async function updateIssueComment(
+export async function updateComment(
+  octokit: Octokit,
+  comment_body: string,
+  context: ParsedGitHubContext,
+  initialh2ogpteCommentId: number,
+  isPR: boolean,
+) {
+  if (isPR) {
+    return await updateReviewComment(
+      octokit,
+      comment_body,
+      context,
+      initialh2ogpteCommentId,
+    );
+  } else {
+    return await updateIssueComment(
+      octokit,
+      comment_body,
+      context,
+      initialh2ogpteCommentId,
+    );
+  }
+}
+
+async function updateReviewComment(
+  octokit: Octokit,
+  comment_body: string,
+  context: ParsedGitHubContext,
+  initialh2ogpteCommentId: number,
+) {
+  await octokit.pulls.updateReviewComment({
+    owner: context.repository.owner,
+    repo: context.repository.repo,
+    comment_id: initialh2ogpteCommentId,
+    body: comment_body,
+  });
+}
+
+async function updateIssueComment(
   octokit: Octokit,
   comment_body: string,
   context: ParsedGitHubContext,
