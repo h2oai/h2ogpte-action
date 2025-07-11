@@ -1,26 +1,16 @@
 import dedent from "ts-dedent";
-import { AGENT_GITHUB_ENV_VAR } from "./constants";
-import type {
-  PullRequestReviewCommentEvent,
-  IssuesEvent,
-  PullRequestEvent,
-  PullRequestReviewEvent,
-  IssueCommentEvent,
-} from "@octokit/webhooks-types";
-import { getGithubApiUrl } from "./utils";
-import type { ParsedGitHubContext } from "./core/services/github/types";
-import type { FetchDataResult } from "./core/data/fetcher";
+import { AGENT_GITHUB_ENV_VAR } from "../../constants";
+import { getGithubApiUrl } from "../utils";
+import type { ParsedGitHubContext } from "../services/github/types";
+import type { FetchDataResult } from "../data/fetcher";
+import { getAllEventsInOrder } from "./utils/formatter";
+import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
 import {
-  getAllEventsInOrder,
-  replaceAttachmentUrlsWithLocalPaths,
-} from "./core/data/formatter";
-import {
-  isIssueCommentEvent,
-  isIssuesEvent,
-  isPullRequestEvent,
-  isPullRequestReviewCommentEvent,
-  isPullRequestReviewEvent,
-} from "./core/data/context";
+  extractInstruction,
+  extractIdNumber,
+  extractPRReviewCommentDetails,
+} from "./utils/instruction";
+import { isPullRequestReviewCommentEvent } from "../data/context";
 
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
@@ -29,52 +19,18 @@ export function createAgentInstructionPrompt(
   const githubApiBase = getGithubApiUrl();
 
   const isPRReviewComment = isPullRequestReviewCommentEvent(context);
-  const isPREvent =
-    isPullRequestEvent(context) ||
-    isPullRequestReviewEvent(context) ||
-    isPRReviewComment;
-  const isIssueComment = isIssueCommentEvent(context);
 
   // Extract instruction based on event type
-  let instruction: string;
-
-  if (isIssuesEvent(context)) {
-    instruction = (context.payload as IssuesEvent).issue.body || "";
-  } else if (isPullRequestEvent(context)) {
-    instruction = (context.payload as PullRequestEvent).pull_request.body || "";
-  } else if (isPullRequestReviewEvent(context)) {
-    instruction = (context.payload as PullRequestReviewEvent).review.body || "";
-  } else if (isPRReviewComment) {
-    instruction =
-      (context.payload as PullRequestReviewCommentEvent).comment.body || "";
-  } else {
-    instruction = (context.payload as IssueCommentEvent).comment.body || "";
-  }
+  const instruction = extractInstruction(context);
 
   // Find PR/Issue number
-  let idNumber: number | undefined;
-
-  if (isIssueComment) {
-    idNumber = (context.payload as IssueCommentEvent).issue.number;
-  } else if (isPRReviewComment) {
-    idNumber = (context.payload as PullRequestReviewCommentEvent).pull_request
-      .number;
-  } else if (isPREvent) {
-    idNumber = (context.payload as PullRequestEvent).pull_request.number;
-  } else {
-    idNumber = (context.payload as IssuesEvent).issue.number;
-  }
+  const idNumber = extractIdNumber(context);
 
   // Exclusive for PR Review Comment Event
-  const commitId = isPRReviewComment
-    ? (context.payload as PullRequestReviewCommentEvent).comment.commit_id
-    : undefined;
-  const fileRelativePath = isPRReviewComment
-    ? (context.payload as PullRequestReviewCommentEvent).comment.path
-    : undefined;
-  const diffHunk = isPRReviewComment
-    ? (context.payload as PullRequestReviewCommentEvent).comment.diff_hunk
-    : undefined;
+  const prReviewDetails = extractPRReviewCommentDetails(context);
+  const commitId = prReviewDetails?.commitId;
+  const fileRelativePath = prReviewDetails?.fileRelativePath;
+  const diffHunk = prReviewDetails?.diffHunk;
 
   // Format events for the prompt
   const eventsText = getAllEventsInOrder(githubData, context.isPR)

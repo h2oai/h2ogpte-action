@@ -16,7 +16,19 @@
 import fs from "fs/promises";
 import path from "path";
 import type { Octokit } from "@octokit/rest";
-import { getGithubServerUrl } from "../../../utils";
+
+/**
+ * Gets the GitHub server URL from environment variable
+ */
+function getGithubServerUrl(): string {
+  const githubServerURL = process.env.GITHUB_SERVER_URL;
+
+  if (!githubServerURL) {
+    throw new Error("GitHub server url is required");
+  }
+
+  return githubServerURL;
+}
 
 // Simple regex to match any GitHub user-attachments URL
 const GITHUB_ATTACHMENT_REGEX = new RegExp(
