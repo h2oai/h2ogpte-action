@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/rest";
 import { graphql } from "@octokit/graphql";
-import { getGithubApiUrl, getGithubToken } from "../../../utils";
+import { getGithubApiUrl, getGithubToken } from "../../utils";
 
 export type Octokits = {
   rest: Octokit;

@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { basename } from "path";
-import { getH2ogpteConfig, parseStreamingAgentResponse } from "../../../utils";
+import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 
