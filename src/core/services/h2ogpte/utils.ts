@@ -1,5 +1,4 @@
 import type { StreamingChunk, H2ogpteConfig } from "./types";
-import * as core from "@actions/core";
 
 /**
  * Gets H2OGPTE configuration from environment variables
@@ -47,9 +46,9 @@ export function parseStreamingAgentResponse(
  * Parse h2oGPTe configuration from GitHub action inputs
  */
 export function parseH2ogpteConfig(): H2ogpteConfig {
-  const llm = core.getInput("llm");
-  const agent_max_turns = core.getInput("agent_max_turns");
-  const agent_accuracy = core.getInput("agent_accuracy");
+  const llm = process.env.LLM;
+  const agent_max_turns = process.env.AGENT_MAX_TURNS;
+  const agent_accuracy = process.env.AGENT_ACCURACY;
 
   const allowedMaxTurnsValues = ["auto", "5", "10", "15", "20"];
   if (agent_max_turns && !allowedMaxTurnsValues.includes(agent_max_turns)) {
