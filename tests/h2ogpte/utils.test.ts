@@ -5,17 +5,29 @@ import {
 } from "../../src/core/services/h2ogpte/utils";
 
 // Helper function to test validation logic
-function validateAgentMaxTurns(value: string): number | null {
-  const maxTurns = parseInt(value);
-  const allowedValues = [5, 10, 15, 20];
+function validateAgentMaxTurns(value: string): string | null {
+  const allowedValues = ["auto", "5", "10", "15", "20"];
 
-  if (isNaN(maxTurns) || !allowedValues.includes(maxTurns)) {
+  if (!allowedValues.includes(value)) {
     throw new Error(
       `Invalid agent_max_turns value: "${value}". Must be one of: ${allowedValues.join(", ")}`,
     );
   }
 
-  return maxTurns;
+  return value;
+}
+
+// Helper function to test agent_accuracy validation logic
+function validateAgentAccuracy(value: string): string | null {
+  const allowedValues = ["quick", "basic", "standard", "maximum"];
+
+  if (!allowedValues.includes(value)) {
+    throw new Error(
+      `Invalid agent_accuracy value: "${value}". Must be one of: ${allowedValues.join(", ")}`,
+    );
+  }
+
+  return value;
 }
 
 describe("parseStreamingAgentResponse", () => {
@@ -63,11 +75,11 @@ describe("parseStreamingAgentResponse", () => {
 
 describe("validateAgentMaxTurns", () => {
   test("should accept valid agent_max_turns values", () => {
-    const validValues = ["5", "10", "15", "20"];
+    const validValues = ["auto", "5", "10", "15", "20"];
 
     for (const value of validValues) {
       const result = validateAgentMaxTurns(value);
-      expect(result).toBe(parseInt(value));
+      expect(result).toBe(value);
     }
   });
 
@@ -76,7 +88,28 @@ describe("validateAgentMaxTurns", () => {
 
     for (const value of invalidValues) {
       expect(() => validateAgentMaxTurns(value)).toThrow(
-        `Invalid agent_max_turns value: "${value}". Must be one of: 5, 10, 15, 20`,
+        `Invalid agent_max_turns value: "${value}". Must be one of: auto, 5, 10, 15, 20`,
+      );
+    }
+  });
+});
+
+describe("validateAgentAccuracy", () => {
+  test("should accept valid agent_accuracy values", () => {
+    const validValues = ["quick", "basic", "standard", "maximum"];
+
+    for (const value of validValues) {
+      const result = validateAgentAccuracy(value);
+      expect(result).toBe(value);
+    }
+  });
+
+  test("should throw error for invalid agent_accuracy values", () => {
+    const invalidValues = ["very_low", "very_high", "normal", "abc", ""];
+
+    for (const value of invalidValues) {
+      expect(() => validateAgentAccuracy(value)).toThrow(
+        `Invalid agent_accuracy value: "${value}". Must be one of: quick, basic, standard, maximum`,
       );
     }
   });
@@ -100,7 +133,7 @@ describe("parseH2ogpteConfig", () => {
     process.env.INPUT_LLM = "gpt-4o";
 
     const config = parseH2ogpteConfig();
-    expect(config.agent_max_turns).toBe(15);
+    expect(config.agent_max_turns).toBe("15");
     expect(config.llm).toBe("gpt-4o");
   });
 
@@ -108,14 +141,54 @@ describe("parseH2ogpteConfig", () => {
     process.env.INPUT_AGENT_MAX_TURNS = "7";
 
     expect(() => parseH2ogpteConfig()).toThrow(
-      `Invalid agent_max_turns value: "7". Must be one of: 5, 10, 15, 20`,
+      `Invalid agent_max_turns value: "7". Must be one of: auto, 5, 10, 15, 20`,
     );
   });
 
-  test("should handle empty agent_max_turns from environment", () => {
+  test("should parse auto agent_max_turns from environment", () => {
+    process.env.INPUT_AGENT_MAX_TURNS = "auto";
+    process.env.INPUT_LLM = "gpt-4o";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_max_turns).toBe("auto");
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should use default llm when empty from environment", () => {
+    process.env.INPUT_LLM = "";
+
+    const config = parseH2ogpteConfig();
+    expect(config.llm).toBe("auto");
+  });
+
+  test("should use default agent_max_turns when empty from environment", () => {
     process.env.INPUT_AGENT_MAX_TURNS = "";
 
     const config = parseH2ogpteConfig();
-    expect(config.agent_max_turns).toBeUndefined();
+    expect(config.agent_max_turns).toBe("auto");
+  });
+
+  test("should parse valid agent_accuracy from environment", () => {
+    process.env.INPUT_AGENT_ACCURACY = "standard";
+    process.env.INPUT_LLM = "gpt-4o";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_accuracy).toBe("standard");
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should throw error for invalid agent_accuracy from environment", () => {
+    process.env.INPUT_AGENT_ACCURACY = "very_high";
+
+    expect(() => parseH2ogpteConfig()).toThrow(
+      `Invalid agent_accuracy value: "very_high". Must be one of: quick, basic, standard, maximum`,
+    );
+  });
+
+  test("should use default agent_accuracy when empty from environment", () => {
+    process.env.INPUT_AGENT_ACCURACY = "";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_accuracy).toBe("standard");
   });
 });

@@ -135,7 +135,11 @@ export async function requestAgentCompletion(
   const agentCompletionConfig = {
     message: prompt,
     llm: config?.llm,
-    llm_args: { use_agent: true },
+    llm_args: {
+      use_agent: true,
+      agent_accuracy: config?.agent_accuracy,
+      agent_max_turns: config?.agent_max_turns,
+    },
     tags: ["github_action_trigger"],
     stream: true,
     ...(systemPrompt && { system_prompt: systemPrompt }),

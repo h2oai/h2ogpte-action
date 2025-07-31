@@ -51,6 +51,30 @@ Currently, only h2ogpte version >= 1.6.31 is supported. By default, the action u
 | github_api_url    | GitHub API base url (no trailing slash)                          | No       | <https://api.github.com>                    |
 | github_server_url | GitHub server base url (no trailing slash)                       | No       | <https://github.com>                        |
 
+### h2oGPTe Configuration Options
+
+The action supports several configuration options to customize the h2oGPTe agent behavior:
+
+| Option                                  | Default      | Allowed Values                                                                                                               | Description                                                                                                                                                                                                                                    |
+| --------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Language Model (`llm`)**              | `"auto"`     | Check your h2oGPTe instance at [approved models](https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section) for full list. | Specify which language model to use. `"auto"` automatically selects the best available model.                                                                                                                                                  |
+| **Agent Max Turns (`agent_max_turns`)** | `"auto"`     | `"auto"`, `5`, `10`, `15`, `20`                                                                                              | Control the maximum number of reasoning steps. `"auto"` automatically selects optimal turns. Higher values allow for more complex reasoning but may take longer. Lower values provide faster responses but potentially less thorough analysis. |
+| **Agent Accuracy (`agent_accuracy`)**   | `"standard"` | `"quick"`, `"basic"`, `"standard"`, `"maximum"`                                                                              | Configure the accuracy level. `"quick"` for fastest responses, `"basic"` for good balance, `"standard"` recommended for code reviews, `"maximum"` for highest accuracy but slower.                                                             |
+
+#### Configuration Example
+
+```yaml
+- name: h2oGPTe Agent Assistant
+  uses: h2oai/h2ogpte-action@main
+  with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
+    h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+    # h2oGPTe Configuration (optional)
+    llm: "auto" # Automatically select best model
+    agent_max_turns: "auto" # Automatically select optimal turns
+    agent_accuracy: "maximum" # Highest accuracy for complex analysis
+```
+
 ### Use Cases
 
 Here are a few ways you can use the h2oGPTe Agent Assistant action in your repository:

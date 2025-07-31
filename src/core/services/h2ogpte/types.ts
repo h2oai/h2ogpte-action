@@ -5,8 +5,9 @@ export interface FetchWithRetryOptions {
 }
 
 export interface H2ogpteConfig {
-  llm?: string;
-  agent_max_turns?: number;
+  llm: string;
+  agent_max_turns: string;
+  agent_accuracy: string;
 }
 
 export interface AgentKey {

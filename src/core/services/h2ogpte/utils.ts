@@ -47,23 +47,29 @@ export function parseStreamingAgentResponse(
  * Parse h2oGPTe configuration from GitHub action inputs
  */
 export function parseH2ogpteConfig(): H2ogpteConfig {
-  const config: H2ogpteConfig = {};
   const llm = core.getInput("llm");
   const agent_max_turns = core.getInput("agent_max_turns");
+  const agent_accuracy = core.getInput("agent_accuracy");
 
-  if (llm) config.llm = llm;
-
-  if (agent_max_turns) {
-    const maxTurns = parseInt(agent_max_turns);
-    const allowedValues = [5, 10, 15, 20];
-
-    if (isNaN(maxTurns) || !allowedValues.includes(maxTurns)) {
-      throw new Error(
-        `Invalid agent_max_turns value: "${agent_max_turns}". Must be one of: ${allowedValues.join(", ")}`,
-      );
-    }
-
-    config.agent_max_turns = maxTurns;
+  // Always set agent_max_turns (defaults to "auto" from action.yml)
+  const allowedMaxTurnsValues = ["auto", "5", "10", "15", "20"];
+  if (agent_max_turns && !allowedMaxTurnsValues.includes(agent_max_turns)) {
+    throw new Error(
+      `Invalid agent_max_turns value: "${agent_max_turns}". Must be one of: ${allowedMaxTurnsValues.join(", ")}`,
+    );
   }
-  return config;
+
+  // Always set agent_accuracy (defaults to "standard" from action.yml)
+  const allowedAccuracyValues = ["quick", "basic", "standard", "maximum"];
+  if (agent_accuracy && !allowedAccuracyValues.includes(agent_accuracy)) {
+    throw new Error(
+      `Invalid agent_accuracy value: "${agent_accuracy}". Must be one of: ${allowedAccuracyValues.join(", ")}`,
+    );
+  }
+
+  return {
+    llm: llm || "auto",
+    agent_max_turns: agent_max_turns || "auto",
+    agent_accuracy: agent_accuracy || "standard",
+  };
 }
