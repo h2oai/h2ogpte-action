@@ -33,11 +33,15 @@ inputs:
   llm:
     description: Language model to use (e.g., "llama3.2-70b-instruct", "mistral-7b-instruct")
     required: false
-    default: ""
+    default: "auto"
   agent_max_turns:
-    description: Maximum number of turns the agent can take (must be one of {5, 10, 15, 20})
+    description: Maximum number of turns the agent can take (must be one of {"auto", 5, 10, 15, 20})
     required: false
-    default: "10"
+    default: "auto"
+  agent_accuracy:
+    description: Agent accuracy setting (must be one of {"quick", "basic", "standard", "maximum"})
+    required: false
+    default: "standard"
 
 runs:
   using: composite
@@ -66,3 +70,4 @@ runs:
         # h2oGPTe Configuration
         LLM: ${{ inputs.llm }}
         AGENT_MAX_TURNS: ${{ inputs.agent_max_turns }}
+        AGENT_ACCURACY: ${{ inputs.agent_accuracy }}
