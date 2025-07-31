@@ -1,47 +1,56 @@
-# h2oGPTe GitHub Action
+# 🤖 h2oGPTe GitHub Action
 
-> A GitHub Action that integrates h2oGPTe AI assistant into your workflow for automated code reviews and suggestions.
+> A GitHub Action that integrates h2oGPTe Agents into your workflow for automated code reviews and suggestions.
 
-## Overview
+## 📑 Table of Contents
 
-The h2oGPTe GitHub Action reduces manual effort by:
+- [📋 Overview](#-overview)
+- [🚀 Installation Guide](#-installation-guide)
+  - [🔧 Compatibility](#-compatibility)
+  - [📝 Supported Action Inputs](#-supported-action-inputs)
+  - [⚙️ h2oGPTe Configuration Options](#️-h2ogpte-configuration-options)
+- [💡 Use Cases](#-use-cases)
+- [👨‍💻 Developer Guide](#-developer-guide)
 
-1. Automating code review responses through AI
-2. Eliminating the need to switch contexts by providing feedback directly in pull requests
-3. Allowing developers to get instant feedback by simply mentioning @h2ogpte in comments
-4. Providing detailed analysis of code changes with repository context awareness
+## 📋 Overview
 
-The solution helps developers better understand issues by:
+The h2oGPTe GitHub Action brings intelligent AI assistance directly into your GitHub workflow. Simply tag `@h2ogpte` in any comment, issue, or pull request, and the agent will:
 
-1. Analysing code in the context of the specific repository
-2. Providing AI-powered insights about code changes
-3. Maintaining conversation history for complex issues
-4. Including relevant file paths and code context in the analysis
+⚡ **Provide instant AI-powered code review feedback** with context-aware analysis and suggestions
 
-## Installation Guide
+🧠 **Understand your codebase** by analyzing changes in the context of your specific repository
+
+🔧 **Write code, make commits, and open pull requests** automatically when you request changes
+
+⏰ **Save you time** by eliminating the need to switch between tools - everything happens right in GitHub
+
+The agent maintains conversation history for complex issues and provides detailed insights with relevant file paths and code context, making it easier to understand and improve your code.
+
+## 🚀 Installation Guide
 
 > **Note:** This GitHub Action will only work for repositories linked to the h2o.ai enterprise organization (i.e., h2oai-owned or enterprise-connected repositories).
 
 To install the h2oGPTe Agent Assistant GitHub Action in your repository:
 
-1. **Add the Workflow File**
-
-   - Copy the file at `examples/h2ogpte.yaml` from this repository into your own repository at `.github/workflows/h2ogpte.yaml`.
-
-2. **Add the h2oGPTe API Key as a Repository Secret**
-   - In your repository on GitHub, go to **Settings** > **Secrets and variables** > **Actions**.
-   - Click **New repository secret**.
-   - Set the name to `H2OGPTE_API_KEY`.
-   - Paste your h2oGPTe API key as the value.
-   - Click **Add secret**.
+1. **Clone your repository**: Open your IDE or terminal and clone the H2O organisation repository you'd like to add the action to
+2. **Create the workflows directory**: Run `mkdir -p .github/workflows` in your repository
+3. **Get the workflow file**: Copy the contents from [https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml](https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml)
+4. **Add the workflow**: Create a new file called `h2ogpte.yaml` inside the `.github/workflows` directory and paste the copied contents
+5. **Save your changes**: Commit and push your changes to the main branch
+6. **Get your API key**: Create your h2oGPTe API key at [https://h2ogpte.internal.dedicated.h2o.ai/api](https://h2ogpte.internal.dedicated.h2o.ai/api) and save it securely
+7. **Navigate to your repository**: Open [github.com](http://github.com) and go to your repository page
+8. **Add the secret**: Go to Settings → Secrets and variables → Actions
+9. **Create new secret**: Click "New repository secret"
+10. **Configure the secret**: Set name to "H2OGPTE_API_KEY" and paste your API key value
+11. **Finish setup**: Click the "Add secret" button
 
 Once these steps are complete, the workflow will be triggered automatically on issues, pull requests, and comments that mention `@h2ogpte`. See below for more details on use cases.
 
-### Compatibility
+### 🔧 Compatibility
 
 Currently, only h2ogpte version >= 1.6.31 is supported. By default, the action uses `https://h2ogpte.internal.dedicated.h2o.ai` as the API base. If you wish to use a different h2ogpte environment, set the `h2ogpte_api_base` input in your workflow file (see `action.yml` for details).
 
-### Supported Action Inputs
+### 📝 Supported Action Inputs
 
 | Input             | Description                                                      | Required | Default Value                               |
 | ----------------- | ---------------------------------------------------------------- | -------- | ------------------------------------------- |
@@ -51,7 +60,7 @@ Currently, only h2ogpte version >= 1.6.31 is supported. By default, the action u
 | github_api_url    | GitHub API base url (no trailing slash)                          | No       | <https://api.github.com>                    |
 | github_server_url | GitHub server base url (no trailing slash)                       | No       | <https://github.com>                        |
 
-### h2oGPTe Configuration Options
+### ⚙️ h2oGPTe Configuration Options
 
 The action supports several configuration options to customize the h2oGPTe agent behavior:
 
@@ -61,7 +70,7 @@ The action supports several configuration options to customize the h2oGPTe agent
 | **Agent Max Turns (`agent_max_turns`)** | `"auto"`     | `"auto"`, `5`, `10`, `15`, `20`                                                                                              | Control the maximum number of reasoning steps. `"auto"` automatically selects optimal turns. Higher values allow for more complex reasoning but may take longer. Lower values provide faster responses but potentially less thorough analysis. |
 | **Agent Accuracy (`agent_accuracy`)**   | `"standard"` | `"quick"`, `"basic"`, `"standard"`, `"maximum"`                                                                              | Configure the accuracy level. `"quick"` for fastest responses, `"basic"` for good balance, `"standard"` recommended for code reviews, `"maximum"` for highest accuracy but slower.                                                             |
 
-#### Configuration Example
+#### 🔧 Configuration Example
 
 ```yaml
 - name: h2oGPTe Agent Assistant
@@ -75,11 +84,11 @@ The action supports several configuration options to customize the h2oGPTe agent
     agent_accuracy: "maximum" # Highest accuracy for complex analysis
 ```
 
-### Use Cases
+### 💡 Use Cases
 
 Here are a few ways you can use the h2oGPTe Agent Assistant action in your repository:
 
-- **Pull Request Comment:**
+- **🔍 Pull Request Comment:**
 
   > Leave a comment in a pull request mentioning `@h2ogpte` to trigger the action and receive AI-powered feedback.
   >
@@ -89,7 +98,7 @@ Here are a few ways you can use the h2oGPTe Agent Assistant action in your repos
   > @h2ogpte Can you review the changes in this PR and suggest improvements?
   > ```
 
-- **Issue Comment:**
+- **🐛 Issue Comment:**
 
   > Mention `@h2ogpte` in an issue comment to get help or suggestions related to the issue.
   >
@@ -99,7 +108,7 @@ Here are a few ways you can use the h2oGPTe Agent Assistant action in your repos
   > @h2ogpte What are the possible causes for this bug?
   > ```
 
-- **New Issue or PR Body:**
+- **📝 New Issue or PR Body:**
 
   > You can also mention `@h2ogpte` directly in the body of a new issue or pull request to automatically trigger the workflow.
   >
@@ -109,7 +118,7 @@ Here are a few ways you can use the h2oGPTe Agent Assistant action in your repos
   > This PR refactors the authentication logic. @h2ogpte please check for security issues.
   > ```
 
-- **Adding Images:**
+- **🖼️ Adding Images:**
   > You can attach images to your comments or issues for h2oGPTe to analyze. For example, you might upload a screenshot of an error or a diagram:
   >
   > Example:
@@ -121,6 +130,6 @@ Here are a few ways you can use the h2oGPTe Agent Assistant action in your repos
   >
   > **Note:** You can also upload other file types, but due to [GitHub restrictions](https://github.com/orgs/community/discussions/162417#discussioncomment-13428503), only images can be processed by h2oGPTe. Other file types will be ignored.
 
-## Developer Guide
+## 👨‍💻 Developer Guide
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and contribution guidelines.
