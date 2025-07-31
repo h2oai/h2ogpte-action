@@ -21,6 +21,7 @@ import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
 import { extractFinalAgentResponse } from "./core/response/utils/extract-response";
+import { extractInstruction } from "./core/response/utils/instruction";
 
 /**
  * The main function for the action.
@@ -125,7 +126,8 @@ export async function run(): Promise<void> {
       core.debug(`Extracted response: ${cleanedResponse}`);
 
       // 8. Update initial comment
-      const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n${cleanedResponse}`;
+      const instruction = extractInstruction(context);
+      const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n> ${instruction}\n\n${cleanedResponse}`;
       await updateComment(
         octokits.rest,
         updatedCommentBody,
