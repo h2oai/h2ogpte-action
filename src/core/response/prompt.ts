@@ -79,8 +79,6 @@ export function createAgentInstructionPrompt(
     Once you have a good understanding of the context, you can begin to respond to the user's instruction.
 
     If necessary, include GitHub referencing (e.g. #23) when referring to any other issues or PRs. Don't respond with the literal link.
-    Begin your final response by quoting the initial instruction in a code block as markdown, labelling it as "User's Instruction".
-    Remove any files that were in the instruction from your response.
 
     Please respond and execute actions according to the user's instruction.
   `;
