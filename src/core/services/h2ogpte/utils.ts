@@ -51,7 +51,6 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
   const agent_max_turns = core.getInput("agent_max_turns");
   const agent_accuracy = core.getInput("agent_accuracy");
 
-  // Always set agent_max_turns (defaults to "auto" from action.yml)
   const allowedMaxTurnsValues = ["auto", "5", "10", "15", "20"];
   if (agent_max_turns && !allowedMaxTurnsValues.includes(agent_max_turns)) {
     throw new Error(
@@ -59,7 +58,6 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
     );
   }
 
-  // Always set agent_accuracy (defaults to "standard" from action.yml)
   const allowedAccuracyValues = ["quick", "basic", "standard", "maximum"];
   if (agent_accuracy && !allowedAccuracyValues.includes(agent_accuracy)) {
     throw new Error(
