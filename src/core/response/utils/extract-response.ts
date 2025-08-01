@@ -74,11 +74,13 @@ export function extractFinalAgentResponse(input: string): string {
     .replace(/^\n+|\n+$/g, "")
     .trim();
 
+  console.debug("Max turns reached:", beginsWithMaxTurnsReached(cleanedText));
   if (beginsWithMaxTurnsReached(cleanedText)) {
-    // Remove the max turns message from the beginning
     const remainingText = cleanedText
       .replace(PATTERN_MAX_TURNS_REACHED, "")
       .trim();
+
+    console.debug("remainingText:", remainingText);
 
     return "**Maximum Turns Reached**\n\n---\n\n" + remainingText;
   }
