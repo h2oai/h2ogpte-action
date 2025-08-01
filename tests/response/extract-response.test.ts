@@ -79,7 +79,7 @@ describe("extractFinalAgentResponse", () => {
     ].join("\n");
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "**Maximum Turns Reached**\n\n---\n\nI'll now implement the file upload feature for the LLM service. Based on my analysis of the repository, I need to add functionality that allows users to upload files (like.txt and.pdf) and have the LLM summarize or answer questions about their contents.",
+      "**Warning: Maximum Turns Reached**\n\n---\n\nI'll now implement the file upload feature for the LLM service. Based on my analysis of the repository, I need to add functionality that allows users to upload files (like.txt and.pdf) and have the LLM summarize or answer questions about their contents.",
     );
   });
 
@@ -92,7 +92,7 @@ describe("extractFinalAgentResponse", () => {
     ].join("\n");
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "**Maximum Turns Reached**\n\n---\n\nHere is the actual response content.",
+      "**Warning: Maximum Turns Reached**\n\n---\n\nHere is the actual response content.",
     );
   });
 
@@ -117,6 +117,6 @@ describe("extractFinalAgentResponse", () => {
       "ENDOFTURN",
     ].join("\n");
     const result = extractFinalAgentResponse(input);
-    expect(result).toBe("**Maximum Turns Reached**\n\n---\n\n");
+    expect(result).toBe("**Warning: Maximum Turns Reached**\n\n---\n\n");
   });
 });

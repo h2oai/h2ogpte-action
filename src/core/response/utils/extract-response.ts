@@ -83,7 +83,7 @@ export function extractFinalAgentResponse(input: string): string {
 
     console.debug("remainingText:", remainingText);
 
-    return "**Maximum Turns Reached**\n\n---\n\n" + remainingText;
+    return "**Warning: Maximum Turns Reached**\n\n---\n\n" + remainingText;
   }
 
   return cleanedText;
