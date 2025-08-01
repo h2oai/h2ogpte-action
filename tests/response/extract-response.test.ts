@@ -73,7 +73,7 @@ describe("extractFinalAgentResponse", () => {
   test("should handle max turns reached message at the beginning", () => {
     const input = [
       "ENDOFTURN",
-      "Max turns 4 out of 5 reached, ending conversation to allow for final turn response.  Increase agent accuracy or turns if needed.I'll now implement the file upload feature for the LLM service. Based on my analysis of the repository, I need to add functionality that allows users to upload files (like.txt and.pdf) and have the LLM summarize or answer questions about their contents.",
+      "Max turns 4 out of 5 reached, ending conversation to allow for final turn response. Increase agent accuracy or turns if needed.I'll now implement the file upload feature for the LLM service. Based on my analysis of the repository, I need to add functionality that allows users to upload files (like.txt and.pdf) and have the LLM summarize or answer questions about their contents.",
       "ENDOFTURN",
       "ENDOFTURN",
     ].join("\n");
@@ -86,7 +86,7 @@ describe("extractFinalAgentResponse", () => {
   test("should handle max turns reached with different numbers", () => {
     const input = [
       "ENDOFTURN",
-      "Max turns 10 out of 15 reached, ending conversation to allow for final turn response.  Increase agent accuracy or turns if needed. Here is the actual response content.",
+      "Max turns 10 out of 15 reached, ending conversation to allow for final turn response. Increase agent accuracy or turns if needed. Here is the actual response content.",
       "ENDOFTURN",
       "ENDOFTURN",
     ].join("\n");
@@ -99,20 +99,20 @@ describe("extractFinalAgentResponse", () => {
   test("should not match max turns pattern if it's not at the beginning", () => {
     const input = [
       "ENDOFTURN",
-      "Here is some content. Max turns 4 out of 5 reached, ending conversation to allow for final turn response.  Increase agent accuracy or turns if needed. More content here.",
+      "Here is some content. Max turns 4 out of 5 reached, ending conversation to allow for final turn response. Increase agent accuracy or turns if needed. More content here.",
       "ENDOFTURN",
       "ENDOFTURN",
     ].join("\n");
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "Here is some content. Max turns 4 out of 5 reached, ending conversation to allow for final turn response.  Increase agent accuracy or turns if needed. More content here.",
+      "Here is some content. Max turns 4 out of 5 reached, ending conversation to allow for final turn response. Increase agent accuracy or turns if needed. More content here.",
     );
   });
 
   test("should handle max turns reached with only the message and no additional content", () => {
     const input = [
       "ENDOFTURN",
-      "Max turns 1 out of 3 reached, ending conversation to allow for final turn response.  Increase agent accuracy or turns if needed.",
+      "Max turns 1 out of 3 reached, ending conversation to allow for final turn response. Increase agent accuracy or turns if needed.",
       "ENDOFTURN",
       "ENDOFTURN",
     ].join("\n");

@@ -2,7 +2,7 @@
  * Pattern to match the "Max turns X out of Y reached" message
  */
 const PATTERN_MAX_TURNS_REACHED =
-  /^Max turns \d+ out of \d+ reached, ending conversation to allow for final turn response\. {2}Increase agent accuracy or turns if needed\./;
+  /^Max turns \d+ out of \d+ reached, ending conversation to allow for final turn response\. Increase agent accuracy or turns if needed\./;
 
 /**
  * Checks if a string begins with the "Max turns X out of Y reached" pattern
@@ -70,6 +70,7 @@ export function extractFinalAgentResponse(input: string): string {
     )
     .replace(/\s*\[citation:\s*\d+\]\s*/g, " ")
     .replace(/\s+\./g, ".")
+    .replace(/ {2,}/g, " ")
     .replace(/\n{2,}/g, "\n")
     .replace(/^\n+|\n+$/g, "")
     .trim();
