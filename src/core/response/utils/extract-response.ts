@@ -1,4 +1,18 @@
 /**
+ * Pattern to match the "Max turns X out of Y reached" message
+ */
+const PATTERN_MAX_TURNS_REACHED =
+  /^Max turns \d+ out of \d+ reached, ending conversation to allow for final turn response\. Increase agent accuracy or turns if needed\./;
+
+/**
+ * Checks if a string begins with the "Max turns X out of Y reached" pattern
+ * where X and Y can be any numbers
+ */
+function beginsWithMaxTurnsReached(text: string): boolean {
+  return PATTERN_MAX_TURNS_REACHED.test(text);
+}
+
+/**
  * Extracts the final agent response from the raw response
  */
 export function extractFinalAgentResponse(input: string): string {
@@ -56,9 +70,21 @@ export function extractFinalAgentResponse(input: string): string {
     )
     .replace(/\s*\[citation:\s*\d+\]\s*/g, " ")
     .replace(/\s+\./g, ".")
+    .replace(/ {2,}/g, " ")
     .replace(/\n{2,}/g, "\n")
     .replace(/^\n+|\n+$/g, "")
     .trim();
+
+  console.debug("Max turns reached:", beginsWithMaxTurnsReached(cleanedText));
+  if (beginsWithMaxTurnsReached(cleanedText)) {
+    const remainingText = cleanedText
+      .replace(PATTERN_MAX_TURNS_REACHED, "")
+      .trim();
+
+    console.debug("remainingText:", remainingText);
+
+    return "**Warning: Maximum Turns Reached**\n\n---\n\n" + remainingText;
+  }
 
   return cleanedText;
 }
