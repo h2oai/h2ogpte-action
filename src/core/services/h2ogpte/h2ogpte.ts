@@ -139,6 +139,7 @@ export async function requestAgentCompletion(
       use_agent: true,
       agent_accuracy: config?.agent_accuracy,
       agent_max_turns: config?.agent_max_turns,
+      agent_total_timeout: config?.agent_total_timeout,
     },
     tags: ["github_action_trigger"],
     stream: true,

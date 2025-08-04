@@ -49,6 +49,16 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
   const llm = process.env.LLM;
   const agent_max_turns = process.env.AGENT_MAX_TURNS;
   const agent_accuracy = process.env.AGENT_ACCURACY;
+  const agent_total_timeout_raw = process.env.AGENT_TOTAL_TIMEOUT;
+  let agent_total_timeout = 3600; // default value
+
+  if (agent_total_timeout_raw !== undefined && agent_total_timeout_raw !== "") {
+    const parsed = parseInt(agent_total_timeout_raw);
+    if (!isNaN(parsed) && parsed >= 0) {
+      agent_total_timeout = parsed;
+    }
+    // If parsing fails or value is negative, keep the default value
+  }
 
   const allowedMaxTurnsValues = ["auto", "5", "10", "15", "20"];
   if (agent_max_turns && !allowedMaxTurnsValues.includes(agent_max_turns)) {
@@ -68,5 +78,6 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
     llm: llm || "auto",
     agent_max_turns: agent_max_turns || "auto",
     agent_accuracy: agent_accuracy || "standard",
+    agent_total_timeout: agent_total_timeout,
   };
 }

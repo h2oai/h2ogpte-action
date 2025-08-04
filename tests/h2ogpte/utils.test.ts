@@ -192,14 +192,80 @@ describe("parseH2ogpteConfig", () => {
     expect(config.agent_accuracy).toBe("standard");
   });
 
+  test("should parse valid agent_total_timeout from environment", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "1800";
+    process.env.LLM = "gpt-4o";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(1800);
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should use default agent_total_timeout when empty from environment", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should use default agent_total_timeout when undefined from environment", () => {
+    delete process.env.AGENT_TOTAL_TIMEOUT;
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should parse zero timeout value", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "0";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(0);
+  });
+
+  test("should parse large timeout values", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "7200";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(7200);
+  });
+
+  test("should handle negative timeout values by using default", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "-1";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should handle non-numeric timeout values by using default", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "invalid";
+
+    const config = parseH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
   test("should use defaults when environment variables are undefined", () => {
     delete process.env.LLM;
     delete process.env.AGENT_MAX_TURNS;
     delete process.env.AGENT_ACCURACY;
+    delete process.env.AGENT_TOTAL_TIMEOUT;
 
     const config = parseH2ogpteConfig();
     expect(config.llm).toBe("auto");
     expect(config.agent_max_turns).toBe("auto");
     expect(config.agent_accuracy).toBe("standard");
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should parse all configuration values together", () => {
+    process.env.LLM = "gpt-4o";
+    process.env.AGENT_MAX_TURNS = "20";
+    process.env.AGENT_ACCURACY = "maximum";
+    process.env.AGENT_TOTAL_TIMEOUT = "5400";
+
+    const config = parseH2ogpteConfig();
+    expect(config.llm).toBe("gpt-4o");
+    expect(config.agent_max_turns).toBe("20");
+    expect(config.agent_accuracy).toBe("maximum");
+    expect(config.agent_total_timeout).toBe(5400);
   });
 });

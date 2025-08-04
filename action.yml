@@ -42,6 +42,10 @@ inputs:
     description: Agent accuracy setting (must be one of {"quick", "basic", "standard", "maximum"})
     required: false
     default: "standard"
+  agent_total_timeout:
+    description: Total timeout in seconds for all agent processing.
+    required: false
+    default: 3600
 
 runs:
   using: composite
