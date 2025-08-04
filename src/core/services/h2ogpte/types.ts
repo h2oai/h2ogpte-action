@@ -8,6 +8,7 @@ export interface H2ogpteConfig {
   llm: string;
   agent_max_turns: string;
   agent_accuracy: string;
+  agent_total_timeout: number;
 }
 
 export interface AgentKey {
