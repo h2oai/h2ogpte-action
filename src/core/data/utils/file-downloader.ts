@@ -15,6 +15,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import tmp from "tmp";
 import type { Octokit } from "@octokit/rest";
 
 /**
@@ -276,7 +277,9 @@ export async function downloadCommentAttachments(
             extension,
             fileType,
           );
-          const localPath = path.join(downloadsDir, filename);
+          // Use tmp to securely create a temp file with the correct extension
+          const tmpFile = tmp.fileSync({ postfix: extension ? `.${extension}` : undefined });
+          const localPath = tmpFile.name;
 
           try {
             console.log(
