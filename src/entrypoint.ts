@@ -76,68 +76,70 @@ export async function run(): Promise<void> {
       isPullRequestReviewEvent(context);
     const isPRReviewComment: boolean = isPullRequestReviewCommentEvent(context);
 
-    if (isIssue || isPRReviewComment) {
-      core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
-
-      // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createSecretAndToolAssociation(githubToken);
-
-      // 2. Create a Chat Session in h2oGPTe
-      const chatSessionId = await h2ogpte.createChatSession(collectionId);
-      const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
-      core.debug(`This chat session url is ${chatSessionUrl}`);
-
-      // 3. Create the initial comment
-      const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url})`;
-      const h2ogpteComment = await createReply(
-        octokits.rest,
-        initialCommentBody,
-        context,
-        isPRReviewComment,
-      );
-
-      // 4. Create the agent instruction prompt
-      const instructionPrompt = createAgentInstructionPrompt(
-        context,
-        githubData,
-      );
-
-      // 5. Parse h2oGPTe configuration
-      const h2ogpteConfig = parseH2ogpteConfig();
-      core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
-
-      // 6. Query h2oGPTe for Agent completion
-      const chatCompletion = await h2ogpte.requestAgentCompletion(
-        chatSessionId.id,
-        instructionPrompt,
-        h2ogpteConfig,
-      );
-
-      // 7. Extract response from agent completion
-      let cleanedResponse = "";
-      let header = "";
-      if (chatCompletion.success) {
-        header = `💡 h2oGPTe made some changes`;
-        cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
-      } else {
-        header = `❌ h2oGPTe ran into some issues`;
-        cleanedResponse = chatCompletion.body;
-      }
-      core.debug(`Extracted response: ${cleanedResponse}`);
-
-      // 8. Update initial comment
-      const instruction = extractInstruction(context);
-      const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n> ${instruction}\n\n${cleanedResponse}`;
-      await updateComment(
-        octokits.rest,
-        updatedCommentBody,
-        context,
-        h2ogpteComment.data.id,
-        isPRReviewComment,
-      );
-    } else {
+    // If invalid event type, throw an error
+    if (!isIssue && !isPRReviewComment) {
       throw new Error(`Unexpected event: ${context.eventName}`);
     }
+
+    core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
+
+    // 1. Setup the GitHub secret in h2oGPTe
+    keyUuid = await createSecretAndToolAssociation(githubToken);
+
+    // 2. Create a Chat Session in h2oGPTe
+    const chatSessionId = await h2ogpte.createChatSession(collectionId);
+    const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
+    core.debug(`This chat session url is ${chatSessionUrl}`);
+
+    // 3. Create the initial comment
+    const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url})`;
+    const h2ogpteComment = await createReply(
+      octokits.rest,
+      initialCommentBody,
+      context,
+      isPRReviewComment,
+    );
+
+    // 4. Create the agent instruction prompt
+    const instructionPrompt = createAgentInstructionPrompt(
+      context,
+      githubData,
+      isPullRequestEvent(context),
+    );
+
+    // 5. Parse h2oGPTe configuration
+    const h2ogpteConfig = parseH2ogpteConfig();
+    core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
+
+    // 6. Query h2oGPTe for Agent completion
+    const chatCompletion = await h2ogpte.requestAgentCompletion(
+      chatSessionId.id,
+      instructionPrompt,
+      h2ogpteConfig,
+    );
+
+    // 7. Extract response from agent completion
+    let cleanedResponse = "";
+    let header = "";
+    if (chatCompletion.success) {
+      header = `💡 h2oGPTe made some changes`;
+      cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
+    } else {
+      header = `❌ h2oGPTe ran into some issues`;
+      cleanedResponse = chatCompletion.body;
+    }
+    core.debug(`Extracted response: ${cleanedResponse}`);
+
+    // 8. Update initial comment
+    const instruction = extractInstruction(context);
+    const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n> ${instruction}\n\n${cleanedResponse}`;
+    await updateComment(
+      octokits.rest,
+      updatedCommentBody,
+      context,
+      h2ogpteComment.data.id,
+      isPRReviewComment,
+    );
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);

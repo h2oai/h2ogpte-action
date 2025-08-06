@@ -46,6 +46,10 @@ inputs:
     description: Total timeout in seconds for all agent processing.
     required: false
     default: 3600
+  ci_prompt:
+    description: Prompt for the pull request review.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -75,3 +79,5 @@ runs:
         LLM: ${{ inputs.llm }}
         AGENT_MAX_TURNS: ${{ inputs.agent_max_turns }}
         AGENT_ACCURACY: ${{ inputs.agent_accuracy }}
+        AGENT_TOTAL_TIMEOUT: ${{ inputs.agent_total_timeout }}
+        CI_PROMPT: ${{ inputs.ci_prompt }}
