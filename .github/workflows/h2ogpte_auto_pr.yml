@@ -1,0 +1,28 @@
+name: h2oGPTe Agent Assistant
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-auto-review:
+    name: h2oGPTe Auto Review Agent
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: h2oGPTe Auto Review Agent
+        id: h2ogpte-auto-review
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}

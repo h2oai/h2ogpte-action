@@ -6,9 +6,9 @@ export async function createReply(
   octokit: Octokit,
   comment_body: string,
   context: ParsedGitHubContext,
-  isPR: boolean,
+  isPRReviewComment: boolean,
 ) {
-  if (isPR) {
+  if (isPRReviewComment) {
     return await createReplyForReviewComment(octokit, comment_body, context);
   } else {
     return await createReplyForIssueComment(octokit, comment_body, context);
@@ -49,9 +49,9 @@ export async function updateComment(
   comment_body: string,
   context: ParsedGitHubContext,
   initialh2ogpteCommentId: number,
-  isPR: boolean,
+  isPRReviewComment: boolean,
 ) {
-  if (isPR) {
+  if (isPRReviewComment) {
     return await updateReviewComment(
       octokit,
       comment_body,

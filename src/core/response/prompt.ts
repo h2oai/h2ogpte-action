@@ -15,6 +15,20 @@ import { isPullRequestReviewCommentEvent } from "../data/context";
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
+  isPREvent: boolean,
+): string {
+  const instruction = extractInstruction(context);
+
+  if (isPREvent && !instruction.includes("@h2ogpte")) {
+    return createAgentInstructionPromptForAutoReview(context, githubData);
+  }
+
+  return createAgentInstructionPromptForComment(context, githubData);
+}
+
+function createAgentInstructionPromptForComment(
+  context: ParsedGitHubContext,
+  githubData: FetchDataResult,
 ): string {
   const githubApiBase = getGithubApiUrl();
 
@@ -90,4 +104,49 @@ export function createAgentInstructionPrompt(
     prompt,
     githubData.attachmentUrlMap,
   );
+}
+
+function createAgentInstructionPromptForAutoReview(
+  context: ParsedGitHubContext,
+  githubData: FetchDataResult,
+): string {
+  const githubApiBase = getGithubApiUrl();
+
+  // Find PR/Issue number/name
+  const idNumber = extractIdNumber(context);
+  const repoName = context.repository.full_name;
+
+  // Format events for the prompt
+  const eventsText = getAllEventsInOrder(githubData, context.isPR)
+    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+    .join("\n");
+
+  const defaultPrompt = dedent`
+    You must only review in the user's repository, ${repoName} on pull request number ${idNumber}.
+
+    First read the previous events and understand the context of the pull request provided below.
+    Then read the code changes in the pull request and understand the context of the code.
+    Once you have a good understanding of the context, you can begin to review the code.
+  `;
+
+  const userPrompt = process.env.CI_PROMPT || defaultPrompt;
+
+  const prompt = dedent`
+    You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
+    This event is triggered automatically when a pull request is created/synchronized.
+
+    You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
+    You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
+    You should use the GitHub API directly (${githubApiBase}) with the api key as a bearer token.
+
+    ${userPrompt}
+
+    Here are the previous events in chronological order:
+    ${eventsText}
+
+    Do not create any comments on the pull request yourself or change any code in the pull request.
+    You must only return your code review.
+  `;
+
+  return prompt;
 }
