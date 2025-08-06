@@ -169,6 +169,12 @@ export async function downloadCommentAttachments(
   } = options;
 
   const urlToPathMap = new Map<string, string>();
+  // Track tmp file objects so we can clean them up after upload
+  // Track tmp file objects so we can clean them up after upload
+  const tmpFilesMap = new Map<string, tmp.FileResult>();
+  // Store in global scope so it can be accessed by cleanupTmpFiles
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (global as any).__tmpFilesMap = tmpFilesMap;
 
   try {
     await fs.mkdir(downloadsDir, { recursive: true });
@@ -278,6 +284,9 @@ export async function downloadCommentAttachments(
             fileType,
           );
           // Use tmp to securely create a temp file with the correct extension
+          // Use tmp to securely create a temp file with the correct extension
+          // Note: tmp.fileSync creates a file that will be cleaned up automatically on process exit
+          // but we'll manually clean it up after successful upload for better resource management
           const tmpFile = tmp.fileSync({ postfix: extension ? `.${extension}` : undefined });
           const localPath = tmpFile.name;
 
@@ -319,6 +328,10 @@ export async function downloadCommentAttachments(
             );
 
             urlToPathMap.set(originalUrl, localPath);
+
+            // Store the tmpFile object in a separate map so we can clean it up later
+            // after the file has been uploaded to its final destination
+            tmpFilesMap.set(originalUrl, tmpFile);
 
             console.log(
               `✓ Downloaded ${isImage ? "image" : "file"} (${fileType}): ${filename}`,
@@ -495,4 +508,47 @@ function generateFilename(
   const timestamp = Date.now();
   const urlHash = originalUrl.split("/").pop()?.substring(0, 8) || "unknown";
   return `${fileType}-${urlHash}-${timestamp}-${index}${extension}`;
+}
+
+
+/**
+ * Cleans up temporary files after they've been uploaded to their final destination
+ * @param urlToPathMap Map of original URLs to local file paths
+ * @param uploadedUrls Array of URLs that have been successfully uploaded
+ */
+export function cleanupTmpFiles(
+  urlToPathMap: Map<string, string>,
+  uploadedUrls: string[],
+): void {
+  try {
+    // Get the tmpFilesMap from the module scope
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tmpFilesMap = (global as any).__tmpFilesMap;
+    
+    if (!tmpFilesMap) {
+      console.log("No temporary files to clean up");
+      return;
+    }
+    
+    console.log(`Cleaning up ${uploadedUrls.length} temporary files...`);
+    
+    for (const url of uploadedUrls) {
+      const tmpFile = tmpFilesMap.get(url);
+      if (tmpFile) {
+        try {
+          // Remove the file and directory
+          tmpFile.removeCallback();
+          console.log(`✓ Cleaned up temporary file for ${url}`);
+          tmpFilesMap.delete(url);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error(`✗ Failed to clean up temporary file for ${url}: ${errorMessage}`);
+        }
+      }
+    }
+    
+    console.log(`Remaining temporary files: ${tmpFilesMap.size}`);
+  } catch (error) {
+    console.error("Error in cleanupTmpFiles:", error);
+  }
 }
