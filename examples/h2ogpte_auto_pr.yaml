@@ -3,6 +3,7 @@ name: h2oGPTe Agent Assistant
 on:
   pull_request:
     branches: [main]
+    types: [opened]
 
 permissions:
   contents: write
@@ -25,3 +26,10 @@ jobs:
           llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
           agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          ci_prompt:
+            | # Prompt for the pull request review. Injects ${repoName} and ${idNumber}.
+            You must only review in the user's repository, ${repoName} on pull request number ${idNumber}.
+
+            First read the previous events and understand the context of the pull request provided below.
+            Then read the code changes in the pull request and understand the context of the code.
+            Once you have a good understanding of the context, you can begin to review the code.

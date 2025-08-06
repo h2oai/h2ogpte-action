@@ -112,13 +112,24 @@ function createAgentInstructionPromptForAutoReview(
 ): string {
   const githubApiBase = getGithubApiUrl();
 
-  // Find PR/Issue number
+  // Find PR/Issue number/name
   const idNumber = extractIdNumber(context);
+  const repoName = context.repository.full_name;
 
   // Format events for the prompt
   const eventsText = getAllEventsInOrder(githubData, context.isPR)
     .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
     .join("\n");
+
+  const defaultPrompt = dedent`
+    You must only review in the user's repository, ${repoName} on pull request number ${idNumber}.
+
+    First read the previous events and understand the context of the pull request provided below.
+    Then read the code changes in the pull request and understand the context of the code.
+    Once you have a good understanding of the context, you can begin to review the code.
+  `;
+
+  const userPrompt = process.env.CI_PROMPT || defaultPrompt;
 
   const prompt = dedent`
     You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
@@ -128,11 +139,7 @@ function createAgentInstructionPromptForAutoReview(
     You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
     You should use the GitHub API directly (${githubApiBase}) with the api key as a bearer token.
 
-    You must only review in the user's repository, ${context.repository.full_name} on pull request number ${idNumber}.
-
-    First read the previous events and understand the context of the pull request provided below.
-    Then read the code changes in the pull request and understand the context of the code.
-    Once you have a good understanding of the context, you can begin to review the code.
+    ${userPrompt}
 
     Here are the previous events in chronological order:
     ${eventsText}
