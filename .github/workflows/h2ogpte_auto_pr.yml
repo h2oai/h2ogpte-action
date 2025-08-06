@@ -11,8 +11,8 @@ permissions:
   issues: write
 
 jobs:
-  test-action:
-    name: GitHub Actions Test
+  h2ogpte-auto-review:
+    name: h2oGPTe Auto Review Agent
     runs-on: ubuntu-latest
 
     steps:
@@ -20,8 +20,8 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      - name: Test Local Action
-        id: test-action
+      - name: h2oGPTe Auto Review Agent
+        id: h2ogpte-auto-review
         uses: ./
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
