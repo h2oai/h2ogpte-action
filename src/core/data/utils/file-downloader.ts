@@ -170,7 +170,6 @@ export async function downloadCommentAttachments(
 
   const urlToPathMap = new Map<string, string>();
   // Track tmp file objects so we can clean them up after upload
-  // Track tmp file objects so we can clean them up after upload
   const tmpFilesMap = new Map<string, tmp.FileResult>();
   // Store in global scope so it can be accessed by cleanupTmpFiles
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -283,7 +282,6 @@ export async function downloadCommentAttachments(
             extension,
             fileType,
           );
-          // Use tmp to securely create a temp file with the correct extension
           // Use tmp to securely create a temp file with the correct extension
           // Note: tmp.fileSync creates a file that will be cleaned up automatically on process exit
           // but we'll manually clean it up after successful upload for better resource management
