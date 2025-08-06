@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import { basename } from "path";
+import { cleanupTmpFiles } from "./file-downloader";
 import { createCollection } from "../../services/h2ogpte/h2ogpte";
 import {
   createIngestionJob,
@@ -124,6 +125,10 @@ export async function uploadAttachmentsToH2oGPTe(
   let collectionId: string | null = null;
   try {
     collectionId = await createCollection();
+    
+    // Keep track of successfully uploaded URLs for cleanup
+    const uploadedUrls: string[] = [];
+    
     await Promise.all(
       Array.from(attachmentUrlMap.values()).map(async (localPath) => {
         const uploadResult = await processFileWithJobMonitoring(
@@ -136,9 +141,23 @@ export async function uploadAttachmentsToH2oGPTe(
           );
         } else {
           core.debug(`Uploaded file to h2oGPTe: ${localPath}`);
+          
+          // Find the URL for this local path to add to our cleanup list
+          for (const [url, path] of attachmentUrlMap.entries()) {
+            if (path === localPath) {
+              uploadedUrls.push(url);
+              break;
+            }
+          }
         }
       }),
     );
+    
+    // Clean up temporary files after successful upload
+    if (uploadedUrls.length > 0) {
+      core.debug(`Cleaning up ${uploadedUrls.length} temporary files`);
+      cleanupTmpFiles(attachmentUrlMap, uploadedUrls);
+    }
   } catch (error) {
     core.warning(
       `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
