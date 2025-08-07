@@ -15,6 +15,7 @@
 
 import fs from "fs/promises";
 import path from "path";
+import tmp from "tmp";
 import type { Octokit } from "@octokit/rest";
 
 /**
@@ -164,7 +165,7 @@ export async function downloadCommentAttachments(
 ): Promise<Map<string, string>> {
   const {
     maxFileSize = 50 * 1024 * 1024, // 50MB default
-    downloadsDir = "/tmp/github-attachments",
+    downloadsDir = tmp.dirSync({ unsafeCleanup: true }).name,
   } = options;
 
   const urlToPathMap = new Map<string, string>();
