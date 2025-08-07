@@ -78,6 +78,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(fsMkdirSpy).toHaveBeenCalledWith("/tmp/github-attachments", {
@@ -100,6 +103,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(result.size).toBe(0);
@@ -144,6 +150,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(mockOctokit.rest.issues.getComment).toHaveBeenCalledWith({
@@ -210,6 +219,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(mockOctokit.rest.issues.getComment).toHaveBeenCalledWith({
@@ -273,6 +285,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(mockOctokit.rest.pulls.getReviewComment).toHaveBeenCalledWith({
@@ -321,6 +336,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(mockOctokit.rest.pulls.getReview).toHaveBeenCalledWith({
@@ -369,6 +387,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(mockOctokit.rest.issues.get).toHaveBeenCalledWith({
@@ -418,6 +439,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(mockOctokit.rest.pulls.get).toHaveBeenCalledWith({
@@ -471,6 +495,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -523,6 +550,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(fetchSpy).toHaveBeenCalledTimes(1); // Only downloaded once
@@ -556,6 +586,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(result.size).toBe(0);
@@ -598,6 +631,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(result.size).toBe(0);
@@ -628,6 +664,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(result.size).toBe(0);
@@ -670,6 +709,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -713,6 +755,9 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
+      {
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(fetchSpy).toHaveBeenCalledTimes(0);
@@ -755,7 +800,10 @@ describe("downloadCommentAttachments", () => {
       "owner",
       "repo",
       comments,
-      { maxFileSize: 0 },
+      {
+        maxFileSize: 0,
+        downloadsDir: "/tmp/github-attachments",
+      },
     );
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
