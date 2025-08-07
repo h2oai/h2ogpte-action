@@ -122,7 +122,7 @@ export async function run(): Promise<void> {
     let cleanedResponse = "";
     let header = "";
     if (chatCompletion.success) {
-      header = `💡 h2oGPTe made some changes`;
+      header = `📣 h2oGPTe responded`;
       cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
     } else {
       header = `❌ h2oGPTe ran into some issues`;
