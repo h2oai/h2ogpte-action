@@ -15,7 +15,6 @@ import { isPullRequestReviewCommentEvent } from "../data/context";
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
-  isPREvent: boolean,
   customEvent: boolean,
 ): string {
   if (customEvent) {
@@ -75,7 +74,7 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_body = dedent`
-    Here is the user's instruction: '${instruction}'.
+    Here is the user's instruction: '{instruction}'.
     You must only work in the user's repository, ${context.repository.full_name}.
     ${context.isPR ? prompt_pr : prompt_issue}
   `;
@@ -98,9 +97,12 @@ function createAgentInstructionPromptForComment(
 
   const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
 
+  // Replace instruction placeholder with actual value
+  const finalPrompt = prompt.replaceAll("{instruction}", instruction);
+
   // Replace attachment URLs with local file paths
   return replaceAttachmentUrlsWithLocalPaths(
-    prompt,
+    finalPrompt,
     githubData.attachmentUrlMap,
   );
 }
@@ -117,15 +119,26 @@ function createAgentInstructionPromptForCustom(
     You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     This event is triggered automatically when a pull request is created/synchronized.
 
-    You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
-    You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
-    You should use the GitHub API directly (${githubApiBase}) with the api key as a bearer token.
+    You'll be provided a github api key that you can access in python by using os.getenv("{AGENT_GITHUB_ENV_VAR}").
+    You can also access the github api key in your shell script by using the {AGENT_GITHUB_ENV_VAR} environment variable.
+    You should use the GitHub API directly ({githubApiBase}) with the api key as a bearer token.
 
-    ${userPrompt}
+    You must only work in the user's repository, {repoName}.
+    Under no circumstances should you print the github api key in your response or any output stream.
 
-  `; // TODO: add guardrails into the bottom of prompt
+    {userPrompt}
 
-  return prompt;
+    Respond and execute actions according to the user's instruction.
+    `;
+
+  // Replace all placeholders with actual values
+  const finalPrompt = prompt
+    .replaceAll("{AGENT_GITHUB_ENV_VAR}", AGENT_GITHUB_ENV_VAR)
+    .replaceAll("{githubApiBase}", githubApiBase)
+    .replaceAll("{repoName}", context.repository.full_name)
+    .replaceAll("{userPrompt}", userPrompt);
+
+  return finalPrompt;
 }
 
 function promptSubstitution(

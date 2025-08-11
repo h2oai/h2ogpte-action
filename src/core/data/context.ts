@@ -75,6 +75,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
       };
     }
     default:
+      // TODO: Handle all event types (somehow)
       throw new Error(`Unsupported event type: ${context.eventName}`);
   }
 }

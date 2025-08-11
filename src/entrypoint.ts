@@ -6,7 +6,6 @@ import {
   getGithubToken,
 } from "./core/utils";
 import {
-  isPullRequestEvent,
   isPullRequestReviewCommentEvent,
   parseGitHubContext,
 } from "./core/data/context";
@@ -95,7 +94,6 @@ export async function run(): Promise<void> {
     const instructionPrompt = createAgentInstructionPrompt(
       context,
       githubData,
-      isPullRequestEvent(context),
       customEvent,
     );
 
