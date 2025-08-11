@@ -16,14 +16,13 @@ export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
   isPREvent: boolean,
+  customEvent: boolean,
 ): string {
-  const instruction = extractInstruction(context);
-
-  if (isPREvent && !instruction.includes("@h2ogpte")) {
-    return createAgentInstructionPromptForAutoReview(context, githubData);
+  if (customEvent) {
+    return createAgentInstructionPromptForCustom(context, githubData);
+  } else {
+    return createAgentInstructionPromptForComment(context, githubData);
   }
-
-  return createAgentInstructionPromptForComment(context, githubData);
 }
 
 function createAgentInstructionPromptForComment(
@@ -106,30 +105,13 @@ function createAgentInstructionPromptForComment(
   );
 }
 
-function createAgentInstructionPromptForAutoReview(
+function createAgentInstructionPromptForCustom(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
 ): string {
   const githubApiBase = getGithubApiUrl();
 
-  // Find PR/Issue number/name
-  const idNumber = extractIdNumber(context);
-  const repoName = context.repository.full_name;
-
-  // Format events for the prompt
-  const eventsText = getAllEventsInOrder(githubData, context.isPR)
-    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
-    .join("\n");
-
-  const defaultPrompt = dedent`
-    You must only review in the user's repository, ${repoName} on pull request number ${idNumber}.
-
-    First read the previous events and understand the context of the pull request provided below.
-    Then read the code changes in the pull request and understand the context of the code.
-    Once you have a good understanding of the context, you can begin to review the code.
-  `;
-
-  const userPrompt = process.env.CI_PROMPT || defaultPrompt;
+  const userPrompt = promptSubstitution(context, githubData);
 
   const prompt = dedent`
     You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
@@ -141,12 +123,28 @@ function createAgentInstructionPromptForAutoReview(
 
     ${userPrompt}
 
-    Here are the previous events in chronological order:
-    ${eventsText}
-
-    Do not create any comments on the pull request yourself or change any code in the pull request.
-    You must only return your code review.
-  `;
+  `; // TODO: add guardrails into the bottom of prompt
 
   return prompt;
+}
+
+function promptSubstitution(
+  context: ParsedGitHubContext,
+  githubData: FetchDataResult,
+): string {
+  // Find PR/Issue number/name
+  const idNumber = extractIdNumber(context) || "unknown";
+  const repoName = context.repository.full_name;
+
+  // Format events for the prompt
+  const eventsText = getAllEventsInOrder(githubData, context.isPR)
+    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+    .join("\n");
+
+  const prompt = process.env.PROMPT || "";
+
+  return prompt
+    .replaceAll("{repoName}", repoName)
+    .replaceAll("{idNumber}", idNumber.toString())
+    .replaceAll("{eventsText}", eventsText);
 }

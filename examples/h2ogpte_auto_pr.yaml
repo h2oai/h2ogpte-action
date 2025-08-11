@@ -27,10 +27,16 @@ jobs:
           agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
           agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
-          ci_prompt:
-            | # Prompt for the pull request review. Injects ${repoName} and ${idNumber}.
-            You must only review in the user's repository, ${repoName} on pull request number ${idNumber}.
+          prompt:
+            | # Prompt for the pull request review. Injects string literals {repoName}, {idNumber} and {eventsText}.
+            You must only review in the user's repository, {repoName} on pull request number {idNumber}.
 
             First read the previous events and understand the context of the pull request provided below.
             Then read the code changes in the pull request and understand the context of the code.
             Once you have a good understanding of the context, you can begin to review the code.
+
+            Here are the previous events in chronological order:
+            {eventsText}
+
+            Do not create any comments on the pull request yourself or change any code in the pull request.
+            You must only return your code review.

@@ -6,11 +6,8 @@ import {
   getGithubToken,
 } from "./core/utils";
 import {
-  isIssueCommentEvent,
-  isIssuesEvent,
   isPullRequestEvent,
   isPullRequestReviewCommentEvent,
-  isPullRequestReviewEvent,
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
@@ -69,17 +66,11 @@ export async function run(): Promise<void> {
     );
 
     // Handle GitHub Event
-    const isIssue: boolean =
-      isIssuesEvent(context) ||
-      isIssueCommentEvent(context) ||
-      isPullRequestEvent(context) ||
-      isPullRequestReviewEvent(context);
     const isPRReviewComment: boolean = isPullRequestReviewCommentEvent(context);
 
     // If invalid event type, throw an error
-    if (!isIssue && !isPRReviewComment) {
-      throw new Error(`Unexpected event: ${context.eventName}`);
-    }
+    const instruction = extractInstruction(context);
+    const customEvent: boolean = instruction?.includes("@h2ogpte") ?? false;
 
     core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
@@ -105,6 +96,7 @@ export async function run(): Promise<void> {
       context,
       githubData,
       isPullRequestEvent(context),
+      customEvent,
     );
 
     // 5. Parse h2oGPTe configuration
@@ -131,7 +123,6 @@ export async function run(): Promise<void> {
     core.debug(`Extracted response: ${cleanedResponse}`);
 
     // 8. Update initial comment
-    const instruction = extractInstruction(context);
     const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n> ${instruction}\n\n${cleanedResponse}`;
     await updateComment(
       octokits.rest,
