@@ -47,7 +47,8 @@ export async function run(): Promise<void> {
     const url = `https://github.com/${repo}/actions/runs/${runId}`;
     core.debug(`This run url is ${url}`);
 
-    if (isPRIssueEvent(context)) {
+    const instruction = extractInstruction(context);
+    if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
         octokits: octokits,
@@ -110,7 +111,6 @@ export async function run(): Promise<void> {
       core.debug(`Extracted response: ${cleanedResponse}`);
 
       // 8. Update initial comment
-      const instruction = extractInstruction(context);
       const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n> ${instruction}\n\n${cleanedResponse}`;
       await updateComment(
         octokits.rest,
