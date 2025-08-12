@@ -17,7 +17,8 @@ import type {
 export function parseGitHubContext(): ParsedGitHubContext {
   const context = github.context;
 
-  const commonFields = {
+  // Common fields for PR and issue events
+  const commonPRIssueFields = {
     runId: process.env.GITHUB_RUN_ID!,
     eventName: context.eventName,
     eventAction: context.payload.action,
@@ -29,10 +30,23 @@ export function parseGitHubContext(): ParsedGitHubContext {
     actor: context.actor,
   };
 
+  // Common fields for other events
+  const commonEventFields = {
+    runId: process.env.GITHUB_RUN_ID!,
+    eventName: context.eventName,
+    eventAction: context.payload?.action,
+    repository: {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      full_name: `${context.repo.owner}/${context.repo.repo}`,
+    },
+    actor: context.actor,
+  };
+
   switch (context.eventName) {
     case "issues": {
       return {
-        ...commonFields,
+        ...commonPRIssueFields,
         payload: context.payload as IssuesEvent,
         entityNumber: (context.payload as IssuesEvent).issue.number,
         isPR: false,
@@ -40,7 +54,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
     }
     case "issue_comment": {
       return {
-        ...commonFields,
+        ...commonPRIssueFields,
         payload: context.payload as IssueCommentEvent,
         entityNumber: (context.payload as IssueCommentEvent).issue.number,
         isPR: Boolean(
@@ -50,7 +64,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
     }
     case "pull_request": {
       return {
-        ...commonFields,
+        ...commonPRIssueFields,
         payload: context.payload as PullRequestEvent,
         entityNumber: (context.payload as PullRequestEvent).pull_request.number,
         isPR: true,
@@ -58,7 +72,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
     }
     case "pull_request_review": {
       return {
-        ...commonFields,
+        ...commonPRIssueFields,
         payload: context.payload as PullRequestReviewEvent,
         entityNumber: (context.payload as PullRequestReviewEvent).pull_request
           .number,
@@ -67,7 +81,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
     }
     case "pull_request_review_comment": {
       return {
-        ...commonFields,
+        ...commonPRIssueFields,
         payload: context.payload as PullRequestReviewCommentEvent,
         entityNumber: (context.payload as PullRequestReviewCommentEvent)
           .pull_request.number,
@@ -75,8 +89,10 @@ export function parseGitHubContext(): ParsedGitHubContext {
       };
     }
     default:
-      // TODO: Handle all event types (somehow)
-      throw new Error(`Unsupported event type: ${context.eventName}`);
+      return {
+        ...commonEventFields,
+        isPR: false,
+      };
   }
 }
 
@@ -108,4 +124,14 @@ export function isPullRequestReviewCommentEvent(
   context: ParsedGitHubContext,
 ): context is ParsedGitHubContext & { payload: PullRequestReviewCommentEvent } {
   return context.eventName === "pull_request_review_comment";
+}
+
+export function isPRIssueEvent(context: ParsedGitHubContext): boolean {
+  return (
+    isIssuesEvent(context) ||
+    isIssueCommentEvent(context) ||
+    isPullRequestEvent(context) ||
+    isPullRequestReviewEvent(context) ||
+    isPullRequestReviewCommentEvent(context)
+  );
 }

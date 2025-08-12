@@ -1,14 +1,14 @@
 import { Octokit } from "@octokit/rest";
 import type { ParsedGitHubContext } from "./types";
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
+import { isPullRequestReviewCommentEvent } from "../../data/context";
 
 export async function createReply(
   octokit: Octokit,
   comment_body: string,
   context: ParsedGitHubContext,
-  isPRReviewComment: boolean,
 ) {
-  if (isPRReviewComment) {
+  if (isPullRequestReviewCommentEvent(context)) {
     return await createReplyForReviewComment(octokit, comment_body, context);
   } else {
     return await createReplyForIssueComment(octokit, comment_body, context);
@@ -23,7 +23,7 @@ async function createReplyForReviewComment(
   const comment = await octokit.pulls.createReplyForReviewComment({
     owner: context.repository.owner,
     repo: context.repository.repo,
-    pull_number: context.entityNumber,
+    pull_number: context.entityNumber!,
     comment_id: (context.payload as PullRequestReviewCommentEvent).comment.id,
     body: comment_body,
   });
@@ -38,7 +38,7 @@ async function createReplyForIssueComment(
   const comment = await octokit.issues.createComment({
     owner: context.repository.owner,
     repo: context.repository.repo,
-    issue_number: context.entityNumber,
+    issue_number: context.entityNumber!,
     body: comment_body,
   });
   return comment;
@@ -49,9 +49,8 @@ export async function updateComment(
   comment_body: string,
   context: ParsedGitHubContext,
   initialh2ogpteCommentId: number,
-  isPRReviewComment: boolean,
 ) {
-  if (isPRReviewComment) {
+  if (isPullRequestReviewCommentEvent(context)) {
     return await updateReviewComment(
       octokit,
       comment_body,

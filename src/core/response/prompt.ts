@@ -10,17 +10,22 @@ import {
   extractIdNumber,
   extractPRReviewCommentDetails,
 } from "./utils/instruction";
-import { isPullRequestReviewCommentEvent } from "../data/context";
+import {
+  isPRIssueEvent,
+  isPullRequestReviewCommentEvent,
+} from "../data/context";
 
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
-  githubData: FetchDataResult,
-  customEvent: boolean,
+  githubData: FetchDataResult | undefined,
 ): string {
+  const customEvent =
+    isPRIssueEvent(context) &&
+    extractInstruction(context)?.includes("@h2ogpte");
   if (customEvent) {
-    return createAgentInstructionPromptForCustom(context, githubData);
+    return createAgentInstructionPromptForCustom(context, githubData!);
   } else {
-    return createAgentInstructionPromptForComment(context, githubData);
+    return createAgentInstructionPromptForComment(context, githubData!);
   }
 }
 
@@ -146,14 +151,20 @@ function promptSubstitution(
   githubData: FetchDataResult,
 ): string {
   // Find PR/Issue number/name
-  const idNumber = extractIdNumber(context) || "unknown";
+  const idNumber = extractIdNumber(context) || "undefined";
   const repoName = context.repository.full_name;
 
   // Format events for the prompt
-  const eventsText = getAllEventsInOrder(githubData, context.isPR)
-    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
-    .join("\n");
-
+  let eventsText = "";
+  if (isPRIssueEvent(context)) {
+    // Only PR/Issue events have events
+    eventsText = getAllEventsInOrder(githubData, context.isPR)
+      .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+      .join("\n");
+  } else {
+    // Non PR/Issue events don't have events
+    eventsText = "";
+  }
   const prompt = process.env.PROMPT || "";
 
   return prompt
