@@ -10,20 +10,25 @@ import {
   extractIdNumber,
   extractPRReviewCommentDetails,
 } from "./utils/instruction";
-import { isPullRequestReviewCommentEvent } from "../data/context";
+import {
+  isPRIssueEvent,
+  isPullRequestReviewCommentEvent,
+} from "../data/context";
 
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
-  githubData: FetchDataResult,
-  isPREvent: boolean,
+  githubData: FetchDataResult | undefined,
 ): string {
-  const instruction = extractInstruction(context);
-
-  if (isPREvent && !instruction.includes("@h2ogpte")) {
-    return createAgentInstructionPromptForAutoReview(context, githubData);
+  const customEvent =
+    isPRIssueEvent(context) &&
+    extractInstruction(context)?.includes("@h2ogpte");
+  if (customEvent && githubData) {
+    return createAgentInstructionPromptForCustom(context, githubData);
+  } else if (githubData) {
+    return createAgentInstructionPromptForComment(context, githubData);
+  } else {
+    return createAgentInstructionPromptForNonPRIssue(context);
   }
-
-  return createAgentInstructionPromptForComment(context, githubData);
 }
 
 function createAgentInstructionPromptForComment(
@@ -76,7 +81,7 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_body = dedent`
-    Here is the user's instruction: '${instruction}'.
+    Here is the user's instruction: '{instruction}'.
     You must only work in the user's repository, ${context.repository.full_name}.
     ${context.isPR ? prompt_pr : prompt_issue}
   `;
@@ -99,54 +104,105 @@ function createAgentInstructionPromptForComment(
 
   const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
 
+  // Replace instruction placeholder with actual value
+  const finalPrompt = prompt.replaceAll("{instruction}", instruction);
+
   // Replace attachment URLs with local file paths
   return replaceAttachmentUrlsWithLocalPaths(
-    prompt,
+    finalPrompt,
     githubData.attachmentUrlMap,
   );
 }
 
-function createAgentInstructionPromptForAutoReview(
+function createAgentInstructionPromptForCustom(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
 ): string {
   const githubApiBase = getGithubApiUrl();
 
-  // Find PR/Issue number/name
-  const idNumber = extractIdNumber(context);
-  const repoName = context.repository.full_name;
-
-  // Format events for the prompt
-  const eventsText = getAllEventsInOrder(githubData, context.isPR)
-    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
-    .join("\n");
-
-  const defaultPrompt = dedent`
-    You must only review in the user's repository, ${repoName} on pull request number ${idNumber}.
-
-    First read the previous events and understand the context of the pull request provided below.
-    Then read the code changes in the pull request and understand the context of the code.
-    Once you have a good understanding of the context, you can begin to review the code.
-  `;
-
-  const userPrompt = process.env.CI_PROMPT || defaultPrompt;
+  const userPrompt = promptSubstitution(context, githubData);
 
   const prompt = dedent`
     You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     This event is triggered automatically when a pull request is created/synchronized.
 
-    You'll be provided a github api key that you can access in python by using os.getenv("${AGENT_GITHUB_ENV_VAR}").
-    You can also access the github api key in your shell script by using the ${AGENT_GITHUB_ENV_VAR} environment variable.
-    You should use the GitHub API directly (${githubApiBase}) with the api key as a bearer token.
+    You'll be provided a github api key that you can access in python by using os.getenv("{AGENT_GITHUB_ENV_VAR}").
+    You can also access the github api key in your shell script by using the {AGENT_GITHUB_ENV_VAR} environment variable.
+    You should use the GitHub API directly ({githubApiBase}) with the api key as a bearer token.
 
-    ${userPrompt}
+    You must only work in the user's repository, {repoName}.
+    Under no circumstances should you print the github api key in your response or any output stream.
 
-    Here are the previous events in chronological order:
-    ${eventsText}
+    {userPrompt}
 
-    Do not create any comments on the pull request yourself or change any code in the pull request.
-    You must only return your code review.
-  `;
+    Respond and execute actions according to the user's instruction.
+    `;
 
-  return prompt;
+  // Replace all placeholders with actual values
+  const finalPrompt = prompt
+    .replaceAll("{AGENT_GITHUB_ENV_VAR}", AGENT_GITHUB_ENV_VAR)
+    .replaceAll("{githubApiBase}", githubApiBase)
+    .replaceAll("{repoName}", context.repository.full_name)
+    .replaceAll("{userPrompt}", userPrompt);
+
+  return finalPrompt;
+}
+
+function createAgentInstructionPromptForNonPRIssue(
+  context: ParsedGitHubContext,
+): string {
+  const githubApiBase = getGithubApiUrl();
+  const userPrompt = promptSubstitution(context, undefined);
+
+  const prompt = dedent`
+    You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
+    This event is triggered automatically when a pull request is created/synchronized.
+
+    You'll be provided a github api key that you can access in python by using os.getenv("{AGENT_GITHUB_ENV_VAR}").
+    You can also access the github api key in your shell script by using the {AGENT_GITHUB_ENV_VAR} environment variable.
+    You should use the GitHub API directly ({githubApiBase}) with the api key as a bearer token.
+
+    You must only work in the user's repository, {repoName}.
+    Under no circumstances should you print the github api key in your response or any output stream.
+
+    {userPrompt}
+
+    Respond and execute actions according to the user's instruction.
+    `;
+
+  // Replace all placeholders with actual values
+  const finalPrompt = prompt
+    .replaceAll("{AGENT_GITHUB_ENV_VAR}", AGENT_GITHUB_ENV_VAR)
+    .replaceAll("{githubApiBase}", githubApiBase)
+    .replaceAll("{repoName}", context.repository.full_name)
+    .replaceAll("{userPrompt}", userPrompt);
+
+  return finalPrompt;
+}
+
+function promptSubstitution(
+  context: ParsedGitHubContext,
+  githubData: FetchDataResult | undefined,
+): string {
+  // Find PR/Issue number/name
+  const idNumber = extractIdNumber(context) || "undefined";
+  const repoName = context.repository.full_name;
+
+  // Format events for the prompt
+  let eventsText = "";
+  if (isPRIssueEvent(context) && githubData) {
+    // Only PR/Issue events have events
+    eventsText = getAllEventsInOrder(githubData, context.isPR)
+      .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+      .join("\n");
+  } else {
+    // Non PR/Issue events don't have events
+    eventsText = "";
+  }
+  const prompt = process.env.PROMPT || "";
+
+  return prompt
+    .replaceAll("{repoName}", repoName)
+    .replaceAll("{idNumber}", idNumber.toString())
+    .replaceAll("{eventsText}", eventsText);
 }

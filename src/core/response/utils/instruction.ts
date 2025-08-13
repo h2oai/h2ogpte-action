@@ -22,6 +22,8 @@ import {
 export function extractInstruction(context: ParsedGitHubContext): string {
   if (isIssuesEvent(context)) {
     return (context.payload as IssuesEvent).issue.body || "";
+  } else if (isIssueCommentEvent(context)) {
+    return (context.payload as IssueCommentEvent).comment.body || "";
   } else if (isPullRequestEvent(context)) {
     return (context.payload as PullRequestEvent).pull_request.body || "";
   } else if (isPullRequestReviewEvent(context)) {
@@ -31,7 +33,8 @@ export function extractInstruction(context: ParsedGitHubContext): string {
       (context.payload as PullRequestReviewCommentEvent).comment.body || ""
     );
   } else {
-    return (context.payload as IssueCommentEvent).comment.body || "";
+    // Non PR/Issue events don't have a body/instruction
+    return "";
   }
 }
 
