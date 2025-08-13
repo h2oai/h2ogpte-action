@@ -38,5 +38,5 @@ jobs:
             Here are the previous events in chronological order:
             {eventsText}
 
-            Do not create any comments on the pull request yourself or change any code in the pull request.
-            You must only return your code review.
+            Create a comment documenting your review in a concise manner.
+            Do not create any new commits, rather describe the relevant required code changes for the user to implement.
