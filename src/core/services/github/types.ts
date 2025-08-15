@@ -16,12 +16,12 @@ export type ParsedGitHubContext = {
     full_name: string;
   };
   actor: string;
-  payload:
+  payload?:
     | IssuesEvent
     | IssueCommentEvent
     | PullRequestEvent
     | PullRequestReviewEvent
     | PullRequestReviewCommentEvent;
-  entityNumber: number;
+  entityNumber?: number;
   isPR: boolean;
 };

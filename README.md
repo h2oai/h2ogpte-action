@@ -32,7 +32,7 @@ The agent maintains conversation history for complex issues and provides detaile
 
 To install the h2oGPTe Agent Assistant GitHub Action in your repository:
 
-1. **Clone your repository**: Open your IDE or terminal and clone the H2O organisation repository you'd like to add the action to
+1. **Clone your repository**: Open your IDE or terminal and clone the H2O organization repository you'd like to add the action to
 2. **Create the workflows directory**: Run `mkdir -p .github/workflows` in your repository
 3. **Get the workflow file**: Copy the contents from [https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml](https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml)
 4. **Add the workflow**: Create a new file called `h2ogpte.yaml` inside the `.github/workflows` directory and paste the copied contents
@@ -88,6 +88,8 @@ The action supports several configuration options to customize the h2oGPTe agent
 
 ### 💡 Use Cases
 
+#### 💬 Chat with the agent
+
 Here are a few ways you can use the h2oGPTe Agent Assistant action in your repository:
 
 - **🔍 Pull Request Comment:**
@@ -131,6 +133,31 @@ Here are a few ways you can use the h2oGPTe Agent Assistant action in your repos
   > ```
   >
   > **Note:** You can also upload other file types, but due to [GitHub restrictions](https://github.com/orgs/community/discussions/162417#discussioncomment-13428503), only images can be processed by h2oGPTe. Other file types will be ignored.
+
+#### ✨ Custom prompting
+
+The action also supports custom prompting for specialized workflows.
+
+When using custom prompts, you can inject the following variables into your prompt text:
+
+| Variable         | Description                           | Example Usage                                               |
+| ---------------- | ------------------------------------- | ----------------------------------------------------------- |
+| `{{repoName}}`   | The name of the repository            | `You must only work in the user's repository, {{repoName}}` |
+| `{{idNumber}}`   | The pull request or issue number      | `on pull request number {{idNumber}}`                       |
+| `{{eventsText}}` | Chronological list of previous events | `Here are the previous events: {{eventsText}}`              |
+
+These variables are automatically populated by the action and help provide context-aware responses.
+
+Below are two full example workflows you can use:
+
+- **🔍 Automatic Pull Request Review (`h2ogpte_auto_pr.yaml`)**
+
+  > Provides automated code review feedback on pull requests. The agent examines code changes and creates detailed review comments with suggestions for improvements, without modifying the code directly.
+
+- **📚 Automatic Documentation Generation (`h2ogpte_auto_docs.yaml`)**
+  > Automatically generates documentation for code changes in pull requests. The agent analyzes the code modifications and creates comprehensive documentation including docstrings, comments, and README updates.
+
+See [examples](examples/) for complete workflow configurations.
 
 ## 👨‍💻 Developer Guide
 
