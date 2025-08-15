@@ -86,3 +86,17 @@ export function getAllEventsInOrder(
     id,
   }));
 }
+
+/**
+ * Builds the events text for the prompt
+ */
+export function buildEventsText(
+  githubData?: FetchDataResult,
+  isPR?: boolean,
+): string {
+  if (!githubData || !isPR) return "";
+
+  return getAllEventsInOrder(githubData, isPR)
+    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+    .join("\n");
+}

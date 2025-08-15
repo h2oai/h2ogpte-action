@@ -62,7 +62,7 @@ Currently, only h2ogpte version >= 1.6.31 is supported. By default, the action u
 
 ### ⚙️ h2oGPTe Configuration Options
 
-The action supports several configuration options to customize the h2oGPTe agent behaviour:
+The action supports several configuration options to customize the h2oGPTe agent behavior:
 
 | Option                                          | Default      | Allowed Values                                                                                                               | Description                                                                                                                                                                                                                                    |
 | ----------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
