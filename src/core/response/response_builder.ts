@@ -18,20 +18,20 @@ export function buildH2ogpteResponse(
   const actionRunUrl = `see [github action run](${actionUrl})`;
   const chatSessionUrl = `see [chat session](${chatUrl}), contact repo admin for access permissions`;
 
-  let comment_format = "";
+  let commentFormat = "";
 
   if (chatCompletion.success) {
     const cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
 
-    comment_format = `${formattedInstruction}\n---\n${cleanedResponse}\n---\n${actionRunUrl}\n${chatSessionUrl}`;
+    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n---\n${actionRunUrl}\n${chatSessionUrl}`;
   } else {
     const header = `❌ h2oGPTe ran into some issues`;
     const response = chatCompletion.body;
 
-    comment_format = `${header}\n---\n${formattedInstruction}\n---\n${response}\n---\n${actionRunUrl}\n${chatSessionUrl}`;
+    commentFormat = `${header}\n---\n${formattedInstruction}\n---\n${response}\n---\n${actionRunUrl}\n${chatSessionUrl}`;
   }
 
-  return comment_format;
+  return commentFormat;
 }
 
 /**
