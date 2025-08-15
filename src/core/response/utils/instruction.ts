@@ -60,8 +60,10 @@ export function extractIdNumber(
       .number;
   } else if (isPREvent) {
     return (context.payload as PullRequestEvent).pull_request.number;
-  } else {
+  } else if (isIssuesEvent(context)) {
     return (context.payload as IssuesEvent).issue.number;
+  } else {
+    return undefined;
   }
 }
 

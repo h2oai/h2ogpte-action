@@ -47,7 +47,7 @@ inputs:
     required: false
     default: 3600
   prompt:
-    description: Prompt for the pull request review. Injects string literals {{repoName}}, {{idNumber}} and {{eventsText}}.
+    description: Prompt for custom workflow. String injection options are {{repoName}}, {{idNumber}} and {{eventsText}}, see README.md for more details.
     required: false
 
 runs:
