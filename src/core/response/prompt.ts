@@ -130,6 +130,11 @@ function createAgentInstructionPromptForComment(
     If necessary, include GitHub referencing (e.g. #23) when referring to any other issues or PRs. Don't respond with the literal link.
 
     Please respond and execute actions according to the user's instruction.
+
+    Output your response in the following format:
+    ## Executive Summary (max 3 sentences)
+    ## Detailed Response
+    ## Action Items/Next Steps (if any)
   `;
 
   const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;

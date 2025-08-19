@@ -1,46 +1,33 @@
 import type { ChatResponse } from "../services/h2ogpte/types";
 import { extractFinalAgentResponse } from "./utils/extract-response";
 
-/**
- * Builds the response for h2oGPTe agent completions
- * @param chatCompletion - The chat completion response from h2oGPTe
- * @param instruction - The instruction that was sent to h2oGPTe
- * @param url - The GitHub action run URL
- * @returns Formatted comment body string
- */
 export function buildH2ogpteResponse(
   chatCompletion: ChatResponse,
   instruction: string,
   actionUrl: string,
   chatUrl: string,
 ): string {
-  const formattedInstruction = `>## User's Instruction\n${formatInstruction(instruction)}`;
-  const actionRunUrl = `see [github action run](${actionUrl})`;
-  const chatSessionUrl = `see [chat session](${chatUrl}), contact repo admin for access permissions`;
+  const formattedInstruction = formatUserInstruction(instruction);
+  const references = `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by h2oGPTe`;
 
   let commentFormat = "";
 
   if (chatCompletion.success) {
     const cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
 
-    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n---\n${actionRunUrl}\n${chatSessionUrl}`;
+    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${references}`;
   } else {
     const header = `❌ h2oGPTe ran into some issues`;
     const response = chatCompletion.body;
 
-    commentFormat = `${header}\n---\n${formattedInstruction}\n---\n${response}\n---\n${actionRunUrl}\n${chatSessionUrl}`;
+    commentFormat = `${header}\n---\n${formattedInstruction}\n---\n${response}\n\n---\n${references}`;
   }
 
   return commentFormat;
 }
 
-/**
- * Formats an instruction string by prefixing each line with '> '
- * Handles multi-line instructions properly
- * @param instruction - The instruction string that may contain multiple lines
- * @returns Formatted instruction with each line prefixed
- */
-function formatInstruction(instruction: string): string {
+function formatUserInstruction(instruction: string): string {
+  // Prepend each line with '> ' for blockquote in markdown
   return instruction
     .split("\n")
     .map((line) => line.trim())
