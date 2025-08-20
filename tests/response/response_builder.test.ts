@@ -9,7 +9,7 @@ describe("buildH2ogpteResponse", () => {
 
   // Extract references to a variable for easy maintenance
   const getExpectedReferences = (actionUrl: string, chatUrl: string) =>
-    `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by h2oGPTe`;
+    `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
 
   describe("successful responses", () => {
     test("should format successful response with single line instruction", () => {
@@ -340,7 +340,9 @@ describe("buildH2ogpteResponse", () => {
 
       expect(result).toContain(`[github action run](${customActionUrl})`);
       expect(result).toContain(`[chat session](${customChatUrl})`);
-      expect(result).toContain("🚀 Powered by h2oGPTe");
+      expect(result).toContain(
+        "🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)",
+      );
     });
 
     test("should handle URLs with query parameters", () => {
@@ -363,7 +365,9 @@ describe("buildH2ogpteResponse", () => {
 
       expect(result).toContain(`[github action run](${actionUrlWithParams})`);
       expect(result).toContain(`[chat session](${chatUrlWithParams})`);
-      expect(result).toContain("🚀 Powered by h2oGPTe");
+      expect(result).toContain(
+        "🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)",
+      );
     });
   });
 });
