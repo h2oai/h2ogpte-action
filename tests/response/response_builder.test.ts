@@ -7,6 +7,10 @@ describe("buildH2ogpteResponse", () => {
     "https://github.com/username/repo/actions/runs/123456789";
   const mockChatUrl = "https://h2ogpte.example.com/chat/abc123";
 
+  // Extract references to a variable for easy maintenance
+  const getExpectedReferences = (actionUrl: string, chatUrl: string) =>
+    `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by h2oGPTe`;
+
   describe("successful responses", () => {
     test("should format successful response with single line instruction", () => {
       const chatCompletion: ChatResponse = {
@@ -23,13 +27,12 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "> Please review this code",
         "---",
         "This is a successful response from h2oGPTe.",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -51,15 +54,14 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "> Please review this PR",
         "> and suggest improvements",
         "> for the error handling",
         "---",
         "Here are my suggestions:\n\n1. Add error handling\n2. Improve documentation",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -81,15 +83,14 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "> First line",
         "> Second line",
         "> Third line",
         "---",
         "Response content",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -110,13 +111,12 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "",
         "---",
         "Response content",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -137,13 +137,12 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "",
         "---",
         "Response content",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -168,13 +167,12 @@ describe("buildH2ogpteResponse", () => {
       const expected = [
         "❌ h2oGPTe ran into some issues",
         "---",
-        ">## User's Instruction",
         "> Analyze the test coverage",
         "---",
         "Error: Unable to access the repository. Please check your permissions.",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -198,24 +196,23 @@ describe("buildH2ogpteResponse", () => {
       const expected = [
         "❌ h2oGPTe ran into some issues",
         "---",
-        ">## User's Instruction",
         "> Please review this code",
         "> and provide feedback",
         "> on the implementation",
         "---",
         "Connection timeout after 30 seconds",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
     });
 
-    test("should handle failed response with empty instruction", () => {
+    test("should format failed response with empty instruction", () => {
       const chatCompletion: ChatResponse = {
         success: false,
-        body: "Service unavailable",
+        body: "Authentication failed",
       };
       const instruction = "";
 
@@ -229,27 +226,23 @@ describe("buildH2ogpteResponse", () => {
       const expected = [
         "❌ h2oGPTe ran into some issues",
         "---",
-        ">## User's Instruction",
         "",
         "---",
-        "Service unavailable",
+        "Authentication failed",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
     });
-  });
 
-  describe("edge cases", () => {
-    test("should handle very long response body", () => {
-      const longResponse = "Long response content\n".repeat(100);
+    test("should format failed response with whitespace-only instruction", () => {
       const chatCompletion: ChatResponse = {
-        success: true,
-        body: longResponse,
+        success: false,
+        body: "Rate limit exceeded",
       };
-      const instruction = "Simple instruction";
+      const instruction = "   \n  \n  ";
 
       const result = buildH2ogpteResponse(
         chatCompletion,
@@ -258,14 +251,23 @@ describe("buildH2ogpteResponse", () => {
         mockChatUrl,
       );
 
-      expect(result).toContain(">## User's Instruction");
-      expect(result).toContain("> Simple instruction");
-      expect(result).toContain(longResponse);
-      expect(result).toContain("see [github action run]");
-      expect(result).toContain("see [chat session]");
-    });
+      const expected = [
+        "❌ h2oGPTe ran into some issues",
+        "---",
+        "",
+        "---",
+        "Rate limit exceeded",
+        "",
+        "---",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
+      ].join("\n");
 
-    test("should handle special characters in instruction", () => {
+      expect(result).toBe(expected);
+    });
+  });
+
+  describe("instruction formatting", () => {
+    test("should handle instruction with special characters", () => {
       const chatCompletion: ChatResponse = {
         success: true,
         body: "Response with special chars",
@@ -280,13 +282,12 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "> Please check: @#$%^&*()_+-=[]{}|;':\",./<>?",
         "---",
         "Response with special chars",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -307,13 +308,12 @@ describe("buildH2ogpteResponse", () => {
       );
 
       const expected = [
-        ">## User's Instruction",
         "> Format this text",
         "---",
         "Line 1\nLine 2\n\nLine 3\n  Line 4  ",
+        "",
         "---",
-        "see [github action run](https://github.com/username/repo/actions/runs/123456789)",
-        "see [chat session](https://h2ogpte.example.com/chat/abc123), contact repo admin for access permissions",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -338,10 +338,9 @@ describe("buildH2ogpteResponse", () => {
         customChatUrl,
       );
 
-      expect(result).toContain(`see [github action run](${customActionUrl})`);
-      expect(result).toContain(
-        `see [chat session](${customChatUrl}), contact repo admin for access permissions`,
-      );
+      expect(result).toContain(`[github action run](${customActionUrl})`);
+      expect(result).toContain(`[chat session](${customChatUrl})`);
+      expect(result).toContain("🚀 Powered by h2oGPTe");
     });
 
     test("should handle URLs with query parameters", () => {
@@ -362,12 +361,9 @@ describe("buildH2ogpteResponse", () => {
         chatUrlWithParams,
       );
 
-      expect(result).toContain(
-        `see [github action run](${actionUrlWithParams})`,
-      );
-      expect(result).toContain(
-        `see [chat session](${chatUrlWithParams}), contact repo admin for access permissions`,
-      );
+      expect(result).toContain(`[github action run](${actionUrlWithParams})`);
+      expect(result).toContain(`[chat session](${chatUrlWithParams})`);
+      expect(result).toContain("🚀 Powered by h2oGPTe");
     });
   });
 });
