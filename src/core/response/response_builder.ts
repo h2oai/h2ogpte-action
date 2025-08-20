@@ -8,7 +8,7 @@ export function buildH2ogpteResponse(
   chatUrl: string,
 ): string {
   const formattedInstruction = formatUserInstruction(instruction);
-  const references = `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by h2oGPTe`;
+  const references = `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
 
   let commentFormat = "";
 
