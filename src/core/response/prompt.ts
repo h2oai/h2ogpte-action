@@ -133,8 +133,8 @@ function createAgentInstructionPromptForComment(
 
     Output your response in the following format:
     ## Executive Summary (max 3 sentences)
-    ## Detailed Response
-    ## Action Items/Next Steps (if any)
+    ## Task Overview (rename to relevant task e.g. PR Review Overview, Code Changes Overview, Research case Overview etc.)
+    ## Next Steps (if any)
   `;
 
   const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
