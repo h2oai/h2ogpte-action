@@ -91,8 +91,14 @@ function createAgentInstructionPromptForComment(
     You'll be provided a github api key that you can access in python by using os.getenv("{{AGENT_GITHUB_ENV_VAR}}").
     You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
     You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
-    You should only ever respond to the users query by reading code and creating commits (if required) on the branch of the pull request.
-    Don't create any comments on the pull request yourself.`;
+
+    What You CANNOT Do:
+    - Post comments on the pull request or issue
+    - Submit formal GitHub PR reviews
+    - Approve pull requests
+    - Execute commands outside the repository context
+    - Modify files in the .github/workflows directory
+  `;
 
   const prompt_pr_review = dedent`
     Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to pull any necessary files.
@@ -132,9 +138,21 @@ function createAgentInstructionPromptForComment(
     Please respond and execute actions according to the user's instruction.
 
     Output your response in the following format:
-    ## Executive Summary (max 3 sentences)
-    ## Task Overview (rename to relevant task e.g. PR Review Overview, Code Changes Overview, Research case Overview etc.)
+    ## Executive Summary
+    - Purpose: quick, scannable overview of the task
+    - Maximum 2 sentences
+    - Encapsulate the entire task
+
+    ## [Context-Specific Analysis]
+    - Replace this header with a descriptive title that matches the task context (e.g. "PR Review Analysis", "Code Change Analysis", "Documentation Request Analysis", "Research Summary", "Issue Explanation")
+    - Use level 3 headers for any RELEVANT sub-sections within the analysis (e.g. ### Strengths, ### Areas for improvement)
+    - Provide a concise but complete breakdown of the key details relevant to the task
+    - Include only sections that are directly relevant; avoid adding unnecessary or mismatched categories
+    - Directly include any assumptions you make in the analysis, including any assumptions you make about the user's intent/content
+
     ## Next Steps (if any)
+    - Provide actionable follow-ups in bullet points or numbered steps
+    - If no clear next steps exist, omit this section
   `;
 
   const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
