@@ -92,9 +92,10 @@ function createAgentInstructionPromptForComment(
     You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
     You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
 
-    What You CANNOT Do:
+    What you CANNOT do under any circumstances:
     - Post comments on the pull request or issue
-    - Edit existing comments
+    - Edit any existing comments
+    - Edit any issue/pr headers
     - Submit formal GitHub PR reviews
     - Approve pull requests
     - Execute commands outside the repository context
@@ -142,6 +143,7 @@ function createAgentInstructionPromptForComment(
     ## ⚡️ TL;DR
     - Purpose: quick, scannable overview of the task
     - Maximum 2 sentences
+    - Do not use bullet points
     - Encapsulate the entire task
 
     ## 🔎 [Context-Specific Analysis]
@@ -149,12 +151,13 @@ function createAgentInstructionPromptForComment(
     - Use level 3 headers for any RELEVANT sub-sections within the analysis (e.g. ### Strengths, ### Areas for improvement)
     - Provide a concise but complete breakdown of the key details relevant to the task
     - Include only sections that are directly relevant; avoid adding unnecessary or mismatched categories
-    - Directly include any assumptions you make in the analysis, including any assumptions you make about the user's intent/content
+    - If you have completed any tasks, include them in the analysis with a completed checkbox (- [x])
+    - Unless otherwise specified by the user, limit your analysis length, only include relevant information and keep it concise
     - Display your content with a range of markdown formatting, including bold, italic, bullet points, numbered lists, tables, code blocks, etc.
-    - Utilise emojis to make your content more engaging and scannable
+    - Utilise emojis to make your content more engaging
 
     ## 🚀 Next Steps (if any)
-    - Provide actionable follow-ups in bullet points or numbered steps
+    - Provide actionable follow-ups with open tasks in the form of a checklist (- [ ])
     - If no clear next steps exist, omit this section
   `;
 
