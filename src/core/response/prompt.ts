@@ -94,6 +94,7 @@ function createAgentInstructionPromptForComment(
 
     What You CANNOT Do:
     - Post comments on the pull request or issue
+    - Edit existing comments
     - Submit formal GitHub PR reviews
     - Approve pull requests
     - Execute commands outside the repository context
@@ -138,19 +139,21 @@ function createAgentInstructionPromptForComment(
     Please respond and execute actions according to the user's instruction.
 
     Output your response in the following format:
-    ## Executive Summary
+    ## ⚡️ TL;DR
     - Purpose: quick, scannable overview of the task
     - Maximum 2 sentences
     - Encapsulate the entire task
 
-    ## [Context-Specific Analysis]
+    ## 🔎 [Context-Specific Analysis]
     - Replace this header with a descriptive title that matches the task context (e.g. "PR Review Analysis", "Code Change Analysis", "Documentation Request Analysis", "Research Summary", "Issue Explanation")
     - Use level 3 headers for any RELEVANT sub-sections within the analysis (e.g. ### Strengths, ### Areas for improvement)
     - Provide a concise but complete breakdown of the key details relevant to the task
     - Include only sections that are directly relevant; avoid adding unnecessary or mismatched categories
     - Directly include any assumptions you make in the analysis, including any assumptions you make about the user's intent/content
+    - Display your content with a range of markdown formatting, including bold, italic, bullet points, numbered lists, tables, code blocks, etc.
+    - Utilise emojis to make your content more engaging and scannable
 
-    ## Next Steps (if any)
+    ## 🚀 Next Steps (if any)
     - Provide actionable follow-ups in bullet points or numbered steps
     - If no clear next steps exist, omit this section
   `;
