@@ -28,10 +28,18 @@ export function buildH2ogpteResponse(
 
 function formatUserInstruction(instruction: string): string {
   // Prepend each line with '> ' for blockquote in markdown
-  return instruction
+  const formattedInstruction = instruction
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
     .map((line) => `> ${line}`)
     .join("\n");
+
+  // Replace @h2ogpte with @ h2ogpte to prevent the agent rerunning everytime the comment is updated
+  const replacedInstruction = formattedInstruction.replace(
+    /@h2ogpte/g,
+    "@ h2ogpte",
+  );
+
+  return replacedInstruction;
 }
