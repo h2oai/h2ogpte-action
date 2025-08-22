@@ -150,10 +150,10 @@ function createAgentInstructionPromptForComment(
     - Replace this header with a descriptive title that matches the task context (e.g. "PR Review Analysis", "Code Change Analysis", "Documentation Request Analysis", "Research Summary", "Issue Explanation")
     - Use level 3 headers for any RELEVANT sub-sections within the analysis (e.g. ### Strengths, ### Areas for improvement)
     - Provide a concise but complete breakdown of the key details relevant to the task
-    - Include only sections that are directly relevant; avoid adding unnecessary or mismatched categories
-    - If you have completed any tasks, include them in the analysis with a completed checkbox (- [x])
+    - Only include sections that are directly relevant; avoid adding unnecessary or mismatched categories
+    - For any tasks you have completed, include them in the analysis with a completed checkbox (- [x]) rather than bullet points or numbered lists
     - Unless otherwise specified by the user, limit your analysis length, only include relevant information and keep it concise
-    - Display your content with a range of markdown formatting, including bold, italic, bullet points, numbered lists, tables, code blocks, etc.
+    - Display your content with a range of markdown formatting to improve readability, including bold, italic, bullet points, numbered lists, tables, code blocks, etc.
     - Utilise emojis to make your content more engaging
 
     ## 🚀 Next Steps (if any)
