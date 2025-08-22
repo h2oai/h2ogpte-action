@@ -13,7 +13,7 @@ import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { extractFinalAgentResponse } from "./core/response/utils/extract-response";
+import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { extractInstruction } from "./core/response/utils/instruction";
 
 /**
@@ -99,19 +99,15 @@ export async function run(): Promise<void> {
       );
 
       // 7. Extract response from agent completion
-      let cleanedResponse = "";
-      let header = "";
-      if (chatCompletion.success) {
-        header = `📣 h2oGPTe responded`;
-        cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
-      } else {
-        header = `❌ h2oGPTe ran into some issues`;
-        cleanedResponse = chatCompletion.body;
-      }
-      core.debug(`Extracted response: ${cleanedResponse}`);
+      const updatedCommentBody = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        url,
+        chatSessionUrl,
+      );
+      core.debug(`Extracted response: ${updatedCommentBody}`);
 
       // 8. Update initial comment
-      const updatedCommentBody = `${header}, see the response below and the [github action run](${url})\n---\n> ${instruction}\n\n${cleanedResponse}`;
       await updateComment(
         octokits.rest,
         updatedCommentBody,

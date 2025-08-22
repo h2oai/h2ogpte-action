@@ -83,7 +83,10 @@ export function extractFinalAgentResponse(input: string): string {
 
     console.debug("remainingText:", remainingText);
 
-    return "**Warning: Maximum Turns Reached**\n\n---\n\n" + remainingText;
+    return (
+      "**⚠️ Warning: Maximum Turns Reached.**\n\n💡 Hint: If this is a recurring issue, try increasing the `agent_max_turns` or `agent_accuracy` in your config file.\n\n---\n\n" +
+      remainingText
+    );
   }
 
   return cleanedText;
