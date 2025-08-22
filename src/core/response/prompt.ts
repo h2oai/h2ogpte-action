@@ -154,9 +154,9 @@ function createAgentInstructionPromptForComment(
     - For any tasks you have completed, include them in the analysis with a completed checkbox (- [x]) rather than bullet points or numbered lists
     - Unless otherwise specified by the user, limit your analysis length, only include relevant information and keep it concise
     - Display your content with a range of markdown formatting to improve readability, including bold, italic, bullet points, numbered lists, tables, code blocks, etc.
-    - Utilise emojis to make your content more engaging
+    - Utilise emojis to make your content more engaging, avoid using the same emojis as the current headers
 
-    ## 🚀 Next Steps (if any)
+    ## 🎯 Next Steps (if any)
     - Provide actionable follow-ups with open tasks in the form of a checklist (- [ ])
     - If no clear next steps exist, omit this section
   `;
