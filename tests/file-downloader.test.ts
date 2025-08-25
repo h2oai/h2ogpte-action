@@ -812,4 +812,168 @@ describe("downloadCommentAttachments", () => {
       `✗ Failed to download ${fileUrl}: File too large: 8 bytes (max: 0 bytes)`,
     );
   });
+
+  describe("File extension handling", () => {
+    test("should ensure all extensions have dots", async () => {
+      const mockOctokit = createMockOctokit();
+
+      // Test various file types to ensure extensions always have dots
+      const testCases = [
+        {
+          originalUrl: "https://github.com/user-attachments/assets/image.jpg",
+          signedUrl:
+            "https://private-user-images.githubusercontent.com/.../image.jpg?jwt=token",
+          isImage: true,
+          expectedExtension: ".jpg",
+        },
+        {
+          originalUrl:
+            "https://github.com/user-attachments/assets/document.pdf",
+          signedUrl: "https://github.com/user-attachments/files/document.pdf",
+          isImage: false,
+          expectedExtension: ".pdf",
+        },
+        {
+          originalUrl: "https://github.com/user-attachments/assets/script.js",
+          signedUrl: "https://github.com/user-attachments/files/script.js",
+          isImage: false,
+          expectedExtension: ".js",
+        },
+        {
+          originalUrl: "https://github.com/user-attachments/assets/data.csv",
+          signedUrl: "https://github.com/user-attachments/files/data.csv",
+          isImage: false,
+          expectedExtension: ".csv",
+        },
+        {
+          originalUrl: "https://github.com/user-attachments/assets/archive.zip",
+          signedUrl: "https://github.com/user-attachments/files/archive.zip",
+          isImage: false,
+          expectedExtension: ".zip",
+        },
+      ];
+
+      for (const testCase of testCases) {
+        // Mock the HTML response to include the signed URL
+        const mockHtml = `<img src="${testCase.signedUrl}">`;
+
+        // @ts-expect-error Mock implementation doesn't match full type signature
+        mockOctokit.rest.issues.getComment = jest.fn().mockResolvedValue({
+          data: { body_html: mockHtml },
+        });
+
+        // Mock fetch response
+        fetchSpy = spyOn(global, "fetch").mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => new ArrayBuffer(8),
+          headers: new Headers({ "content-length": "8" }),
+        } as Response);
+
+        const comments: CommentWithAttachments[] = [
+          {
+            type: "issue_comment",
+            id: "test",
+            body: `Test file: [test](${testCase.originalUrl})`,
+          },
+        ];
+
+        const result = await downloadCommentAttachments(
+          mockOctokit.rest,
+          "owner",
+          "repo",
+          comments,
+          { downloadsDir: "/tmp/test" },
+        );
+
+        // Verify the file was processed and the extension has a dot
+        if (testCase.isImage) {
+          // For images, check that the file was downloaded with correct extension
+          const localPath = result.get(testCase.originalUrl);
+          expect(localPath).toBeDefined();
+          expect(localPath).toMatch(
+            new RegExp(`\\${testCase.expectedExtension}$`),
+          );
+        } else {
+          // For non-images, check that the file was processed
+          const localPath = result.get(testCase.originalUrl);
+          expect(localPath).toBeDefined();
+          expect(localPath).toMatch(
+            new RegExp(`\\${testCase.expectedExtension}$`),
+          );
+        }
+      }
+    });
+
+    test("should handle edge cases in extension extraction", async () => {
+      const mockOctokit = createMockOctokit();
+
+      // Test edge cases
+      const edgeCases = [
+        {
+          originalUrl: "https://github.com/user-attachments/assets/file",
+          signedUrl:
+            "https://private-user-images.githubusercontent.com/.../file.png?jwt=token",
+          isImage: true,
+          expectedExtension: ".png",
+        },
+        {
+          originalUrl: "https://github.com/user-attachments/assets/file.txt",
+          signedUrl: "https://github.com/user-attachments/files/file.txt",
+          isImage: false,
+          expectedExtension: ".txt",
+        },
+        {
+          originalUrl: "https://github.com/user-attachments/assets/file",
+          signedUrl: "https://github.com/user-attachments/files/file",
+          isImage: false,
+          expectedExtension: ".ignore", // Should use IGNORE_FILE_EXT
+        },
+      ];
+
+      for (const testCase of edgeCases) {
+        const mockHtml = testCase.isImage
+          ? `<img src="${testCase.signedUrl}">`
+          : `<a href="${testCase.signedUrl}">`;
+
+        // @ts-expect-error Mock implementation doesn't match full type signature
+        mockOctokit.rest.issues.getComment = jest.fn().mockResolvedValue({
+          data: { body_html: mockHtml },
+        });
+
+        fetchSpy = spyOn(global, "fetch").mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => new ArrayBuffer(8),
+          headers: new Headers({ "content-length": "8" }),
+        } as Response);
+
+        const comments: CommentWithAttachments[] = [
+          {
+            type: "issue_comment",
+            id: "test",
+            body: `Test file: [test](${testCase.originalUrl})`,
+          },
+        ];
+
+        const result = await downloadCommentAttachments(
+          mockOctokit.rest,
+          "owner",
+          "repo",
+          comments,
+          { downloadsDir: "/tmp/test" },
+        );
+
+        if (testCase.expectedExtension === ".ignore") {
+          // Files with .ignore extension should be skipped
+          expect(result.get(testCase.originalUrl)).toBeUndefined();
+        } else {
+          // Other files should be processed with correct extension
+          const localPath = result.get(testCase.originalUrl);
+          expect(localPath).toBeDefined();
+          expect(localPath).toMatch(
+            new RegExp(`\\${testCase.expectedExtension}$`),
+          );
+        }
+      }
+    });
+  });
 });

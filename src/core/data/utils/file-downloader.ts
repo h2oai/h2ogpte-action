@@ -256,7 +256,10 @@ export async function downloadCommentAttachments(
           const isImage = signedUrl.includes("user-images");
 
           // Get file extension - handle images differently due to their signed URL structure
-          const extension = getFileExtension(originalUrl, signedUrl, isImage);
+          let extension = getFileExtension(originalUrl, signedUrl, isImage);
+          if (!extension.startsWith(".")) {
+            extension = `.${extension}`;
+          }
           const fileType = categoriseFile(extension);
 
           console.log(
