@@ -9,6 +9,8 @@ import {
   extractInstruction,
   extractIdNumber,
   extractPRReviewCommentDetails,
+  extractHeadBranch,
+  extractBaseBranch,
 } from "./utils/instruction";
 import {
   isPRIssueEvent,
@@ -65,6 +67,8 @@ function applyReplacements(
     "{{userPrompt}}": USER_PROMPT,
     "{{instruction}}": extractInstruction(context) || "",
     "{{idNumber}}": (extractIdNumber(context) || "undefined").toString(),
+    "{{headBranch}}": extractHeadBranch(context, githubData) || "undefined",
+    "{{baseBranch}}": extractBaseBranch(context, githubData) || "undefined",
     "{{eventsText}}": buildEventsText(githubData, context.isPR),
   };
 
@@ -108,7 +112,7 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_pr = dedent`
-    You must only work on pull request number {{idNumber}}.
+    You must only work on pull request number {{idNumber}}. The head branch is {{headBranch}} and the base branch is {{baseBranch}}.
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
     ${isPRReviewComment ? prompt_pr_review : ""}
   `;
