@@ -13,7 +13,7 @@ body:
     attributes:
       label: Summary
       description: Short summary of the bug
-      placeholder: e.g. App crashes on login
+      placeholder: e.g. Comment response is not being posted
     validations:
       required: true
   - type: textarea
@@ -45,5 +45,5 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: OS, browser, version, etc.
-      placeholder: e.g. Windows 11, Chrome 120
+      description: Github environment, h2oGPTe-action version, h2oGPTe version
+      placeholder: e.g. GitHub Enterprise Server, h2oGPTe-action @v0.1.0-alpha, h2oGPTe @v1.6.31

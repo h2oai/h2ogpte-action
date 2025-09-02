@@ -13,23 +13,23 @@ body:
     attributes:
       label: Summary
       description: Short summary of the feature
-      placeholder: e.g. Add dark mode
+      placeholder: e.g. Add support for custom prompt templates
     validations:
       required: true
   - type: textarea
     id: motivation
     attributes:
       label: Motivation
-      description: Why is this feature important?
-      placeholder: e.g. Improves usability at night
+      description: Why is this feature important for h2oGPTe-action users?
+      placeholder: e.g. Allows users to customize AI responses for their specific use case
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Proposed Solution
-      description: How do you imagine this feature working?
-      placeholder: e.g. Add a toggle in settings
+      description: How do you imagine this feature working in the GitHub Action workflow?
+      placeholder: e.g. Add a new input parameter for custom prompt templates that gets passed to h2oGPTe
     validations:
       required: true
   - type: textarea
