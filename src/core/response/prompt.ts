@@ -95,6 +95,7 @@ function createAgentInstructionPromptForComment(
     You'll be provided a github api key that you can access in python by using os.getenv("{{AGENT_GITHUB_ENV_VAR}}").
     You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
     You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
+    Ensure you use the GitHub API token for authentication.
 
     What you CANNOT do under any circumstances:
     - Post comments on the pull request or issue
@@ -114,6 +115,7 @@ function createAgentInstructionPromptForComment(
   const prompt_pr = dedent`
     You must only work on pull request number {{idNumber}}. The head branch is {{headBranch}} and the base branch is {{baseBranch}}.
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
+    Ensure you search for the relevant files in the head branch as they may not exist in the base branch if files were added in the PR.
     ${isPRReviewComment ? prompt_pr_review : ""}
   `;
 
