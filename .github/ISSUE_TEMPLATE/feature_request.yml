@@ -1,0 +1,39 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+labels: [enhancement]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        Please describe your idea.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short summary of the feature
+      placeholder: e.g. Add support for custom prompt templates
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why is this feature important for h2oGPTe-action users?
+      placeholder: e.g. Allows users to customize AI responses for their specific use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: How do you imagine this feature working in the GitHub Action workflow?
+      placeholder: e.g. Add a new input parameter for custom prompt templates that gets passed to h2oGPTe
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Any alternative solutions or features considered?

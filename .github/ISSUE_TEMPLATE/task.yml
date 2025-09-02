@@ -1,0 +1,30 @@
+name: Task
+description: Track a specific task or action item
+labels: [task]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Task for h2oGPTe-action
+        Please describe the task to be completed for the h2oGPTe GitHub Action.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short summary of the task
+      placeholder: e.g. Update documentation for new h2oGPTe API parameters
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Additional details or context about the task
+      placeholder: e.g. The h2oGPTe API has new parameters that need to be documented in the README and examples
+  - type: input
+    id: due-date
+    attributes:
+      label: Due Date
+      description: When should this task be completed? (optional)
+      placeholder: e.g. 2025-09-10
