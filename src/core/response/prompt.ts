@@ -113,7 +113,7 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_pr = dedent`
-    You must only work on pull request number {{idNumber}}. The head branch is {{headBranch}} and the base branch is {{baseBranch}}.
+    You must only work on pull request number {{idNumber}}. The head branch is "{{headBranch}}" and the base branch is "{{baseBranch}}".
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
     Ensure you search for the relevant files in the head branch as they may not exist in the base branch if files were added in the PR.
     ${isPRReviewComment ? prompt_pr_review : ""}
