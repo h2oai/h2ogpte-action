@@ -13,7 +13,7 @@ body:
     attributes:
       label: Summary
       description: Short summary of the bug
-      placeholder: e.g. App crashes on login
+      placeholder: e.g. Comment response is not being posted
     validations:
       required: true
   - type: textarea
@@ -41,9 +41,23 @@ body:
       description: What actually happened?
     validations:
       required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Error Messages
+      description: Please provide any relevant logs, error messages, or stack traces. Use code blocks for better formatting.
+      placeholder: |
+        e.g.
+        ```
+        [ERROR] Action failed with exit code 1
+        [INFO] Processing request...
+        [ERROR] Connection timeout
+        ```
+    validations:
+      required: false
   - type: input
     id: environment
     attributes:
       label: Environment
-      description: OS, browser, version, etc.
-      placeholder: e.g. Windows 11, Chrome 120
+      description: Github environment, h2oGPTe-action version, h2oGPTe version
+      placeholder: e.g. GitHub Enterprise Server, h2oGPTe-action @v0.1.0-alpha, h2oGPTe @v1.6.31
