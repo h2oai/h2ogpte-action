@@ -28,6 +28,7 @@ type FetchDataParams = {
   prNumber: string;
   isPR: boolean;
   triggerUsername?: string;
+  isIssueCommentPR?: boolean;
 };
 
 export type GitHubFileWithSHA = GitHubFile & {
@@ -42,6 +43,10 @@ export type FetchDataResult = {
   reviewData: { nodes: GitHubReview[] } | null;
   attachmentUrlMap: Map<string, string>;
   triggerDisplayName?: string | null;
+  branchInfo?: {
+    headBranch: string;
+    baseBranch: string;
+  };
 };
 
 export async function fetchGitHubData({
@@ -50,6 +55,7 @@ export async function fetchGitHubData({
   prNumber,
   isPR,
   triggerUsername,
+  isIssueCommentPR,
 }: FetchDataParams): Promise<FetchDataResult> {
   const [owner, repo] = repository.split("/");
   if (!owner || !repo) {
@@ -60,6 +66,7 @@ export async function fetchGitHubData({
   let comments: GitHubComment[] = [];
   let changedFiles: GitHubFile[] = [];
   let reviewData: { nodes: GitHubReview[] } | null = null;
+  let branchInfo: { headBranch: string; baseBranch: string } | undefined;
 
   try {
     if (isPR) {
@@ -79,6 +86,10 @@ export async function fetchGitHubData({
         changedFiles = pullRequest.files.nodes || [];
         comments = pullRequest.comments?.nodes || [];
         reviewData = pullRequest.reviews || [];
+        branchInfo = {
+          headBranch: pullRequest.headRefName,
+          baseBranch: pullRequest.baseRefName,
+        };
 
         console.log(`Successfully fetched PR #${prNumber} data`);
       } else {
@@ -98,6 +109,36 @@ export async function fetchGitHubData({
       if (issueResult.repository.issue) {
         contextData = issueResult.repository.issue;
         comments = contextData?.comments?.nodes || [];
+
+        // If this is an issue comment that's actually a PR comment, fetch PR data for branch info
+        if (isIssueCommentPR) {
+          try {
+            const prResult = await octokits.graphql<PullRequestQueryResponse>(
+              PR_QUERY,
+              {
+                owner,
+                repo,
+                number: parseInt(prNumber),
+              },
+            );
+
+            if (prResult.repository.pullRequest) {
+              const pullRequest = prResult.repository.pullRequest;
+              branchInfo = {
+                headBranch: pullRequest.headRefName,
+                baseBranch: pullRequest.baseRefName,
+              };
+              console.log(
+                `Successfully fetched branch info for PR #${prNumber} from issue comment`,
+              );
+            }
+          } catch (prError) {
+            console.warn(
+              `Failed to fetch PR branch info for issue comment:`,
+              prError,
+            );
+          }
+        }
 
         console.log(`Successfully fetched issue #${prNumber} data`);
       } else {
@@ -220,6 +261,7 @@ export async function fetchGitHubData({
     reviewData,
     attachmentUrlMap: urlToPathMap,
     triggerDisplayName,
+    branchInfo,
   };
 }
 
