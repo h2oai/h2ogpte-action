@@ -5,7 +5,11 @@ import {
   createSecretAndToolAssociation,
   getGithubToken,
 } from "./core/utils";
-import { isPRIssueEvent, parseGitHubContext } from "./core/data/context";
+import {
+  isPRIssueEvent,
+  parseGitHubContext,
+  isIssueCommentEvent,
+} from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
@@ -56,6 +60,7 @@ export async function run(): Promise<void> {
         prNumber: context.entityNumber?.toString() || "",
         isPR: context.isPR,
         triggerUsername: context.actor,
+        isIssueCommentPR: isIssueCommentEvent(context) && context.isPR,
       });
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
