@@ -1,6 +1,6 @@
 name: Task
 description: Track a specific task or action item
-labels: [task]
+type: Task
 assignees: []
 body:
   - type: markdown
