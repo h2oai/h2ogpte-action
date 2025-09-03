@@ -1,0 +1,63 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+type: Bug
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+        Please fill out the details below.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short summary of the bug
+      placeholder: e.g. Comment response is not being posted
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce the bug?
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Error Messages
+      description: Please provide any relevant logs, error messages, or stack traces. Use code blocks for better formatting.
+      placeholder: |
+        e.g.
+        ```
+        [ERROR] Action failed with exit code 1
+        [INFO] Processing request...
+        [ERROR] Connection timeout
+        ```
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Github environment, h2oGPTe-action version, h2oGPTe version
+      placeholder: e.g. GitHub Enterprise Server, h2oGPTe-action @v0.1.0-alpha, h2oGPTe @v1.6.31
