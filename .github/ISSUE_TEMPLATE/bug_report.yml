@@ -41,6 +41,20 @@ body:
       description: What actually happened?
     validations:
       required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or Error Messages
+      description: Please provide any relevant logs, error messages, or stack traces. Use code blocks for better formatting.
+      placeholder: |
+        e.g.
+        ```
+        [ERROR] Action failed with exit code 1
+        [INFO] Processing request...
+        [ERROR] Connection timeout
+        ```
+    validations:
+      required: false
   - type: input
     id: environment
     attributes:
