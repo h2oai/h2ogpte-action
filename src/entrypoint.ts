@@ -79,7 +79,7 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url})`;
+      const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url}) ![h2o-logo](https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/assets/h2o-logo.gif)`;
       const h2ogpteComment = await createReply(
         octokits.rest,
         initialCommentBody,
