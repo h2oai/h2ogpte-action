@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, beforeEach } from "bun:test";
 import { buildH2ogpteResponse } from "../../src/core/response/response_builder";
 import type { ChatResponse } from "../../src/core/services/h2ogpte/types";
 
@@ -6,10 +6,20 @@ describe("buildH2ogpteResponse", () => {
   const mockActionUrl =
     "https://github.com/username/repo/actions/runs/123456789";
   const mockChatUrl = "https://h2ogpte.example.com/chat/abc123";
+  const mockRepo = "username/repo";
 
   // Extract references to a variable for easy maintenance
   const getExpectedReferences = (actionUrl: string, chatUrl: string) =>
     `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
+
+  // Extract GIF URL generation for easy maintenance
+  const getExpectedGifUrl = (repo: string) =>
+    `https://raw.githubusercontent.com/${repo}/main/assets/H2O.ai%20Logo%20Animated%20-%20Simple_transparent.gif`;
+
+  beforeEach(() => {
+    // Mock the environment variable
+    process.env.GITHUB_REPOSITORY = mockRepo;
+  });
 
   describe("successful responses", () => {
     test("should format successful response with single line instruction", () => {
@@ -33,6 +43,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -62,6 +74,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -91,6 +105,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -117,6 +133,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -143,6 +161,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -288,6 +308,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -314,6 +336,8 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
+        "",
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
