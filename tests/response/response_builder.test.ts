@@ -14,7 +14,7 @@ describe("buildH2ogpteResponse", () => {
 
   // Extract GIF URL generation for easy maintenance
   const getExpectedGifUrl = (repo: string) =>
-    `https://raw.githubusercontent.com/${repo}/main/assets/H2O.ai%20Logo%20Animated%20-%20Simple_transparent.gif`;
+    `https://raw.githubusercontent.com/${repo}/main/assets/${encodeURIComponent("h2o_logo.gif")}`;
 
   beforeEach(() => {
     // Mock the environment variable
@@ -392,6 +392,53 @@ describe("buildH2ogpteResponse", () => {
       expect(result).toContain(
         "🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)",
       );
+    });
+  });
+
+  describe("GIF handling", () => {
+    test("should include GIF when repository is available", () => {
+      const chatCompletion: ChatResponse = {
+        success: true,
+        body: "Test response",
+      };
+      const instruction = "Test instruction";
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+      );
+
+      expect(result).toContain(
+        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
+      );
+    });
+
+    test("should gracefully handle missing repository", () => {
+      // Temporarily remove the repository environment variable
+      const originalRepo = process.env.GITHUB_REPOSITORY;
+      delete process.env.GITHUB_REPOSITORY;
+
+      const chatCompletion: ChatResponse = {
+        success: true,
+        body: "Test response",
+      };
+      const instruction = "Test instruction";
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+      );
+
+      // Should not contain the GIF when repository is not available
+      expect(result).not.toContain("![H2O.ai Logo](");
+      expect(result).toContain("🚀 Powered by [h2oGPTe]");
+
+      // Restore the original repository
+      process.env.GITHUB_REPOSITORY = originalRepo;
     });
   });
 });

@@ -12,14 +12,16 @@ export function buildH2ogpteResponse(
 
   // Get the repository info for the GIF URL
   const repo = process.env.GITHUB_REPOSITORY; // owner/repo
-  const gifUrl = `https://raw.githubusercontent.com/${repo}/main/assets/H2O.ai%20Logo%20Animated%20-%20Simple_transparent.gif`;
+  const gifUrl = repo
+    ? `https://raw.githubusercontent.com/${repo}/main/assets/${encodeURIComponent("h2o_logo.gif")}`
+    : null;
 
   let commentFormat = "";
 
   if (chatCompletion.success) {
     const cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
 
-    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${references}\n\n![H2O.ai Logo](${gifUrl})`;
+    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${references}${gifUrl ? `\n\n![H2O.ai Logo](${gifUrl})` : ""}`;
   } else {
     const header = `❌ h2oGPTe ran into some issues`;
     const response = chatCompletion.body;
