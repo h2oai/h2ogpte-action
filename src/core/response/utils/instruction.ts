@@ -90,3 +90,57 @@ export function extractPRReviewCommentDetails(context: ParsedGitHubContext):
     diffHunk: payload.comment.diff_hunk,
   };
 }
+
+/**
+ * Extracts the head branch name from GitHub event payload based on event type
+ * @param context - Parsed GitHub context containing the event payload
+ * @param githubData - Optional GitHub data that may contain branch information
+ * @returns The head branch name, or undefined if not available
+ */
+export function extractHeadBranch(
+  context: ParsedGitHubContext,
+  githubData?: { branchInfo?: { headBranch: string; baseBranch: string } },
+): string | undefined {
+  if (isPullRequestEvent(context)) {
+    return (context.payload as PullRequestEvent).pull_request.head.ref;
+  } else if (isPullRequestReviewEvent(context)) {
+    return (context.payload as PullRequestReviewEvent).pull_request.head.ref;
+  } else if (isPullRequestReviewCommentEvent(context)) {
+    return (context.payload as PullRequestReviewCommentEvent).pull_request.head
+      .ref;
+  } else if (isIssueCommentEvent(context) && githubData?.branchInfo) {
+    // For issue comments that are PR comments, use the fetched branch info
+    return githubData.branchInfo.headBranch;
+  } else {
+    // Only PR-related events have head branch information directly available
+    // Issue comments that are PR comments would need additional API calls to get branch info
+    return undefined;
+  }
+}
+
+/**
+ * Extracts the base branch name from GitHub event payload based on event type
+ * @param context - Parsed GitHub context containing the event payload
+ * @param githubData - Optional GitHub data that may contain branch information
+ * @returns The base branch name, or undefined if not available
+ */
+export function extractBaseBranch(
+  context: ParsedGitHubContext,
+  githubData?: { branchInfo?: { headBranch: string; baseBranch: string } },
+): string | undefined {
+  if (isPullRequestEvent(context)) {
+    return (context.payload as PullRequestEvent).pull_request.base.ref;
+  } else if (isPullRequestReviewEvent(context)) {
+    return (context.payload as PullRequestReviewEvent).pull_request.base.ref;
+  } else if (isPullRequestReviewCommentEvent(context)) {
+    return (context.payload as PullRequestReviewCommentEvent).pull_request.base
+      .ref;
+  } else if (isIssueCommentEvent(context) && githubData?.branchInfo) {
+    // For issue comments that are PR comments, use the fetched branch info
+    return githubData.branchInfo.baseBranch;
+  } else {
+    // Only PR-related events have base branch information directly available
+    // Issue comments that are PR comments would need additional API calls to get branch info
+    return undefined;
+  }
+}
