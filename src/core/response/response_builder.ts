@@ -10,18 +10,12 @@ export function buildH2ogpteResponse(
   const formattedInstruction = formatUserInstruction(instruction);
   const references = `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
 
-  // Get the repository info for the GIF URL
-  const repo = process.env.GITHUB_REPOSITORY; // owner/repo
-  const gifUrl = repo
-    ? `https://raw.githubusercontent.com/${repo}/main/assets/${encodeURIComponent("h2o_logo.gif")}`
-    : null;
-
   let commentFormat = "";
 
   if (chatCompletion.success) {
     const cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
 
-    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${references}${gifUrl ? `\n\n![H2O.ai Logo](${gifUrl})` : ""}`;
+    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${references}`;
   } else {
     const header = `❌ h2oGPTe ran into some issues`;
     const response = chatCompletion.body;

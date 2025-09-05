@@ -12,10 +12,6 @@ describe("buildH2ogpteResponse", () => {
   const getExpectedReferences = (actionUrl: string, chatUrl: string) =>
     `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
 
-  // Extract GIF URL generation for easy maintenance
-  const getExpectedGifUrl = (repo: string) =>
-    `https://raw.githubusercontent.com/${repo}/main/assets/${encodeURIComponent("h2o_logo.gif")}`;
-
   beforeEach(() => {
     // Mock the environment variable
     process.env.GITHUB_REPOSITORY = mockRepo;
@@ -43,8 +39,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -74,8 +68,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -105,8 +97,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -133,8 +123,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -161,8 +149,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -308,8 +294,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -336,8 +320,6 @@ describe("buildH2ogpteResponse", () => {
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
-        "",
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
       ].join("\n");
 
       expect(result).toBe(expected);
@@ -392,53 +374,6 @@ describe("buildH2ogpteResponse", () => {
       expect(result).toContain(
         "🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)",
       );
-    });
-  });
-
-  describe("GIF handling", () => {
-    test("should include GIF when repository is available", () => {
-      const chatCompletion: ChatResponse = {
-        success: true,
-        body: "Test response",
-      };
-      const instruction = "Test instruction";
-
-      const result = buildH2ogpteResponse(
-        chatCompletion,
-        instruction,
-        mockActionUrl,
-        mockChatUrl,
-      );
-
-      expect(result).toContain(
-        `![H2O.ai Logo](${getExpectedGifUrl(mockRepo)})`,
-      );
-    });
-
-    test("should gracefully handle missing repository", () => {
-      // Temporarily remove the repository environment variable
-      const originalRepo = process.env.GITHUB_REPOSITORY;
-      delete process.env.GITHUB_REPOSITORY;
-
-      const chatCompletion: ChatResponse = {
-        success: true,
-        body: "Test response",
-      };
-      const instruction = "Test instruction";
-
-      const result = buildH2ogpteResponse(
-        chatCompletion,
-        instruction,
-        mockActionUrl,
-        mockChatUrl,
-      );
-
-      // Should not contain the GIF when repository is not available
-      expect(result).not.toContain("![H2O.ai Logo](");
-      expect(result).toContain("🚀 Powered by [h2oGPTe]");
-
-      // Restore the original repository
-      process.env.GITHUB_REPOSITORY = originalRepo;
     });
   });
 });
