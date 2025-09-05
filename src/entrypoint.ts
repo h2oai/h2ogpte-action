@@ -19,6 +19,7 @@ import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { extractInstruction } from "./core/response/utils/instruction";
+import { getH2oLogoAsBase64 } from "./core/services/github/gif-encoder";
 
 /**
  * The main function for the action.
@@ -79,11 +80,8 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const repo = process.env.GITHUB_REPOSITORY;
-      const gifUrl = repo
-        ? `https://raw.githubusercontent.com/${repo}/main/assets/${encodeURIComponent("h2o_logo.gif")}`
-        : null;
-      const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url})${gifUrl ? `\n\n![H2O.ai Logo](${gifUrl})` : ""}`;
+      const gifDataUrl = getH2oLogoAsBase64();
+      const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url})${gifDataUrl ? `\n\n![H2O.ai Logo](${gifDataUrl})` : ""}`;
       const h2ogpteComment = await createReply(
         octokits.rest,
         initialCommentBody,
