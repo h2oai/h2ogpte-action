@@ -2,17 +2,22 @@ import * as fs from "fs";
 import * as path from "path";
 
 /**
- * Reads the h2o_logo.gif file and returns it as a base64-encoded data URL
+ * Reads the pre-encoded h2o_logo_base64.txt file and returns it as a data URL
  * @returns The base64-encoded GIF as a data URL, or null if the file cannot be read
  */
 export function getH2oLogoAsBase64(): string | null {
   try {
-    const gifPath = path.join(__dirname, "../../../assets/h2o_logo.gif");
-    const gifBuffer = fs.readFileSync(gifPath);
-    const base64String = gifBuffer.toString("base64");
-    return `data:image/gif;base64,${base64String}`;
+    // The base64 file is stored as a resource in the same directory
+    const base64Path = path.join(__dirname, "h2o_logo_base64.txt");
+
+    if (fs.existsSync(base64Path)) {
+      console.log(`Found pre-encoded GIF at: ${base64Path}`);
+      return fs.readFileSync(base64Path, "utf8").trim();
+    }
+
+    throw new Error(`h2o_logo_base64.txt not found at: ${base64Path}`);
   } catch (error) {
-    console.warn("Failed to read h2o_logo.gif:", error);
+    console.warn("Failed to read pre-encoded h2o_logo_base64.txt:", error);
     return null;
   }
 }
