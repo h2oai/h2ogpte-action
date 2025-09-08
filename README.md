@@ -6,6 +6,8 @@
 
 - [📋 Overview](#-overview)
 - [🚀 Installation Guide](#-installation-guide)
+  - [👉 Quick Start](#-quick-start)
+    - [🔀 Alternative Bash Setup](#-alternative-bash-setup)
   - [🔧 Compatibility](#-compatibility)
   - [📝 Supported Action Inputs](#-supported-action-inputs)
   - [⚙️ h2oGPTe Configuration Options](#️-h2ogpte-configuration-options)
@@ -32,21 +34,17 @@ The agent maintains conversation history for complex issues and provides detaile
 
 To install the h2oGPTe Agent Assistant GitHub Action in your repository:
 
-## Quick Setup
+### 👉 Quick Start
 
-1. **Setup workflow**: In your repo, create `.github/workflows/h2ogpte.yaml` and copy the contents from https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml
-
-2. **Get API key**: Create your h2oGPTe API key at https://h2ogpte.internal.dedicated.h2o.ai/api
-
+1. **Setup workflow**: In your repo, create `.github/workflows/h2ogpte.yaml` and copy the contents from <https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml>
+2. **Get API key**: Create your h2oGPTe API key at <https://h2ogpte.internal.dedicated.h2o.ai/api>
 3. **Add secret**: In GitHub, go to your repo's Settings → Secrets and variables → Actions → New repository secret
-
-4. **Configure**: Name it "H2OGPTE_API_KEY", paste your API key, and save
+4. **Configure**: Name it `H2OGPTE_API_KEY`, paste your API key, and save
 
 That's it! The workflow will be active after you commit and push the yaml file.
 
----
+#### 🔀 Alternative Bash Setup
 
-**(Alternative) one-liner setup:**
 ```bash
 mkdir -p .github/workflows && curl -o .github/workflows/h2ogpte.yaml https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/examples/h2ogpte.yaml
 ```
