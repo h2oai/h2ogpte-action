@@ -48,6 +48,7 @@ That's it! The workflow will be active after you commit and push the yaml file.
 ```bash
 mkdir -p .github/workflows && curl -o .github/workflows/h2ogpte.yaml https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/examples/h2ogpte.yaml
 ```
+
 Then just add your API key as a repository secret and push.
 
 Once these steps are complete, the workflow will be triggered automatically on issues, pull requests, and comments that mention `@h2ogpte`. See below for more details on use cases.
