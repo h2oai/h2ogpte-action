@@ -79,7 +79,18 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const initialCommentBody = `⏳ h2oGPTe is working on it, see the [github action run](${url}) ![h2o-logo](https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/assets/h2o-logo.gif)`;
+      const gifDataUrl = `https://h2ogpte-github-action.s3.us-east-1.amazonaws.com/h2o_loading.gif`;
+      const workingMessages = [
+        "h2oGPTe is working on it",
+        "h2oGPTe is working",
+        "h2oGPTe is thinking",
+        "h2oGPTe is connecting the dots",
+        "h2oGPTe is putting it all together",
+        "h2oGPTe is processing your request",
+      ];
+      const randomMessage =
+        workingMessages[Math.floor(Math.random() * workingMessages.length)];
+      const initialCommentBody = `### ${randomMessage} &nbsp;<img src="${gifDataUrl}" width="40px"/>\n\nFollow progress in the [GitHub Action run](${url})`;
       const h2ogpteComment = await createReply(
         octokits.rest,
         initialCommentBody,
