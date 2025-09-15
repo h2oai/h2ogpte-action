@@ -1,0 +1,58 @@
+name: h2oGPTe Agent Dependency Update Assistant
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_manager:
+        description: 'Package manager (npm, pip, etc.)'
+        required: true
+        default: 'npm'
+      update_type:
+        description: 'Update type (minor, major, security)'
+        required: true
+        default: 'minor'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Dependency Update Assistant
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: h2oGPTe Dependency Update Assistant
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: 15 # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          prompt: |
+            You must only work in the user's repository, {{repoName}}.
+
+            Your task is to:
+            1. Analyze the repository's dependency files based on the package manager: ${{ github.event.inputs.package_manager }}
+            2. Identify dependencies that need updates based on the update type: ${{ github.event.inputs.update_type }}
+            3. Create a new branch with a descriptive name
+            4. Update the dependencies according to the specified update type
+            5. Run any necessary tests to ensure compatibility
+            6. Create a pull request with the updates, including:
+               - Clear title describing the dependency updates
+               - Description listing all updated dependencies and their versions
+               - Any potential breaking changes or migration steps
+            
+            For security updates, prioritize fixing vulnerabilities.
+            For minor updates, ensure backward compatibility.
+            For major updates, document breaking changes and migration steps.
+            
+            Ensure all tests pass after the updates before creating the pull request.

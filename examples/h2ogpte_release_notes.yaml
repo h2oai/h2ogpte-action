@@ -1,0 +1,61 @@
+name: h2oGPTe Agent Release Notes Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number for release'
+        required: true
+      previous_tag:
+        description: 'Previous release tag'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Release Notes Generator
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: h2oGPTe Release Notes Generator
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: 15 # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          prompt: |
+            You must only work in the user's repository, {{repoName}}.
+
+            Your task is to generate comprehensive release notes for version ${{ github.event.inputs.version }} based on changes since ${{ github.event.inputs.previous_tag }}.
+            
+            Follow these steps:
+            1. Analyze all commits between ${{ github.event.inputs.previous_tag }} and the current HEAD
+            2. Categorize changes into:
+               - 🚀 New Features
+               - 🔧 Enhancements
+               - 🐛 Bug Fixes
+               - 📚 Documentation
+               - 🧪 Testing
+               - ⚙️ Internal Changes
+            3. For each category, provide a clear, concise description of the changes
+            4. Highlight any breaking changes or deprecations
+            5. Include contributor acknowledgments
+            6. Create a pull request with the release notes in a markdown file
+            
+            The release notes should be professional, informative, and easy to understand for users.
+            Focus on user-facing changes and benefits rather than implementation details.
+            Include issue and PR references where appropriate.

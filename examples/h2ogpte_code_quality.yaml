@@ -1,0 +1,54 @@
+name: h2oGPTe Agent Code Quality Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Code Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: h2oGPTe Code Quality Check
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          prompt: |
+            You must only work in the user's repository, {{repoName}} on pull request number {{idNumber}}.
+
+            First read the previous events and understand the context of the pull request provided below.
+            Then read the code changes in the pull request and perform a thorough code quality analysis.
+            
+            Here are the previous events in chronological order:
+            {{eventsText}}
+
+            Your task is to:
+            1. Analyze the code changes for:
+               - Code style and consistency
+               - Potential bugs or edge cases
+               - Performance issues
+               - Security vulnerabilities
+               - Maintainability concerns
+               - Adherence to best practices
+            2. Create a comment with your analysis, organized by file and severity
+            3. For each issue, provide:
+               - Clear explanation of the issue
+               - Code snippet showing the problem
+               - Recommended fix with example code
+            
+            Focus on providing actionable feedback that will help improve the quality of the code.
+            Be thorough but prioritize the most important issues first.

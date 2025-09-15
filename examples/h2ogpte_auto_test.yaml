@@ -1,0 +1,49 @@
+name: h2oGPTe Agent Auto Test Generation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Auto Test Generator
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: h2oGPTe Auto Test Generator
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          prompt: |
+            You must only work in the user's repository, {{repoName}} on pull request number {{idNumber}}.
+
+            First read the previous events and understand the context of the pull request provided below.
+            Then read the code changes in the pull request and understand the context of the code.
+            Once you have a good understanding of the context, analyze if the code changes have appropriate test coverage.
+
+            Here are the previous events in chronological order:
+            {{eventsText}}
+
+            Your task is to:
+            1. Analyze the code changes in the pull request
+            2. Check if there are appropriate test files for the changed code
+            3. If tests are missing or inadequate, create a new commit in this pull request that adds appropriate tests
+            4. Follow the existing test patterns and conventions in the repository
+            5. Ensure the tests are comprehensive and cover edge cases
+
+            If the code already has adequate test coverage, create a comment explaining why the test coverage is sufficient.
+            If you create new tests, ensure they follow the repository's testing conventions and frameworks.
+            Do not modify any existing functionality - only add test files or enhance existing test files.

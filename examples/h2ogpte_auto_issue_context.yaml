@@ -1,0 +1,45 @@
+name: h2oGPTe Agent Auto Issue Context
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Auto Issue Context
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: h2oGPTe Auto Issue Context
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          prompt: |
+            You must only work in the user's repository, {{repoName}} on issue number {{idNumber}}.
+
+            First read the issue description and understand what the user is requesting or reporting.
+            Then analyze the repository to understand its structure and context.
+            
+            Your task is to:
+            1. Analyze the issue description
+            2. Identify which parts of the codebase are relevant to the issue
+            3. Create a comment that provides additional context about:
+               - Which files/directories are likely relevant to the issue
+               - What changes might be needed to address the issue
+               - Any potential challenges or considerations
+               - Suggestions for implementation approach
+            
+            Do not attempt to solve the issue directly - just provide helpful context to make it easier for developers to understand and address the issue.
+            Your comment should be informative, concise, and focused on helping developers quickly get oriented to work on the issue.

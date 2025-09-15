@@ -95,6 +95,56 @@ The action supports several configuration options to customize the h2oGPTe agent
 
 ### 💡 Use Cases
 
+The h2oGPTe GitHub Action can be integrated into your workflow in various ways. Here are some example use cases:
+
+### 🤖 Interactive Code Review Assistant
+
+Use the default configuration to enable on-demand AI assistance in your pull requests and issues. Simply mention `@h2ogpte` in a comment to get intelligent code review feedback, suggestions, and answers to your questions.
+
+**Example workflow**: [h2ogpte.yaml](./examples/h2ogpte.yaml)
+
+### 📝 Automatic Documentation Generator
+
+Automatically generate or improve documentation for code changes in pull requests. The agent analyzes the changes and adds appropriate documentation, including docstrings, comments, and README updates.
+
+**Example workflow**: [h2ogpte_auto_docs.yaml](./examples/h2ogpte_auto_docs.yaml)
+
+### 🔍 Automatic PR Review
+
+Automatically review new pull requests with an AI agent that provides feedback on code quality, potential issues, and suggestions for improvement.
+
+**Example workflow**: [h2ogpte_auto_pr.yaml](./examples/h2ogpte_auto_pr.yaml)
+
+### ✅ Test Case Generator
+
+Analyze code changes in pull requests and automatically generate appropriate test cases to ensure adequate test coverage for new or modified code.
+
+**Example workflow**: [h2ogpte_auto_test.yaml](./examples/h2ogpte_auto_test.yaml)
+
+### 📋 Issue Context Provider
+
+When a new issue is created, automatically analyze it and provide additional context about which parts of the codebase are relevant and what changes might be needed.
+
+**Example workflow**: [h2ogpte_auto_issue_context.yaml](./examples/h2ogpte_auto_issue_context.yaml)
+
+### 🧹 Code Quality Checker
+
+Perform thorough code quality analysis on pull requests, identifying potential bugs, performance issues, security vulnerabilities, and maintainability concerns.
+
+**Example workflow**: [h2ogpte_code_quality.yaml](./examples/h2ogpte_code_quality.yaml)
+
+### 📦 Dependency Update Assistant
+
+Assist with updating dependencies by analyzing the repository, identifying outdated packages, and creating pull requests with the necessary updates.
+
+**Example workflow**: [h2ogpte_dependency_update.yaml](./examples/h2ogpte_dependency_update.yaml)
+
+### 📝 Release Notes Generator
+
+Automatically generate comprehensive release notes based on changes between releases, categorizing changes and highlighting new features, enhancements, and bug fixes.
+
+**Example workflow**: [h2ogpte_release_notes.yaml](./examples/h2ogpte_release_notes.yaml)
+
 #### 💬 Chat with the agent
 
 Here are a few ways you can use the h2oGPTe Agent Assistant action in your repository:
