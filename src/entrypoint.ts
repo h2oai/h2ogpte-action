@@ -81,12 +81,12 @@ export async function run(): Promise<void> {
       // 3. Create the initial comment
       const gifDataUrl = `https://h2ogpte-github-action.s3.us-east-1.amazonaws.com/h2o_loading.gif`;
       const workingMessages = [
-        "h2ogpte is working on it",
-        "h2ogpte is working",
-        "h2ogpte is thinking",
-        "h2ogpte is connecting the dots",
-        "h2ogpte is putting it all together",
-        "h2ogpte is processing your request",
+        "h2oGPTe is working on it",
+        "h2oGPTe is working",
+        "h2oGPTe is thinking",
+        "h2oGPTe is connecting the dots",
+        "h2oGPTe is putting it all together",
+        "h2oGPTe is processing your request",
       ];
       const randomMessage =
         workingMessages[Math.floor(Math.random() * workingMessages.length)];
