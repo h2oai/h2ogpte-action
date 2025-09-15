@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import { buildH2ogpteResponse } from "../../src/core/response/response_builder";
 import type { ChatResponse } from "../../src/core/services/h2ogpte/types";
 
@@ -6,16 +6,10 @@ describe("buildH2ogpteResponse", () => {
   const mockActionUrl =
     "https://github.com/username/repo/actions/runs/123456789";
   const mockChatUrl = "https://h2ogpte.example.com/chat/abc123";
-  const mockRepo = "username/repo";
 
   // Extract references to a variable for easy maintenance
   const getExpectedReferences = (actionUrl: string, chatUrl: string) =>
     `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
-
-  beforeEach(() => {
-    // Mock the environment variable
-    process.env.GITHUB_REPOSITORY = mockRepo;
-  });
 
   describe("successful responses", () => {
     test("should format successful response with single line instruction", () => {
