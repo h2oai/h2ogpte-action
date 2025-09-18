@@ -34,22 +34,17 @@ The agent maintains conversation history for complex issues and provides detaile
 
 To install the h2oGPTe Agent Assistant GitHub Action in your repository:
 
-### 👉 Quick Start
-
-1. **Setup workflow**: In your repo, create `.github/workflows/h2ogpte.yaml` and copy the contents from <https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml>
-2. **Get API key**: Create your h2oGPTe API key at <https://h2ogpte.internal.dedicated.h2o.ai/api>
-3. **Add secret**: In GitHub, go to your repo's Settings → Secrets and variables → Actions → New repository secret
-4. **Configure**: Name it `H2OGPTE_API_KEY`, paste your API key, and save
-
-That's it! The workflow will be active after you commit and push the yaml file.
-
-#### 🔀 Alternative Bash Setup
-
-```bash
-mkdir -p .github/workflows && curl -o .github/workflows/h2ogpte.yaml https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/examples/h2ogpte.yaml
-```
-
-Then just add your API key as a repository secret and push.
+1. **Clone your repository**: Open your IDE or terminal and clone the H2O organization repository you'd like to add the action to
+2. **Create the workflows directory**: Run `mkdir -p .github/workflows` in your repository
+3. **Get the workflow file**: Copy the contents from [https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml](https://github.com/h2oai/h2ogpte-action/blob/main/examples/h2ogpte.yaml)
+4. **Add the workflow**: Create a new file called `h2ogpte.yaml` inside the `.github/workflows` directory and paste the copied contents
+5. **Save your changes**: Commit and push your changes to the main branch
+6. **Get your API key**: Create your h2oGPTe API key at [https://h2ogpte.genai.h2o.ai/api](https://h2ogpte.genai.h2o.ai/api) and save it securely
+7. **Navigate to your repository**: Open [github.com](http://github.com) and go to your repository page
+8. **Add the secret**: Go to Settings → Secrets and variables → Actions
+9. **Create new secret**: Click "New repository secret"
+10. **Configure the secret**: Set name to "H2OGPTE_API_KEY" and paste your API key value
+11. **Finish setup**: Click the "Add secret" button
 
 Once these steps are complete, the workflow will be triggered automatically on issues, pull requests, and comments that mention `@h2ogpte`. See below for more details on use cases.
 
@@ -59,13 +54,13 @@ Currently, only h2ogpte version >= 1.6.31 is supported. By default, the action u
 
 ### 📝 Supported Action Inputs
 
-| Input             | Description                                                      | Required | Default Value                               |
-| ----------------- | ---------------------------------------------------------------- | -------- | ------------------------------------------- |
-| github_token      | Github access token.                                             | Yes      | Assigned automatically by GitHub Actions    |
-| h2ogpte_api_key   | h2oGPTe API Key from <https://h2ogpte.internal.dedicated.h2o.ai> | Yes      | –                                           |
-| h2ogpte_api_base  | h2oGPTe API base url address (no trailing slash)                 | No       | <https://h2ogpte.internal.dedicated.h2o.ai> |
-| github_api_url    | GitHub API base url (no trailing slash)                          | No       | <https://api.github.com>                    |
-| github_server_url | GitHub server base url (no trailing slash)                       | No       | <https://github.com>                        |
+| Input             | Description                                                                           | Required | Default Value                            |
+| ----------------- | ------------------------------------------------------------------------------------- | -------- | ---------------------------------------- |
+| github_token      | Github access token.                                                                  | Yes      | Assigned automatically by GitHub Actions |
+| h2ogpte_api_key   | h2oGPTe API Key from your h2oGPTe instance (e.g., <https://h2ogpte.genai.h2o.ai/api>) | Yes      | –                                        |
+| h2ogpte_api_base  | h2oGPTe API base url address (no trailing slash)                                      | No       | <https://h2ogpte.genai.h2o.ai>           |
+| github_api_url    | GitHub API base url (no trailing slash)                                               | No       | <https://api.github.com>                 |
+| github_server_url | GitHub server base url (no trailing slash)                                            | No       | <https://github.com>                     |
 
 ### ⚙️ h2oGPTe Configuration Options
 
