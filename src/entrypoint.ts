@@ -79,7 +79,7 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const gifDataUrl = `https://h2ogpte-github-action.s3.us-east-1.amazonaws.com/h2o_loading.gif`;
+      const gifDataUrl = `https://h2ogpte-github-action.cdn.h2o.ai/h2o_loading.gif`;
       const workingMessages = [
         "h2oGPTe is working on it",
         "h2oGPTe is working",
