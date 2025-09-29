@@ -12,7 +12,9 @@ jobs:
 
       - name: Get version from package.json
         id: get_version
-        run: echo "version=$(node -p 'require(\"./package.json\").version')" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists
         id: check_tag
@@ -37,6 +39,6 @@ jobs:
             if [ "$EXISTS" = "true" ]; then
               echo ":x: **Tag already exists!**"
             else
-              echo ":white_check_mark: **Tag does not exist and can be created.**"
+              echo ":white_check_mark: **Tag is not existing already and can be created.**"
             fi
           } >> $GITHUB_STEP_SUMMARY
