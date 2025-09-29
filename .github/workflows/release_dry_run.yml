@@ -3,6 +3,9 @@ name: Release Dry Run
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read # For checking remote tags
+
 jobs:
   dry-run:
     runs-on: ubuntu-latest

@@ -5,6 +5,9 @@ name: Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write # For creating tags and releases
+
 jobs:
   release:
     runs-on: ubuntu-latest
