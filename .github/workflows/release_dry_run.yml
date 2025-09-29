@@ -37,8 +37,8 @@ jobs:
             echo "**Current version:** \`$VERSION\`"
             echo "**Tag to be created:** \`$TAG\`"
             if [ "$EXISTS" = "true" ]; then
-              echo ":x: **Tag already exists!**"
+              echo ":x: **Tag already exists - ensure the version is correctly bumped!**"
             else
-              echo ":white_check_mark: **Tag is not existing already and can be created.**"
+              echo ":white_check_mark: **Tag doesn't already exist and can be created.**"
             fi
           } >> $GITHUB_STEP_SUMMARY
