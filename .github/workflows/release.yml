@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Dry run mode - check for dry run"
+        description: "Dry run mode"
         required: false
         default: false
         type: boolean
