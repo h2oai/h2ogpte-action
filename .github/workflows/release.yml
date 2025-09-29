@@ -51,6 +51,19 @@ jobs:
           } >> $GITHUB_STEP_SUMMARY
           exit 1
 
+      - name: Show dry run failure (tag exists)
+        if: steps.check_remote_tag.outputs.exists == 'true' && github.event.inputs.dry_run == 'true'
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG="v$VERSION"
+          {
+            echo "## Release Dry Run"
+            echo ""
+            echo "**Current version:** \`$VERSION\`"
+            echo "**Tag to be created:** \`$TAG\`"
+            echo ":x: **Tag already exists - ensure the version is correctly bumped!**"
+          } >> $GITHUB_STEP_SUMMARY
+
       - name: Create and push tag
         if: steps.check_remote_tag.outputs.exists == 'false' && github.event.inputs.dry_run != 'true'
         run: |
@@ -71,12 +84,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Write summary
-        if: always()
+      - name: Write summary (success cases)
+        if: steps.check_remote_tag.outputs.exists == 'false'
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
           TAG="v$VERSION"
-          EXISTS="${{ steps.check_remote_tag.outputs.exists }}"
           DRY_RUN="${{ github.event.inputs.dry_run }}"
 
           if [ "$DRY_RUN" = "true" ]; then
@@ -85,11 +97,7 @@ jobs:
               echo ""
               echo "**Current version:** \`$VERSION\`"
               echo "**Tag to be created:** \`$TAG\`"
-              if [ "$EXISTS" = "true" ]; then
-                echo ":x: **Tag already exists - ensure the version is correctly bumped!**"
-              else
-                echo ":white_check_mark: **Tag doesn't already exist and can be created.**"
-              fi
+              echo ":white_check_mark: **Tag doesn't already exist and can be created.**"
             } >> $GITHUB_STEP_SUMMARY
           else
             {
@@ -97,10 +105,6 @@ jobs:
               echo ""
               echo "**Current version:** \`$VERSION\`"
               echo "**Tag created:** \`$TAG\`"
-              if [ "$EXISTS" = "true" ]; then
-                echo ":x: **Tag not created since version already exists.**"
-              else
-                echo ":white_check_mark: **Tag created and release published.**"
-              fi
+              echo ":white_check_mark: **Tag created and release published.**"
             } >> $GITHUB_STEP_SUMMARY
           fi
