@@ -16,11 +16,11 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Check if tag exists
-        id: check_tag
+      - name: Check if remote tag exists
+        id: check_remote_tag
         run: |
           TAG="v${{ steps.get_version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -30,7 +30,7 @@ jobs:
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
           TAG="v$VERSION"
-          EXISTS="${{ steps.check_tag.outputs.exists }}"
+          EXISTS="${{ steps.check_remote_tag.outputs.exists }}"
           {
             echo "## Release Dry Run"
             echo ""
