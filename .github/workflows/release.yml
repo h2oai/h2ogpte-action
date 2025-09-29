@@ -1,0 +1,84 @@
+# .github/workflows/release.yml
+
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # For creating tags and releases
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch full history for proper tagging
+
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if remote tag exists
+        id: check_remote_tag
+        run: |
+          TAG="v${{ steps.get_version.outputs.version }}"
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fail if tag exists
+        if: steps.check_remote_tag.outputs.exists == 'true'
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG="v$VERSION"
+          {
+            echo "## Release"
+            echo ""
+            echo "**Current version:** \`$VERSION\`"
+            echo "**Tag to be created:** \`$TAG\`"
+            echo ":x: **Tag already exists! Aborting release.**"
+          } >> $GITHUB_STEP_SUMMARY
+          exit 1
+
+      - name: Create and push tag
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG="v$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write summary
+        if: always()
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          TAG="v$VERSION"
+          EXISTS="${{ steps.check_remote_tag.outputs.exists }}"
+          {
+            echo "## Release"
+            echo ""
+            echo "**Current version:** \`$VERSION\`"
+            echo "**Tag created:** \`$TAG\`"
+            if [ "$EXISTS" = "true" ]; then
+              echo ":x: **Tag not created since version already exists.**"
+            else
+              echo ":white_check_mark: **Tag created and release published.**"
+            fi
+          } >> $GITHUB_STEP_SUMMARY
