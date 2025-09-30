@@ -6,7 +6,7 @@ on:
       dry_run:
         description: "Dry run mode"
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
