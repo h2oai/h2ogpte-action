@@ -147,11 +147,11 @@ The action also supports custom prompting for specialized workflows.
 
 When using custom prompts, you can inject the following variables into your prompt text:
 
-| Variable         | Description                           | Example Usage                                               |
-| ---------------- | ------------------------------------- | ----------------------------------------------------------- |
-| `{{repoName}}`   | The name of the repository            | `You must only work in the user's repository, {{repoName}}` |
-| `{{idNumber}}`   | The pull request or issue number      | `on pull request number {{idNumber}}`                       |
-| `{{eventsText}}` | Chronological list of previous events | `Here are the previous events: {{eventsText}}`              |
+| Variable         | Description                                                                                                             | Example Usage                                               |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `{{repoName}}`   | The name of the repository                                                                                              | `You must only work in the user's repository, {{repoName}}` |
+| `{{idNumber}}`   | The pull request or issue number                                                                                        | `on pull request number {{idNumber}}`                       |
+| `{{eventsText}}` | Chronological list of previous events, including pull request/issue comments and commit history separated by new lines. | `Here are the previous events: {{eventsText}}`              |
 
 These variables are automatically populated by the action and help provide context-aware responses.
 
