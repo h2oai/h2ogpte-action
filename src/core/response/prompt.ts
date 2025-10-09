@@ -145,7 +145,7 @@ function createAgentInstructionPromptForComment(
 
     Please respond and execute actions according to the user's instruction.
 
-    Output your response in the following format:
+    Output your response in the following format - Ensure to use Github Flavored Markdown for the response (correct whitespace usage):
     ## ⚡️ TL;DR
     - Purpose: quick, scannable overview of the task
     - Maximum 2 sentences
