@@ -102,7 +102,7 @@ ENDOFTURN`;
     );
   });
 
-  test("should find first TL;DR section when multiple exist", () => {
+  test("should find last TL;DR section when multiple exist", () => {
     const input = `First analysis
 ENDOFTURN
 
@@ -123,7 +123,7 @@ Second details.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nFirst summary.\n## Details\nFirst details.",
+      "## ⚡️ TL;DR\nSecond summary.\n## More Details\nSecond details.",
     );
   });
 

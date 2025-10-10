@@ -25,11 +25,15 @@ export function extractFinalAgentResponse(input: string): string {
   // Split the response by ENDOFTURN markers (with newlines)
   const sections = input.split("\nENDOFTURN\n");
 
-  // Find the section that starts with the TL;DR header
-  const finalSection = sections.find((section) => {
-    const trimmedSection = section.trim();
-    return PATTERN_TLDR_HEADER.test(trimmedSection);
-  });
+  // Find the LAST section that starts with the TL;DR header
+  let finalSection: string | undefined;
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const trimmedSection = sections[i]?.trim();
+    if (trimmedSection && PATTERN_TLDR_HEADER.test(trimmedSection)) {
+      finalSection = sections[i];
+      break;
+    }
+  }
 
   if (!finalSection) {
     // Fallback: return raw agent response
