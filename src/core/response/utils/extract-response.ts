@@ -1,16 +1,12 @@
 /**
- * Pattern to match the "Max turns X out of Y reached" message
+ * Pattern to match the TL;DR header that indicates the final response section
  */
-const PATTERN_MAX_TURNS_REACHED =
-  /^Max turns \d+ out of \d+ reached, ending conversation to allow for final turn response\. Increase agent accuracy or turns if needed\./;
+const PATTERN_TLDR_HEADER = /^##\s+.*TL;DR/im;
 
 /**
- * Checks if a string begins with the "Max turns X out of Y reached" pattern
- * where X and Y can be any numbers
+ * Substring to check for max turns reached message
  */
-function beginsWithMaxTurnsReached(text: string): boolean {
-  return PATTERN_MAX_TURNS_REACHED.test(text);
-}
+const MAX_TURNS_SUBSTRING = "Reached max number of turns";
 
 /**
  * Extracts the final agent response from the raw response
@@ -20,47 +16,40 @@ export function extractFinalAgentResponse(input: string): string {
     return "The agent did not return a valid response. Please check h2oGPTe.";
   }
 
-  // Find all occurrences of "ENDOFTURN"
-  const endOfTurnMatches = Array.from(input.matchAll(/ENDOFTURN/g));
+  // Check for max turns reached first
+  if (input.includes(MAX_TURNS_SUBSTRING)) {
+    console.debug("Max turns reached detected in response");
+    return "**⚠️ Warning: Maximum Turns Reached.**\n\n💡 Hint: If this is a recurring issue, try increasing the `agent_max_turns` or `agent_accuracy` in your config file.";
+  }
 
-  if (!endOfTurnMatches || endOfTurnMatches.length < 2) {
-    // If there's less than 2 ENDOFTURN markers, return the input as-is
-    console.log(
-      `Could not find sufficient end of turn markers, returning raw agent response'${input}'`,
-    );
+  // Split the response by ENDOFTURN markers (with newlines)
+  const sections = input.split("\nENDOFTURN\n");
+
+  // Find the LAST section that starts with the TL;DR header
+  let finalSection: string | undefined;
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const trimmedSection = sections[i]?.trim();
+    if (trimmedSection && PATTERN_TLDR_HEADER.test(trimmedSection)) {
+      finalSection = sections[i];
+      break;
+    }
+  }
+
+  if (!finalSection) {
+    // Fallback: return raw agent response
+    console.log(`Could not find TL;DR section, returning raw agent response`);
     return input;
   }
 
-  // Get the position of the second-to-last ENDOFTURN
-  const secondToLastMatch = endOfTurnMatches[endOfTurnMatches.length - 2];
-
-  // Find the ENDOFTURN before the second-to-last (i.e., third-to-last)
-  const thirdToLastMatch =
-    endOfTurnMatches.length >= 3
-      ? endOfTurnMatches[endOfTurnMatches.length - 3]
-      : null;
-
-  if (!secondToLastMatch || secondToLastMatch.index === undefined) {
-    console.log(`h2oGPTe response is invalid '${input}'`);
-    return "The agent did not return a complete response. Please check h2oGPTe.";
+  // Remove everything from <stream_turn_title> onwards (or trailing ENDOFTURN)
+  let textBeforeTitle = finalSection;
+  const titleIndex = finalSection.indexOf("<stream_turn_title>");
+  if (titleIndex !== -1) {
+    textBeforeTitle = finalSection.substring(0, titleIndex);
   }
 
-  // Extract text between third-to-last and second-to-last ENDOFTURN, or from start if not present
-  const startPosition =
-    thirdToLastMatch && thirdToLastMatch.index !== undefined
-      ? thirdToLastMatch.index + "ENDOFTURN".length
-      : 0;
-  const endPosition = secondToLastMatch.index;
-  const textSection = input.substring(startPosition, endPosition);
-
-  // Remove <stream_turn_title> tags and their content
-  const cleanText = textSection.replace(
-    /<stream_turn_title>.*?<\/stream_turn_title>/gs,
-    "",
-  );
-
   // Remove agent metadata and clean up the whitespace in the text
-  const cleanedText = cleanText
+  const cleanedText = textBeforeTitle
     .replace(/\*\*Completed LLM call in.*?\*\*/g, "")
     .replace(/\*\* \[.*?\] .*?\*\*/g, "")
     .replace(/\*\*Executing python code blocks\*\*/g, "")
@@ -73,21 +62,10 @@ export function extractFinalAgentResponse(input: string): string {
     .replace(/ {2,}/g, " ")
     .replace(/\n{2,}/g, "\n")
     .replace(/^\n+|\n+$/g, "")
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n")
     .trim();
-
-  console.debug("Max turns reached:", beginsWithMaxTurnsReached(cleanedText));
-  if (beginsWithMaxTurnsReached(cleanedText)) {
-    const remainingText = cleanedText
-      .replace(PATTERN_MAX_TURNS_REACHED, "")
-      .trim();
-
-    console.debug("remainingText:", remainingText);
-
-    return (
-      "**⚠️ Warning: Maximum Turns Reached.**\n\n💡 Hint: If this is a recurring issue, try increasing the `agent_max_turns` or `agent_accuracy` in your config file.\n\n---\n\n" +
-      remainingText
-    );
-  }
 
   return cleanedText;
 }
