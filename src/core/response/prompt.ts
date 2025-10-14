@@ -60,11 +60,16 @@ function applyReplacements(
   context: ParsedGitHubContext,
   githubData?: FetchDataResult,
 ): string {
+  let finalPrompt = prompt;
+
+  if (USER_PROMPT) {
+    finalPrompt = finalPrompt.replace("{{userPrompt}}", USER_PROMPT);
+  }
+
   const replacements = {
     "{{AGENT_GITHUB_ENV_VAR}}": AGENT_GITHUB_ENV_VAR,
     "{{githubApiBase}}": getGithubApiUrl(),
     "{{repoName}}": context.repository.full_name,
-    "{{userPrompt}}": USER_PROMPT,
     "{{instruction}}": extractInstruction(context) || "",
     "{{idNumber}}": (extractIdNumber(context) || "undefined").toString(),
     "{{headBranch}}": extractHeadBranch(context, githubData) || "undefined",
@@ -72,7 +77,6 @@ function applyReplacements(
     "{{eventsText}}": buildEventsText(githubData, context.isPR),
   };
 
-  let finalPrompt = prompt;
   for (const [placeholder, value] of Object.entries(replacements)) {
     finalPrompt = finalPrompt.replaceAll(placeholder, value);
   }
