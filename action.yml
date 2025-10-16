@@ -4,8 +4,8 @@ author: H2O.ai
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
-  color: red
+  icon: droplet
+  color: yellow
 
 # Define your inputs here.
 inputs:
