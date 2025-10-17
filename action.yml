@@ -2,12 +2,10 @@ name: h2oGPTe Agent
 description: Use h2oGPTe's agent coding capabilties directly in GitHub.
 author: H2O.ai
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: droplet
   color: yellow
 
-# Define your inputs here.
 inputs:
   github_token:
     description:
