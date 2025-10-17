@@ -14,9 +14,9 @@ inputs:
     description: h2oGPTe API Key from https://h2ogpte.genai.h2o.ai/api. Should be defined via a repository secret.
     required: true
   h2ogpte_api_base:
-    description: h2oGPTe API base url address (no trailing slash). By default, it is set to https://h2ogpte.genai.h2o.ai/api.
+    description: h2oGPTe API base url address (no trailing slash). By default, it is set to https://h2ogpte.genai.h2o.ai.
     required: false
-    default: https://h2ogpte.genai.h2o.ai/api
+    default: https://h2ogpte.genai.h2o.ai
   github_api_url:
     description: GitHub API base url (no trailing slash). By default, it is set to https://api.github.com.
     required: false
