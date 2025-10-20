@@ -1,8 +1,6 @@
 # h2oGPTe GitHub Action
 
-<div align="center">
-  <img src="docs/images/h2ogpte_hero.png" alt="h2oGPTe responding to a comment" style="box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px;">
-</div>
+![h2oGPTe responding to a comment](docs/images/h2ogpte_hero.png)
 
 The h2oGPTe GitHub Action brings intelligent AI assistance directly into your GitHub workflow. Simply tag `@h2ogpte` in any comment, issue, or pull request, and the agent will provide instant AI-powered code review feedback, understand your codebase context, and even write code and make commits when requested.
 
