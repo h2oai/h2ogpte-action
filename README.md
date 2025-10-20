@@ -51,7 +51,6 @@ The repository includes several example workflows:
 ## ✅ Requirements
 
 - h2oGPTe version >= 1.6.31
-- Repository must be linked to the h2o.ai enterprise organization
 
 ## 📄 License
 
