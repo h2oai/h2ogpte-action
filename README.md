@@ -9,18 +9,12 @@ The h2oGPTe GitHub Action brings intelligent AI assistance directly into your Gi
 Install the h2oGPTe Agent Assistant in your repository using our installation script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/MillenniumForce/h2ogpte-action/refs/heads/main/installation.sh | sh
+curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh
 ```
-
-This script will:
-
-1. Create the `.github/workflows` directory
-2. Add the `h2ogpte.yaml` workflow file
-3. Guide you through setting up your h2oGPTe API key
 
 After installation, get your API key from [h2oGPTe API](https://h2ogpte.genai.h2o.ai/api) and add it as a repository secret named `H2OGPTE_API_KEY`.
 
-## Basic Usage
+## 💬 Basic Usage
 
 Once installed, simply mention `@h2ogpte` in any comment, issue, or pull request:
 
@@ -30,7 +24,7 @@ Once installed, simply mention `@h2ogpte` in any comment, issue, or pull request
 
 The agent will automatically analyze your code and provide intelligent feedback.
 
-## Inputs
+## ⚙️ Inputs
 
 | Input             | Description                                                                           | Required | Default Value                            |
 | ----------------- | ------------------------------------------------------------------------------------- | -------- | ---------------------------------------- |
@@ -40,7 +34,7 @@ The agent will automatically analyze your code and provide intelligent feedback.
 | github_api_url    | GitHub API base url (no trailing slash)                                               | No       | <https://api.github.com>                 |
 | github_server_url | GitHub server base url (no trailing slash)                                            | No       | <https://github.com>                     |
 
-## Examples
+## 📚 Examples
 
 The repository includes several example workflows:
 
@@ -48,21 +42,21 @@ The repository includes several example workflows:
 - **[Auto PR Review](examples/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
 - **[Auto Documentation](examples/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 
-## Documentation
+## 📖 Documentation
 
 - **[Configuration](docs/CONFIGURATION.md)** - Detailed configuration options and settings
 - **[Usage Guide](docs/USAGE.md)** - Comprehensive usage examples and custom prompting
 - **[Contributing](CONTRIBUTING.md)** - Development setup and contribution guidelines
 
-## Requirements
+## ✅ Requirements
 
 - h2oGPTe version >= 1.6.31
 - Repository must be linked to the h2o.ai enterprise organization
 
-## License
+## 📄 License
 
 This project is licensed under the **TODO** License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## 🆘 Support
 
 For questions, bug reports, or feature requests, please open an issue on GitHub.
