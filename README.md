@@ -1,4 +1,4 @@
-# h2oGPTe GitHub Action
+# h2oGPTe Action
 
 ![h2oGPTe responding to a comment](docs/images/h2ogpte_hero.png)
 
@@ -6,7 +6,7 @@ The h2oGPTe GitHub Action brings intelligent AI assistance directly into your Gi
 
 ## 🚀 Quick Start
 
-Install the h2oGPTe Agent Assistant in your repository using our installation script:
+Install the action in your repository using our installation script:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh
