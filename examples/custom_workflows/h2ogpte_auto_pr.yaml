@@ -31,14 +31,27 @@ jobs:
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
           agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
           prompt: |
-            You must only review in the user's repository, {{repoName}} on pull request number {{idNumber}}.
+            You must only perform a code review in the user's repository, {{repoName}}, on pull request number {{idNumber}}.
 
-            First read the previous events and understand the context of the pull request provided below.
-            Then read the code changes in the pull request and understand the context of the code.
-            Once you have a good understanding of the context, you can begin to review the code.
+            First, read the previous events to understand the context of the pull request provided below.
+            Then, analyze the code changes in the pull request to understand their purpose and implementation details.
 
             Here are the previous events in chronological order:
             {{eventsText}}
 
-            Create a comment documenting your review in a concise manner.
-            Do not create any new commits, rather describe the relevant required code changes for the user to implement.
+            Your task is to:
+
+            1. Review the code changes in the pull request
+            2. Evaluate the clarity, correctness, performance, readability, and consistency of the code
+            3. Identify any issues, such as:
+              - Bugs or logical errors
+              - Missing error handling or edge case coverage
+              - Violations of code style or project conventions
+              - Opportunities for simplification or improvement
+            4. Do **not** make any code changes or new commits
+            5. Provide a single, concise review comment summarizing your findings
+              - Include specific suggestions or recommendations for improvement
+              - Reference exact line numbers or code blocks where necessary
+            6. If the code is well-written and no changes are needed, explain why the implementation is acceptable as-is
+
+            Your review should help the contributor improve the pull request while maintaining a constructive and professional tone.

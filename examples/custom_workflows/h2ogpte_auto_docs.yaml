@@ -31,17 +31,25 @@ jobs:
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
           agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
           prompt: |
-            You must only generate documentation for the user's repository, {{repoName}} on pull request number {{idNumber}}.
+            You must only work in the user's repository, {{repoName}}, on pull request number {{idNumber}}.
 
-            Then read the code changes in the pull request and understand the context of the code changes.
-            Once you have a good understanding of the context, you can begin to generate documentation.
-            Ensure you understand all existing documentation in the code changes so far and don't overwrite it.
-            If the changes are trivial, you can skip the documentation generation.
+            First, read the previous events and understand the context of the pull request provided below.
+            Then, review the code changes in the pull request to understand the purpose and scope of the changes.
 
             Here are the previous events in chronological order:
             {{eventsText}}
 
-            Create a new commit in this pull request for the documentation changes.
-            Ensure that you don't change any code functionality in the pull request.
-            You can work on the documentation in the user's repository, mainly docstrings, comments and readme files.
-            Keep a record of all the changes you make to the documentation and comment them at the end. Do not create any new files regarding the changes made.
+            Your task is to:
+
+            1. Analyze the code changes in the pull request
+            2. Determine if documentation updates are necessary based on the scope and complexity of the changes
+            3. If documentation is already present and sufficient, create a comment explaining why no changes are needed
+            4. If documentation is missing or can be improved:
+              - Create a new commit in this pull request that adds or enhances documentation
+              - Follow existing documentation styles, formats, and conventions in the repository
+              - Focus on improving or adding: docstrings, inline comments, and README sections
+              - Do **not** create any new documentation files
+            5. Ensure you do **not** modify any code functionality—your changes should be strictly related to documentation
+            6. Document all changes made in a summary comment at the end
+
+            Only generate documentation that adds meaningful clarity. If changes are trivial or self-explanatory, you may skip documentation but explain why in a comment.
