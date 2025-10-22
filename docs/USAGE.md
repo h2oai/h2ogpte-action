@@ -47,6 +47,26 @@ Example:
 
 **Note:** You can also upload other file types, but due to [GitHub restrictions](https://github.com/orgs/community/discussions/162417#discussioncomment-13428503), only images can be processed by h2oGPTe. Other file types will be ignored.
 
+## 📚 Custom Workflows
+
+### 🔍 Automatic Pull Request Review ([h2ogpte_auto_pr.yaml](../examples/custom_workflows/h2ogpte_auto_pr.yaml))
+
+Provides automated code review for pull requests. The agent analyzes your changes to identify potential issues, suggest improvements, and highlight best practices. It creates detailed review comments with specific recommendations without modifying your code directly.
+
+### 📋 Automatic Issue Context ([h2ogpte_auto_issue_context.yaml](../examples/custom_workflows/h2ogpte_auto_issue_context.yaml))
+
+Provides instant developer onboarding for new issues. When someone opens an issue, the agent immediately scans the codebase and comments with a roadmap showing which files are involved, what changes might be needed, and implementation suggestions. Perfect for helping new contributors understand where to start working.
+
+### 📚 Automatic Documentation Generation ([h2ogpte_auto_docs.yaml](../examples/custom_workflows/h2ogpte_auto_docs.yaml))
+
+Maintains comprehensive documentation standards across your repository. This workflow automatically reviews pull requests and generates appropriate documentation including docstrings, inline comments, and README updates to ensure code changes are properly documented. It adheres to existing documentation conventions while preserving all existing functionality.
+
+### 🧪 Automatic Test Generation ([h2ogpte_auto_test.yaml](../examples/custom_workflows/h2ogpte_auto_test.yaml))
+
+Ensures your code changes never ship without proper test coverage. The agent reviews each pull request, identifies untested code paths, and automatically creates comprehensive test files that cover edge cases and follow your project's testing conventions. It only adds tests - never modifies existing code.
+
+See [examples](../examples/custom_workflows) of more custom workflow configurations.
+
 ## 🎯 Custom Prompting
 
 The action also supports custom prompting for specialized workflows.
@@ -60,15 +80,3 @@ When using custom prompts, you can inject the following variables into your prom
 | `{{eventsText}}` | Chronological list of previous events, including pull request/issue comments and commit history separated by new lines. | `Here are the previous events: {{eventsText}}`              |
 
 These variables are automatically populated by the action and help provide context-aware responses.
-
-## 📚 Example Workflows
-
-### 🔍 Automatic Pull Request Review ([h2ogpte_auto_pr.yaml](../examples/h2ogpte_auto_pr.yaml))
-
-Provides automated code review feedback on pull requests. The agent examines code changes and creates detailed review comments with suggestions for improvements, without modifying the code directly.
-
-### 📚 Automatic Documentation Generation ([h2ogpte_auto_docs.yaml](../examples/h2ogpte_auto_docs.yaml))
-
-Automatically generates documentation for code changes in pull requests. The agent analyzes the code modifications and creates comprehensive documentation including docstrings, comments, and README updates.
-
-See [examples](../examples/) for all workflow configurations.

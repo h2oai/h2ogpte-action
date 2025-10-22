@@ -1,0 +1,55 @@
+name: h2oGPTe Agent Automatic Documentation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Auto Docs Agent
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: h2oGPTe Auto Docs Agent
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          h2ogpte_api_base: https://h2ogpte.genai.h2o.ai # Change to your h2oGPTe API base URL
+          github_api_url: https://api.github.com
+          github_server_url: https://github.com
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          prompt: |
+            You must only work in the user's repository, {{repoName}}, on pull request number {{idNumber}}.
+
+            First, read the previous events and understand the context of the pull request provided below.
+            Then, review the code changes in the pull request to understand the purpose and scope of the changes.
+
+            Here are the previous events in chronological order:
+            {{eventsText}}
+
+            Your task is to:
+
+            1. Analyze the code changes in the pull request
+            2. Determine if documentation updates are necessary based on the scope and complexity of the changes
+            3. If documentation is already present and sufficient, create a comment explaining why no changes are needed
+            4. If documentation is missing or can be improved:
+              - Create a new commit in this pull request that adds or enhances documentation
+              - Follow existing documentation styles, formats, and conventions in the repository
+              - Focus on improving or adding: docstrings, inline comments, and README sections
+              - Do **not** create any new documentation files
+            5. Ensure you do **not** modify any code functionality—your changes should be strictly related to documentation
+            6. Document all changes made in a summary comment at the end
+
+            Only generate documentation that adds meaningful clarity. If changes are trivial or self-explanatory, you may skip documentation but explain why in a comment.
