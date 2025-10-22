@@ -35,7 +35,9 @@ export function getGithubApiUrl(): string {
 
 /**
  * Check if the actor has write permissions to the repository
- * Source: https://github.com/anthropics/claude-code-action/blob/main/src/github/validation/permissions.ts
+ * Adapted from: https://github.com/anthropics/claude-code-action/blob/main/src/github/validation/permissions.ts
+ * Original author: Anthropic
+ * License: MIT
  * @param octokit - The Octokit REST client
  * @param context - The GitHub context
  * @returns true if the actor has write permissions, false otherwise
