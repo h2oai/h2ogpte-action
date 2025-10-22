@@ -51,11 +51,19 @@ Example:
 
 ### 🔍 Automatic Pull Request Review ([h2ogpte_auto_pr.yaml](../examples/custom_workflows/h2ogpte_auto_pr.yaml))
 
-Provides automated code review feedback on pull requests. The agent examines code changes and creates detailed review comments with suggestions for improvements, without modifying the code directly.
+Provides automated code review for pull requests. The agent analyzes your changes to identify potential issues, suggest improvements, and highlight best practices. It creates detailed review comments with specific recommendations without modifying your code directly.
 
 ### 📋 Automatic Issue Context ([h2ogpte_auto_issue_context.yaml](../examples/custom_workflows/h2ogpte_auto_issue_context.yaml))
 
-Automatically provides contextual analysis when new issues are opened. The agent analyzes the issue description, identifies relevant parts of the codebase, and creates helpful comments that provide additional context about which files are relevant, potential implementation approaches, and considerations for addressing the issue.
+Provides instant developer onboarding for new issues. When someone opens an issue, the agent immediately scans the codebase and comments with a roadmap showing which files are involved, what changes might be needed, and implementation suggestions. Perfect for helping new contributors understand where to start working.
+
+### 📚 Automatic Documentation Generation ([h2ogpte_auto_docs.yaml](../examples/custom_workflows/h2ogpte_auto_docs.yaml))
+
+Maintains comprehensive documentation standards across your repository. This workflow automatically reviews pull requests and generates appropriate documentation including docstrings, inline comments, and README updates to ensure code changes are properly documented. It adheres to existing documentation conventions while preserving all existing functionality.
+
+### 🧪 Automatic Test Generation ([h2ogpte_auto_test.yaml](../examples/custom_workflows/h2ogpte_auto_test.yaml))
+
+Ensures your code changes never ship without proper test coverage. The agent reviews each pull request, identifies untested code paths, and automatically creates comprehensive test files that cover edge cases and follow your project's testing conventions. It only adds tests - never modifies existing code.
 
 See [examples](../examples/custom_workflows) of more custom workflow configurations.
 
