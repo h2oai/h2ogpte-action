@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-## 🔄 Why doesn't my quality-checks action trigger when h2oGPTe pushes commits?
+## 🔄 Why don't my subsequent action trigger when h2oGPTe pushes commits?
 
 ### Problem
 
@@ -44,5 +44,41 @@ If you prefer not to use additional tokens, you can manually re-trigger your qua
 
 - Pushing an empty commit: `git commit --allow-empty -m "trigger checks"`
 - Re-running the workflow manually from the Actions tab
+
+## 🚫 Why can't h2oGPTe create PRs?
+
+### Problem
+
+h2oGPTe is unable to create pull requests, even when configured to do so. You may see error messages indicating insufficient permissions or authentication failures when the action attempts to create PRs.
+
+### Root Cause
+
+By default, GitHub Actions workflows have limited permissions and cannot create or approve pull requests unless explicitly enabled in the repository settings.
+
+### Solution
+
+Enable pull request creation permissions for GitHub Actions:
+
+1. **Navigate to repository settings:**
+
+   - Go to your repository on GitHub
+   - Click on **Settings** tab
+
+2. **Access Actions settings:**
+
+   - In the left sidebar, click on **Actions** → **General**
+
+3. **Enable PR permissions:**
+   - Scroll down to the "Workflow permissions" section
+   - Check the box: **"Allow GitHub Actions to create and approve pull requests"**
+   - Click **Save**
+
+![GitHub Actions PR Permissions](images/action_PR_permissions.png)
+
+### Additional Notes
+
+- This setting applies to all workflows in the repository
+- The `GITHUB_TOKEN` will automatically have the necessary permissions once this setting is enabled
+- You may need to re-run your h2oGPTe workflow after making this change
 
 _If you have additional questions or need help with your specific setup, please open an issue in this repository._
