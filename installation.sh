@@ -227,6 +227,7 @@ prompt_overwrite() {
 # Function to show API key instructions and exit
 show_api_key_and_exit() {
     show_api_key_instructions
+    show_api_base_instructions
     printf "🎉 Setup complete! Your existing h2ogpte.yaml file is ready to use.\n"
     echo
     exit 0
@@ -268,7 +269,6 @@ customize_workflow_file() {
 
     # Check if sed command was successful
     if ! sed -i.bak \
-        -e "s|h2ogpte_api_base: https://h2ogpte.genai.h2o.ai|h2ogpte_api_base: $H2OGPTE_URL|g" \
         -e "s|github_api_url: https://api.github.com|github_api_url: $REPO_API_URL|g" \
         -e "s|github_server_url: https://github.com|github_server_url: $REPO_SERVER_URL|g" \
         "$INSTALL_DIR/h2ogpte.yaml"; then
@@ -331,7 +331,7 @@ show_next_steps() {
 # Function to show API key instructions
 show_api_key_instructions() {
     echo
-    printf "==================== 🔑 Get h2oGPTe API key ====================\n\n"
+    printf "==================== 🔑 Enter h2oGPTe API key ====================\n\n"
     if [ -n "${H2OGPTE_URL:-}" ]; then
         echo "  1. Get your h2oGPTe API key from: $H2OGPTE_URL/api"
     else
@@ -342,7 +342,31 @@ show_api_key_instructions() {
     echo "  4. Value: [Your h2oGPTe API key]"
     echo "  5. Click 'Add secret'"
     echo
+    printf "Press Enter once you've added the H2OGPTE_API_KEY secret... "
+    read -r
+
     printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API key!\n"
+    echo
+}
+
+# Function to show API base instructions
+show_api_base_instructions() {
+    echo
+    printf "==================== 🌐 Enter h2oGPTe API base ====================\n\n"
+    if [ -n "${H2OGPTE_URL:-}" ]; then
+        echo "  1. Your h2oGPTe API base URL is: $H2OGPTE_URL"
+    else
+        echo "  1. Get your h2oGPTe API base URL from your h2oGPTe server"
+    fi
+    echo "  2. Go to: $REPO_SERVER_URL/$REPO_NAME/settings/secrets/actions/new"
+    echo "  3. Name: H2OGPTE_API_BASE"
+    echo "  4. Value: [Your h2oGPTe API base URL]"
+    echo "  5. Click 'Add secret'"
+    echo
+    printf "Press Enter once you've added the H2OGPTE_API_BASE secret... "
+    read -r
+
+    printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API base URL!\n"
     echo
 }
 
@@ -396,6 +420,9 @@ main() {
 
     # Step 10: Show API key instructions
     show_api_key_instructions
+
+    # Step 11: Show API base instructions
+    show_api_base_instructions
 
     echo
     printf "🎉 Setup complete! Your h2oGPTe Action is ready to use.\n"
