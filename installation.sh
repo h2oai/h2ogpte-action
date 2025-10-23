@@ -297,25 +297,25 @@ show_api_key_instructions() {
     echo "  4. Value: [Your h2oGPTe API key]"
     echo "  5. Click 'Add secret'"
     echo
-    printf "%sImportant:%s The workflow will not work without this API key!\n" "${MARIGOLD_YELLOW}" "${NC}"
+    printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API key!\n"
     echo
 }
 
 # Main execution
 main() {
-    printf "%s" "${MARIGOLD_YELLOW}"
+    printf "${MARIGOLD_YELLOW}"
     echo "┌──────────────────────────────────────────────────────────────┐"
-    printf "│%s                    h2oGPTe Action Setup                      %s│\n" "${NC}" "${MARIGOLD_YELLOW}"
+    printf "│${NC}                    h2oGPTe Action Setup                      ${MARIGOLD_YELLOW}│\n"
     echo "│                                                              │"
-    printf "│%s  This script will help you set up the h2oGPTe GitHub Action  %s│\n" "${LIGHT_GREY}" "${MARIGOLD_YELLOW}"
-    printf "│%s  in your repository.                                         %s│\n" "${LIGHT_GREY}" "${MARIGOLD_YELLOW}"
+    printf "│${LIGHT_GREY}  This script will help you set up the h2oGPTe GitHub Action  ${MARIGOLD_YELLOW}│\n"
+    printf "│${LIGHT_GREY}  in your repository.                                         ${MARIGOLD_YELLOW}│\n"
     echo "│                                                              │"
-    printf "│%s  Repository name: %s%-43s│\n" "${NC}" "${MARIGOLD_YELLOW}" "$(get_repo_name_display)"
-    printf "│%s  Repository server url: %s%-37s│\n" "${NC}" "${MARIGOLD_YELLOW}" "$(get_repo_server_url_display)"
-    printf "│%s  Repository api url: %s%-40s│\n" "${NC}" "${MARIGOLD_YELLOW}" "$(get_api_url_display)"
-    printf "│%s  Current branch: %s%-44s│\n" "${NC}" "${MARIGOLD_YELLOW}" "$(get_current_branch)"
+    printf "│${NC}  Repository name: ${MARIGOLD_YELLOW}%-43s│\n" "$(get_repo_name_display)"
+    printf "│${NC}  Repository server url: ${MARIGOLD_YELLOW}%-37s│\n" "$(get_repo_server_url_display)"
+    printf "│${NC}  Repository api url: ${MARIGOLD_YELLOW}%-40s│\n" "$(get_api_url_display)"
+    printf "│${NC}  Current branch: ${MARIGOLD_YELLOW}%-44s│\n" "$(get_current_branch)"
     echo "└──────────────────────────────────────────────────────────────┘"
-    printf "%s" "${NC}"
+    printf "${NC}"
     echo
 
     echo
