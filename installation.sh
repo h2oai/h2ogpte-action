@@ -52,7 +52,7 @@ get_repo_name() {
     local repo_name
     repo_name=$(get_repo_name_display)
     if [ "$repo_name" = "Unknown" ]; then
-        printf "Enter repository name (e.g., username/repository): " >&2
+        printf "Enter repository name (e.g., username/repository): "
         read -r repo_name
     fi
     echo "$repo_name"
@@ -78,7 +78,7 @@ get_repo_server_url_display() {
 get_repo_server_url() {
     local origin_url=$(get_repo_server_url_display)
     if [ "$origin_url" = "Unknown" ]; then
-        printf "Enter repository server URL (e.g., https://github.com): " >&2
+        printf "Enter repository server URL (e.g., https://github.com): "
         read -r origin_url
     fi
     echo "$origin_url"
@@ -105,7 +105,7 @@ get_api_url() {
     local api_url
     api_url=$(get_api_url_display)
     if [ "$api_url" = "Unknown" ]; then
-        printf "Enter repository API URL (e.g., https://api.github.com): " >&2
+        printf "Enter repository API URL (e.g., https://api.github.com): "
         read -r api_url
     fi
     echo "$api_url"
@@ -147,17 +147,17 @@ detect_repo_name() {
 
     if [ -z "$REPO_NAME" ]; then
         print_warning "Could not automatically detect repository name"
-        printf "Please enter your repository name (e.g., username/repository): " >&2
+        printf "Please enter your repository name (e.g., username/repository): "
         read -r REPO_NAME
         # If we couldn't detect, ask for all 3 fields
-        printf "Please enter your repository server URL (e.g., https://github.com): " >&2
+        printf "Please enter your repository server URL (e.g., https://github.com): "
         read -r REPO_SERVER_URL
-        printf "Please enter your repository API URL (e.g., https://api.github.com): " >&2
+        printf "Please enter your repository API URL (e.g., https://api.github.com): "
         read -r REPO_API_URL
     else
         printf "🔍 Detected repository: %s\n" "$REPO_NAME"
         echo
-        printf "Is this correct? (y/N): " >&2
+        printf "Is this correct? (y/N): "
         read -r confirm
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
             # User confirmed, keep auto-detected values for all 3 fields
@@ -166,11 +166,11 @@ detect_repo_name() {
             print_success "Using auto-detected values for all repository information"
         else
             # User said no, ask for all 3 fields manually
-            printf "Please enter your repository name (e.g., username/repository): " >&2
+            printf "Please enter your repository name (e.g., username/repository): "
             read -r REPO_NAME
-            printf "Please enter your repository server URL (e.g., https://github.com): " >&2
+            printf "Please enter your repository server URL (e.g., https://github.com): "
             read -r REPO_SERVER_URL
-            printf "Please enter your repository API URL (e.g., https://api.github.com): " >&2
+            printf "Please enter your repository API URL (e.g., https://api.github.com): "
             read -r REPO_API_URL
         fi
     fi
@@ -181,7 +181,7 @@ detect_repo_name() {
 get_installation_location() {
     DEFAULT_LOCATION=".github/workflows"
     printf "📁 Default installation location: %s\n" "$DEFAULT_LOCATION"
-    printf "Enter installation directory - relative path (press Enter for default): " >&2
+    printf "Enter installation directory - relative path (press Enter for default): "
     read -r INSTALL_DIR
 
     if [ -z "$INSTALL_DIR" ]; then
@@ -248,7 +248,7 @@ ask_h2ogpte_version() {
     echo "  1. Freemium option (https://h2ogpte.genai.h2o.ai)"
     echo "  2. Custom h2oGPTe server"
     echo
-    printf "Which option are you using? (1/2): " >&2
+    printf "Which option are you using? (1/2): "
     read -r h2ogpte_choice
 
     case "$h2ogpte_choice" in
@@ -257,13 +257,13 @@ ask_h2ogpte_version() {
             print_success "Selected freemium option: $H2OGPTE_URL"
             ;;
         2|"")
-            printf "Enter your custom h2oGPTe server URL: " >&2
+            printf "Enter your custom h2oGPTe server URL: "
             read -r H2OGPTE_URL
             print_success "Selected custom server: $H2OGPTE_URL"
             ;;
         *)
             print_warning "Invalid choice. Defaulting to custom server."
-            printf "Enter your custom h2oGPTe server URL: " >&2
+            printf "Enter your custom h2oGPTe server URL: "
             read -r H2OGPTE_URL
             print_success "Selected custom server: $H2OGPTE_URL"
             ;;
