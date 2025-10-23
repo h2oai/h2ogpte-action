@@ -30,10 +30,11 @@ has_local 2>/dev/null || alias local=typeset
 set -e
 set -u
 
-# Close stdin
-0<&-
-# open /dev/tty as stdin
-exec 0</dev/tty
+# Ensure stdin comes from the terminal if possible
+if ! [ -t 0 ] && [ -r /dev/tty ]; then
+    echo "Stdin is not a terminal, opening /dev/tty as stdin"
+    exec 0</dev/tty
+fi
 
 # h2oGPTe Action Setup Script
 # This script helps you set up the h2oGPTe GitHub Action in your repository
