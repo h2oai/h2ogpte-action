@@ -1,9 +1,39 @@
 #!/bin/sh
+# shellcheck shell=dash
+# shellcheck disable=SC2039  # local is non-POSIX
+#
+# Copyright 2025 H2O.ai, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This runs on Unix shells like bash/dash/ksh/zsh. It uses the common `local`
+# extension. Note: Most shells limit `local` to 1 var per line, contra bash.
+
+# Some versions of ksh have no `local` keyword. Alias it to `typeset`, but
+# beware this makes variables global with f()-style function syntax in ksh93.
+# mksh has this alias by default.
+has_local() {
+    # shellcheck disable=SC2034  # deliberately unused
+    local _has_local
+}
+
+has_local 2>/dev/null || alias local=typeset
+
+set -e
+set -u
 
 # h2oGPTe Action Setup Script
 # This script helps you set up the h2oGPTe GitHub Action in your repository
-
-set -e
 
 # Colors for output
 RED='\033[0;31m'
@@ -21,9 +51,11 @@ get_repo_name_display() {
 
 # Function to get repository name (with input)
 get_repo_name() {
-    local repo_name=$(get_repo_name_display)
+    local repo_name
+    repo_name=$(get_repo_name_display)
     if [ "$repo_name" = "Unknown" ]; then
-        read -p "Enter repository name (e.g., username/repository): " repo_name
+        printf "Enter repository name (e.g., username/repository): "
+        read -r repo_name
     fi
     echo "$repo_name"
 }
@@ -48,7 +80,8 @@ get_repo_server_url_display() {
 get_repo_server_url() {
     local origin_url=$(get_repo_server_url_display)
     if [ "$origin_url" = "Unknown" ]; then
-        read -p "Enter repository server URL (e.g., https://github.com): " origin_url
+        printf "Enter repository server URL (e.g., https://github.com): "
+        read -r origin_url
     fi
     echo "$origin_url"
 }
@@ -71,9 +104,11 @@ get_api_url_display() {
 
 # Function to get API URL (with input)
 get_api_url() {
-    local api_url=$(get_api_url_display)
+    local api_url
+    api_url=$(get_api_url_display)
     if [ "$api_url" = "Unknown" ]; then
-        read -p "Enter repository API URL (e.g., https://api.github.com): " api_url
+        printf "Enter repository API URL (e.g., https://api.github.com): "
+        read -r api_url
     fi
     echo "$api_url"
 }
@@ -86,15 +121,15 @@ get_current_branch() {
 # Function to print colored output
 
 print_success() {
-    printf "✅ $1\n"
+    printf "✅ %s\n" "$1"
 }
 
 print_warning() {
-    printf "⚠️ $1\n"
+    printf "⚠️ %s\n" "$1"
 }
 
 print_error() {
-    printf "❌ $1\n"
+    printf "❌ %s\n" "$1"
 }
 
 # Function to check if we're in a git repository
@@ -114,14 +149,18 @@ detect_repo_name() {
 
     if [ -z "$REPO_NAME" ]; then
         print_warning "Could not automatically detect repository name"
-        read -p "Please enter your repository name (e.g., username/repository): " REPO_NAME
+        printf "Please enter your repository name (e.g., username/repository): "
+        read -r REPO_NAME
         # If we couldn't detect, ask for all 3 fields
-        read -p "Please enter your repository server URL (e.g., https://github.com): " REPO_SERVER_URL
-        read -p "Please enter your repository API URL (e.g., https://api.github.com): " REPO_API_URL
+        printf "Please enter your repository server URL (e.g., https://github.com): "
+        read -r REPO_SERVER_URL
+        printf "Please enter your repository API URL (e.g., https://api.github.com): "
+        read -r REPO_API_URL
     else
-        printf "🔍 Detected repository: $REPO_NAME\n"
+        printf "🔍 Detected repository: %s\n" "$REPO_NAME"
         echo
-        read -p "Is this correct? (y/N): " confirm
+        printf "Is this correct? (y/N): "
+        read -r confirm
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
             # User confirmed, keep auto-detected values for all 3 fields
             REPO_SERVER_URL=$(get_repo_server_url_display)
@@ -129,9 +168,12 @@ detect_repo_name() {
             print_success "Using auto-detected values for all repository information"
         else
             # User said no, ask for all 3 fields manually
-            read -p "Please enter your repository name (e.g., username/repository): " REPO_NAME
-            read -p "Please enter your repository server URL (e.g., https://github.com): " REPO_SERVER_URL
-            read -p "Please enter your repository API URL (e.g., https://api.github.com): " REPO_API_URL
+            printf "Please enter your repository name (e.g., username/repository): "
+            read -r REPO_NAME
+            printf "Please enter your repository server URL (e.g., https://github.com): "
+            read -r REPO_SERVER_URL
+            printf "Please enter your repository API URL (e.g., https://api.github.com): "
+            read -r REPO_API_URL
         fi
     fi
     echo
@@ -140,8 +182,9 @@ detect_repo_name() {
 # Function to get installation location
 get_installation_location() {
     DEFAULT_LOCATION=".github/workflows"
-    printf "📁 Default installation location: $DEFAULT_LOCATION\n"
-    read -p "Enter installation directory - relative path (press Enter for default): " INSTALL_DIR
+    printf "📁 Default installation location: %s\n" "$DEFAULT_LOCATION"
+    printf "Enter installation directory - relative path (press Enter for default): "
+    read -r INSTALL_DIR
 
     if [ -z "$INSTALL_DIR" ]; then
         INSTALL_DIR="$DEFAULT_LOCATION"
@@ -153,14 +196,56 @@ get_installation_location() {
 
 # Function to create directory
 create_directory() {
-    printf "📂 Creating directory: $INSTALL_DIR\n"
+    printf "📂 Creating directory: %s\n" "$INSTALL_DIR"
     mkdir -p "$INSTALL_DIR"
     print_success "Directory created successfully"
 }
 
+# Function to check if h2ogpte.yaml already exists
+check_file_exists() {
+    if [ -f "$INSTALL_DIR/h2ogpte.yaml" ]; then
+        return 0  # File exists
+    else
+        return 1  # File doesn't exist
+    fi
+}
+
+# Function to prompt user for overwrite confirmation
+prompt_overwrite() {
+    printf "⚠️  h2ogpte.yaml already exists in %s\n" "$INSTALL_DIR"
+    printf "Do you want to overwrite it? (y/N): "
+    read -r overwrite_choice
+
+    case "$overwrite_choice" in
+        y|Y|yes|YES)
+            return 0  # User wants to overwrite
+            ;;
+        *)
+            return 1  # User doesn't want to overwrite
+            ;;
+    esac
+}
+
+# Function to show API key instructions and exit
+show_api_key_and_exit() {
+    show_api_key_instructions
+    show_api_base_instructions
+    printf "🎉 Setup complete! Your existing h2ogpte.yaml file is ready to use.\n"
+    echo
+    exit 0
+}
+
 # Function to download example file
 download_example_file() {
-    printf "⬇️ Downloading h2ogpte.yaml workflow file...\n"
+    # Check if file already exists
+    if check_file_exists; then
+        if ! prompt_overwrite; then
+            show_api_key_and_exit
+        fi
+        printf "🔄 Overwriting existing h2ogpte.yaml...\n"
+    else
+        printf "⬇️ Downloading h2ogpte.yaml workflow file...\n"
+    fi
 
     # Base URL for the example file
     BASE_URL="https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/examples"
@@ -184,15 +269,11 @@ customize_workflow_file() {
         return 1
     fi
 
-    # Replace the hardcoded values with user-provided values
-    sed -i.bak \
-        -e "s|h2ogpte_api_base: https://h2ogpte.genai.h2o.ai|h2ogpte_api_base: $H2OGPTE_URL|g" \
+    # Check if sed command was successful
+    if ! sed -i.bak \
         -e "s|github_api_url: https://api.github.com|github_api_url: $REPO_API_URL|g" \
         -e "s|github_server_url: https://github.com|github_server_url: $REPO_SERVER_URL|g" \
-        "$INSTALL_DIR/h2ogpte.yaml"
-
-    # Check if sed command was successful
-    if [ $? -ne 0 ]; then
+        "$INSTALL_DIR/h2ogpte.yaml"; then
         print_error "Failed to customize workflow file"
         return 1
     fi
@@ -210,7 +291,8 @@ ask_h2ogpte_version() {
     echo "  1. Freemium option (https://h2ogpte.genai.h2o.ai)"
     echo "  2. Custom h2oGPTe server"
     echo
-    read -p "Which option are you using? (1/2): " h2ogpte_choice
+    printf "Which option are you using? (1/2): "
+    read -r h2ogpte_choice
 
     case "$h2ogpte_choice" in
         1)
@@ -218,12 +300,14 @@ ask_h2ogpte_version() {
             print_success "Selected freemium option: $H2OGPTE_URL"
             ;;
         2|"")
-            read -p "Enter your custom h2oGPTe server URL: " H2OGPTE_URL
+            printf "Enter your custom h2oGPTe server URL: "
+            read -r H2OGPTE_URL
             print_success "Selected custom server: $H2OGPTE_URL"
             ;;
         *)
             print_warning "Invalid choice. Defaulting to custom server."
-            read -p "Enter your custom h2oGPTe server URL: " H2OGPTE_URL
+            printf "Enter your custom h2oGPTe server URL: "
+            read -r H2OGPTE_URL
             print_success "Selected custom server: $H2OGPTE_URL"
             ;;
     esac
@@ -249,14 +333,42 @@ show_next_steps() {
 # Function to show API key instructions
 show_api_key_instructions() {
     echo
-    printf "==================== 🔑 Get h2oGPTe API key ====================\n\n"
-    echo "  1. Get your h2oGPTe API key from: $H2OGPTE_URL/api"
+    printf "==================== 🔑 Enter h2oGPTe API key ====================\n\n"
+    if [ -n "${H2OGPTE_URL:-}" ]; then
+        echo "  1. Get your h2oGPTe API key from: $H2OGPTE_URL/api"
+    else
+        echo "  1. Get your h2oGPTe API key from your h2oGPTe server's /api endpoint"
+    fi
     echo "  2. Go to: $REPO_SERVER_URL/$REPO_NAME/settings/secrets/actions/new"
     echo "  3. Name: H2OGPTE_API_KEY"
     echo "  4. Value: [Your h2oGPTe API key]"
     echo "  5. Click 'Add secret'"
     echo
+    printf "Press Enter once you've added the H2OGPTE_API_KEY secret... "
+    read -r
+
     printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API key!\n"
+    echo
+}
+
+# Function to show API base instructions
+show_api_base_instructions() {
+    echo
+    printf "==================== 🌐 Enter h2oGPTe API base ====================\n\n"
+    if [ -n "${H2OGPTE_URL:-}" ]; then
+        echo "  1. Your h2oGPTe API base URL is: $H2OGPTE_URL"
+    else
+        echo "  1. Get your h2oGPTe API base URL from your h2oGPTe server"
+    fi
+    echo "  2. Go to: $REPO_SERVER_URL/$REPO_NAME/settings/secrets/actions/new"
+    echo "  3. Name: H2OGPTE_API_BASE"
+    echo "  4. Value: [Your h2oGPTe API base URL]"
+    echo "  5. Click 'Add secret'"
+    echo
+    printf "Press Enter once you've added the H2OGPTE_API_BASE secret... "
+    read -r
+
+    printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API base URL!\n"
     echo
 }
 
@@ -310,6 +422,9 @@ main() {
 
     # Step 10: Show API key instructions
     show_api_key_instructions
+
+    # Step 11: Show API base instructions
+    show_api_base_instructions
 
     echo
     printf "🎉 Setup complete! Your h2oGPTe Action is ready to use.\n"

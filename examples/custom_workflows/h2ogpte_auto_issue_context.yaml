@@ -21,7 +21,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
-          h2ogpte_api_base: https://h2ogpte.genai.h2o.ai # Change to your h2oGPTe API base URL
+          h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
           github_api_url: https://api.github.com
           github_server_url: https://github.com
           # h2oGPTe Configuration (optional)

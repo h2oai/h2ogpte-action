@@ -28,4 +28,9 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
 
 ## Compatibility
 
-Currently, only **h2ogpte version >= 1.6.31** is supported. By default, the action uses `https://h2ogpte.genai.h2o.ai` as the API base. If you wish to use a different h2ogpte environment, set the `h2ogpte_api_base` input in your workflow file (see `action.yml` for details).
+Currently, only **h2ogpte version >= 1.6.31** is supported. By default, the action uses `https://h2ogpte.genai.h2o.ai` as the API base. If you wish to use a different h2ogpte environment, you need to:
+
+1. Add your h2oGPTe server's base URL as a repository secret named `H2OGPTE_API_BASE`
+2. The action will automatically use this secret if it exists, otherwise it defaults to `https://h2ogpte.genai.h2o.ai`
+
+See `action.yml` for additional configuration details.
