@@ -141,6 +141,12 @@ check_git_repo() {
 
 # Function to detect repository name and handle user confirmation
 detect_repo_name() {
+    # If stdin is not a terminal (running via pipe), redirect stdin from /dev/tty
+    if [ ! -t 0 ]; then
+        print_warning "Script is running via pipe. Redirecting input from terminal..."
+        exec < /dev/tty
+    fi
+
     if command -v git >/dev/null 2>&1; then
         REPO_NAME=$(git config --get remote.origin.url 2>/dev/null | sed 's/.*github\.com[:/]\([^/]*\/[^/]*\)\.git.*/\1/' 2>/dev/null || echo "")
     fi
