@@ -199,9 +199,50 @@ create_directory() {
     print_success "Directory created successfully"
 }
 
+# Function to check if h2ogpte.yaml already exists
+check_file_exists() {
+    if [ -f "$INSTALL_DIR/h2ogpte.yaml" ]; then
+        return 0  # File exists
+    else
+        return 1  # File doesn't exist
+    fi
+}
+
+# Function to prompt user for overwrite confirmation
+prompt_overwrite() {
+    printf "⚠️  h2ogpte.yaml already exists in %s\n" "$INSTALL_DIR"
+    printf "Do you want to overwrite it? (y/N): "
+    read -r overwrite_choice
+
+    case "$overwrite_choice" in
+        y|Y|yes|YES)
+            return 0  # User wants to overwrite
+            ;;
+        *)
+            return 1  # User doesn't want to overwrite
+            ;;
+    esac
+}
+
+# Function to show API key instructions and exit
+show_api_key_and_exit() {
+    show_api_key_instructions
+    printf "🎉 Setup complete! Your existing h2ogpte.yaml file is ready to use.\n"
+    echo
+    exit 0
+}
+
 # Function to download example file
 download_example_file() {
-    printf "⬇️ Downloading h2ogpte.yaml workflow file...\n"
+    # Check if file already exists
+    if check_file_exists; then
+        if ! prompt_overwrite; then
+            show_api_key_and_exit
+        fi
+        printf "🔄 Overwriting existing h2ogpte.yaml...\n"
+    else
+        printf "⬇️ Downloading h2ogpte.yaml workflow file...\n"
+    fi
 
     # Base URL for the example file
     BASE_URL="https://raw.githubusercontent.com/h2oai/h2ogpte-action/main/examples"
