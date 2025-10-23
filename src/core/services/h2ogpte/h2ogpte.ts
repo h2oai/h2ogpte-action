@@ -39,7 +39,7 @@ export async function createAgentKey(
 
   const data = (await response.json()) as types.AgentKey;
   console.debug(
-    `Successfully created agent keys and got response: ${JSON.stringify(data, null, 2)}`,
+    `Successfully created agent keys with id: ${data.id}`,
   );
 
   return data.id;
@@ -77,7 +77,7 @@ export async function createToolAssociation(
 
   const data = (await response.json()) as types.ToolAssociations;
   console.debug(
-    `Successfully created tool association and got response: ${JSON.stringify(data, null, 2)}`,
+    `Successfully created tool association`,
   );
 
   return data;
@@ -111,7 +111,7 @@ export async function createChatSession(
 
   const data = (await response.json()) as types.ChatSession;
   console.debug(
-    `Successfully created chat session and got response: ${JSON.stringify(data, null, 2)}`,
+    `Successfully created chat session with id: ${data.id}`,
   );
 
   return data;
@@ -266,7 +266,7 @@ export async function createCollection(
   const data = (await response.json()) as types.Collection;
 
   console.debug(
-    `Successfully created collection and got response: ${JSON.stringify(data, null, 2)}`,
+    `Successfully created collection with id: ${data.id}`,
   );
 
   return data.id;
