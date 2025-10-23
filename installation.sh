@@ -332,7 +332,11 @@ show_next_steps() {
 show_api_key_instructions() {
     echo
     printf "==================== 🔑 Get h2oGPTe API key ====================\n\n"
-    echo "  1. Get your h2oGPTe API key from: $H2OGPTE_URL/api"
+    if [ -n "${H2OGPTE_URL:-}" ]; then
+        echo "  1. Get your h2oGPTe API key from: $H2OGPTE_URL/api"
+    else
+        echo "  1. Get your h2oGPTe API key from your h2oGPTe server's /api endpoint"
+    fi
     echo "  2. Go to: $REPO_SERVER_URL/$REPO_NAME/settings/secrets/actions/new"
     echo "  3. Name: H2OGPTE_API_KEY"
     echo "  4. Value: [Your h2oGPTe API key]"
