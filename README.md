@@ -9,7 +9,7 @@ The h2oGPTe GitHub Action brings intelligent AI assistance directly into your Gi
 Install the action in your repository using our installation script:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh
+curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh -s < /dev/tty
 ```
 
 After installation, get your API key from [h2oGPTe API](https://h2ogpte.genai.h2o.ai/api) and add it as a repository secret named `H2OGPTE_API_KEY`.
