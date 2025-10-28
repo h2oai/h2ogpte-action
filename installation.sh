@@ -429,6 +429,8 @@ main() {
     echo
     printf "🎉 Setup complete! Your h2oGPTe Action is ready to use.\n"
     echo
+
+    exit 0
 }
 
 # Run main function
