@@ -47,7 +47,7 @@ The repository includes several example workflows:
 - **[Auto PR Review](examples/custom_workflows/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
 - **[Auto Documentation](examples/custom_workflows/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 
-See [examples](examples/custom_workflows/) for more workflow configurations.
+See [examples](examples/) for more workflow configurations.
 
 ## 📖 Documentation
 
