@@ -31,11 +31,21 @@ function getGithubServerUrl(): string {
   return githubServerURL;
 }
 
-// Simple regex to match any GitHub user-attachments URL
-const GITHUB_ATTACHMENT_REGEX = new RegExp(
-  `${getGithubServerUrl().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/user-attachments\\/(?:assets|files)\\/[^\\s"'>)]+`,
-  "g",
-);
+// Lazy-loaded regex to avoid module-time environment variable access
+let _cachedRegex: RegExp | null = null;
+function getGithubAttachmentRegex(): RegExp {
+  if (!_cachedRegex) {
+    const serverUrl = getGithubServerUrl().replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&",
+    );
+    _cachedRegex = new RegExp(
+      `${serverUrl}\\/user-attachments\\/(?:assets|files)\\/[^\\s"'>)]+`,
+      "g",
+    );
+  }
+  return _cachedRegex;
+}
 
 // File type categories for organisation
 const FILE_TYPE_CATEGORIES = {
@@ -183,7 +193,7 @@ export async function downloadCommentAttachments(
     // First pass: find all attachments using single regex
     for (const comment of comments) {
       const attachmentMatches = [
-        ...comment.body.matchAll(GITHUB_ATTACHMENT_REGEX),
+        ...comment.body.matchAll(getGithubAttachmentRegex()),
       ];
       const urls = attachmentMatches
         .map((match) => match[0] as string)
