@@ -113,3 +113,18 @@ bun run test        # Run tests
 - **Core functionality** - Data fetching, response building
 - **Service integrations** - GitHub API, h2oGPTe API
 - **Utility functions** - File handling, formatting, etc.
+
+### Local Testing with Environment Variables (Optional)
+
+For more comprehensive local testing, you can mock the GitHub Action environment using environment variables:
+
+1. **Copy the example file**: `cp .env.example .env`
+2. **Fill in required values**:
+   - `GITHUB_TOKEN`: Get a personal access token from [GitHub Settings](https://github.com/settings/tokens) with `repo` and `workflow` scopes
+   - `H2OGPTE_API_KEY`: Get your API key from [h2oGPTe API](https://h2ogpte.genai.h2o.ai/api)
+   - `GITHUB_RUN_ID`: Use any numeric string (e.g., "123456789")
+   - `GITHUB_REPOSITORY`: Use your repository in `owner/repo` format
+3. **Adjust optional values** as needed for your testing scenario
+4. **Never commit `.env`** - it's gitignored and contains sensitive information
+
+The `.env` file allows you to test the action's behavior locally without needing to trigger actual GitHub Actions workflows. This is particularly useful for debugging and development.
