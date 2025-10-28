@@ -362,7 +362,7 @@ show_api_base_instructions() {
     fi
     echo "  2. Go to: $REPO_SERVER_URL/$REPO_NAME/settings/secrets/actions/new"
     echo "  3. Name: H2OGPTE_API_BASE"
-    echo "  4. Value: [Your h2oGPTe API base URL]"
+    echo "  4. Value: $H2OGPTE_URL"
     echo "  5. Click 'Add secret'"
     echo
     printf "Press Enter once you've added the H2OGPTE_API_BASE secret... "
