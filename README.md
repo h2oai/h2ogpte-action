@@ -43,11 +43,11 @@ The agent will automatically analyze your code and provide intelligent feedback.
 
 The repository includes several example workflows:
 
-- **[Basic Usage](examples/h2ogpte.yaml)** - Standard workflow for manual `@h2ogpte` mentions
-- **[Auto PR Review](examples/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
-- **[Auto Documentation](examples/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
+- **[Basic Usage](examples/custom_workflows/h2ogpte_auto_issue_context.yaml)** - Standard workflow for manual `@h2ogpte` mentions
+- **[Auto PR Review](examples/custom_workflows/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
+- **[Auto Documentation](examples/custom_workflows/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 
-See [examples](examples/) for more workflow configurations.
+See [examples](examples/custom_workflows/) for more workflow configurations.
 
 ## 📖 Documentation
 
