@@ -32,10 +32,6 @@ describe("downloadCommentAttachments", () => {
   beforeEach(() => {
     // Set up environment variables required for tests
     process.env.GITHUB_SERVER_URL = "https://github.com";
-    process.env.GITHUB_TOKEN = "mock-token";
-    process.env.GITHUB_API_URL = "https://api.github.com";
-    process.env.GITHUB_RUN_ID = "123456789";
-    process.env.GITHUB_REPOSITORY = "owner/repo";
 
     // Spy on console methods
     consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
