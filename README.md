@@ -12,13 +12,6 @@ Install the action in your repository using our installation script:
 curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh -s < /dev/tty
 ```
 
-After installation, you'll need to configure two repository secrets:
-
-1. **API Key**: Get your API key from [h2oGPTe API](https://h2ogpte.genai.h2o.ai/api) and add it as a repository secret named `H2OGPTE_API_KEY`
-2. **API Base URL**: Add your h2oGPTe server's base URL as a repository secret named `H2OGPTE_API_BASE`.
-
-💡 **Tip**: The default API base URL for cloud instances is `https://h2ogpte.genai.h2o.ai`. For self-hosted instances, use your server's URL.
-
 ## 💬 Basic Usage
 
 Once installed, simply mention `@h2ogpte` in any comment, issue, or pull request:
