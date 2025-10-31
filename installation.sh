@@ -36,9 +36,13 @@ set -u
 # This script helps you set up the h2oGPTe GitHub Action in your repository
 
 # Colors for output
-LIGHT_GREY='[0;90m'
-MARIGOLD_YELLOW='[38;2;234;162;33m'
-NC='[0m' # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+LIGHT_GREY='\033[0;90m'
+MARIGOLD_YELLOW='\033[38;2;234;162;33m'
+NC='\033[0m' # No Color
 
 # Function to get repository name (display only)
 get_repo_name_display() {
@@ -361,9 +365,7 @@ show_api_base_instructions() {
     printf "Press Enter once you've added the H2OGPTE_API_BASE secret... "
     read -r
 
-    printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API base URL!\n"
-    echo
-}
+    printf "${MARIGOLD_YELLOW}
 
 # Commit your changes
 echo
@@ -379,7 +381,9 @@ echo "  git push origin"
 echo
 printf "Press Enter to continue... "
 read -r
-echo
+echoImportant:${NC} The workflow will not work without this API base URL!\n"
+    echo
+}
 
 # Main execution
 main() {
