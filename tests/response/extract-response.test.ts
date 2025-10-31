@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { extractFinalAgentResponse } from "../../src/core/response/utils/extract-response";
 
 describe("extractFinalAgentResponse", () => {
@@ -270,6 +270,24 @@ ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
       "## TL;DR Summary\nThis should still match the pattern.\n## Details\nMore content here.",
+    );
+  });
+
+  test("should extract single header TL;DR (# instead of ##)", () => {
+    const input = `
+ENDOFTURN
+
+# ⚡️ TL;DR
+Summary with single header.
+
+## Details
+More content here.
+
+<stream_turn_title>Summary</stream_turn_title>
+ENDOFTURN`;
+    const result = extractFinalAgentResponse(input);
+    expect(result).toBe(
+      "# ⚡️ TL;DR\nSummary with single header.\n## Details\nMore content here.",
     );
   });
 

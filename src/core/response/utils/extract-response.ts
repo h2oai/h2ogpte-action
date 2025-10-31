@@ -1,7 +1,8 @@
 /**
  * Pattern to match the TL;DR header that indicates the final response section
+ * Matches any markdown header level (1-6 #) with TL;DR
  */
-const PATTERN_TLDR_HEADER = /^##\s+.*TL;DR/im;
+const PATTERN_TLDR_HEADER = /^#{1,6}\s+.*TL;DR.*/im;
 
 /**
  * Substring to check for max turns reached message
