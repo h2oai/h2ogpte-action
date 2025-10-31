@@ -71,7 +71,7 @@ get_repo_server_url_display() {
             echo "$origin_url" | sed 's/git@\([^:]*\):.*/\1/' | sed 's/^/https:\/\//'
         else
             # Handle HTTPS URLs (https://github.com/user/repo.git)
-            echo "$origin_url" | sed 's/\(https\?:\/\/[^\/]*\).*/\1/'
+            echo "$origin_url" | sed 's|\(https*://[^/]*\)/.*|\1|'
         fi
     fi
 }
@@ -88,17 +88,14 @@ get_repo_server_url() {
 
 # Function to get API URL (display only)
 get_api_url_display() {
-    local origin_url=$(git remote get-url origin 2>/dev/null)
-    if [ -z "$origin_url" ]; then
+    # Auto-calculate from detected server URL
+    local server_url=$(get_repo_server_url_display)
+    if [ "$server_url" = "Unknown" ]; then
         echo 'Unknown'
+    elif [ "$server_url" = "https://github.com" ]; then
+        echo "https://api.github.com"
     else
-        # Auto-calculate from detected server URL
-        local server_url=$(get_repo_server_url_display)
-        if [ "$server_url" = "https://github.com" ]; then
-            echo "https://api.github.com"
-        else
-            echo "${server_url}/api/v3"
-        fi
+        echo "${server_url}/api/v3"  # default endpoint for GitHub Enterprise Server
     fi
 }
 
@@ -138,7 +135,7 @@ check_git_repo() {
         print_error "Not in a git repository. Please run this script from your repository root."
         exit 1
     fi
-    print_success "Git repository detected ^"
+    print_success "Git repository detected"
 }
 
 # Function to detect repository name and handle user confirmation
