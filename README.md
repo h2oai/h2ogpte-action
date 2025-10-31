@@ -12,13 +12,6 @@ Install the action in your repository using our installation script:
 curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh -s < /dev/tty
 ```
 
-After installation, you'll need to configure two repository secrets:
-
-1. **API Key**: Get your API key from [h2oGPTe API](https://h2ogpte.genai.h2o.ai/api) and add it as a repository secret named `H2OGPTE_API_KEY`
-2. **API Base URL**: Add your h2oGPTe server's base URL as a repository secret named `H2OGPTE_API_BASE` (e.g., `https://h2ogpte.genai.h2o.ai`)
-
-> **Note**: If you're using the default h2oGPTe cloud instance, the API base URL is `https://h2ogpte.genai.h2o.ai`. For self-hosted instances, use your server's URL.
-
 ## 💬 Basic Usage
 
 Once installed, simply mention `@h2ogpte` in any comment, issue, or pull request:
@@ -44,8 +37,8 @@ The agent will automatically analyze your code and provide intelligent feedback.
 The repository includes several example workflows:
 
 - **[Basic Usage](examples/h2ogpte.yaml)** - Standard workflow for manual `@h2ogpte` mentions
-- **[Auto PR Review](examples/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
-- **[Auto Documentation](examples/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
+- **[Auto PR Review](examples/custom_workflows/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
+- **[Auto Documentation](examples/custom_workflows/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 
 See [examples](examples/) for more workflow configurations.
 
@@ -53,6 +46,7 @@ See [examples](examples/) for more workflow configurations.
 
 - **[Configuration](docs/CONFIGURATION.md)** - Detailed configuration options and settings
 - **[Usage Guide](docs/USAGE.md)** - Comprehensive usage examples and custom prompting
+- **[FAQ](docs/FAQ.md)** - Common questions and troubleshooting
 - **[Contributing](CONTRIBUTING.md)** - Development setup and contribution guidelines
 
 ## ✅ Requirements
