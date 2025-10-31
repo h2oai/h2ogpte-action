@@ -30,6 +30,9 @@ describe("downloadCommentAttachments", () => {
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   beforeEach(() => {
+    // Set up environment variables required for tests
+    process.env.GITHUB_SERVER_URL = "https://github.com";
+
     // Spy on console methods
     consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
     consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => {});
