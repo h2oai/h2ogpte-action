@@ -37,7 +37,7 @@ set -u
 
 # Colors for output
 LIGHT_GREY='[0;90m'
-MARIGOLD_YELLOW='[38;2;234;162;33m'
+MARIGOLD_
 NC='[0m' # No Color
 
 # Function to get repository name (display only)
