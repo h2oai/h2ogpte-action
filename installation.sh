@@ -36,9 +36,9 @@ set -u
 # This script helps you set up the h2oGPTe GitHub Action in your repository
 
 # Colors for output
-LIGHT_GREY='[0;90m'
-MARIGOLD_YELLOW='[38;2;234;162;33m'
-NC='[0m' # No Color
+LIGHT_GREY='\033[0;90m'
+MARIGOLD_YELLOW='\033[38;2;234;162;33m'
+NC='\033[0m' # No Color
 
 # Function to get repository name (display only)
 get_repo_name_display() {
