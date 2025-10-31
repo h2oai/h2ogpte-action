@@ -369,6 +369,22 @@ show_api_base_instructions() {
     echo
 }
 
+# Commit your changes
+echo
+printf "======================= 📤 Commit Changes =========================\n\n"
+echo "  1. Add your changes to git"
+echo "  2. Commit with a descriptive message"
+echo "  3. Push to your repository"
+echo
+printf "Example commands:\n"
+echo "  git add ."
+echo "  git commit -m \"Add h2oGPTe GitHub Action\""
+echo "  git push origin"
+echo
+printf "Press Enter to continue... "
+read -r
+echo
+
 # Main execution
 main() {
     printf "${MARIGOLD_YELLOW}"
