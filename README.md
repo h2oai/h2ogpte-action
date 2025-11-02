@@ -12,6 +12,8 @@ Install the action in your repository using our installation script:
 curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/installation.sh | sh -s < /dev/tty
 ```
 
+Running the installation script will lock the action to the latest [tag version](https://github.com/h2oai/h2ogpte-action/tags).
+
 ## 💬 Basic Usage
 
 Once installed, simply mention `@h2ogpte` in any comment, issue, or pull request:
