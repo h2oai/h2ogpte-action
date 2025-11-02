@@ -318,15 +318,6 @@ show_confirmation() {
     echo
 }
 
-# Function to show next steps message
-show_next_steps() {
-    echo
-    printf "======================== 📋 Next Steps =========================\n\n"
-    echo "  1. Review the downloaded workflow file"
-    echo "  2. Commit and push the changes to your repository"
-    echo
-}
-
 # Function to show API key instructions
 show_api_key_instructions() {
     echo
@@ -367,6 +358,66 @@ show_api_base_instructions() {
 
     printf "${MARIGOLD_YELLOW}Important:${NC} The workflow will not work without this API base URL!\n"
     echo
+}
+
+# Function to show commit and push instructions
+show_and_execute_commit_instructions() {
+    echo
+    printf "==================== 📤 Commit and Push Changes ====================\n\n"
+    local current_branch
+    current_branch=$(get_current_branch)
+
+    # Handle case where branch might be unknown
+    if [ "$current_branch" = "Unknown" ]; then
+        current_branch="main"
+    fi
+
+    echo "To activate the workflow, commit and push the changes:"
+    echo
+    printf "  git add %s/h2ogpte.yaml\n" "${INSTALL_DIR%/}"
+    echo "  git commit -m \"task: add h2oGPTe action\""
+    printf "  git push origin %s\n" "$current_branch"
+    echo
+
+    printf "Run these commands now? (y/N): "
+    read -r run_commands
+
+    if [ "$run_commands" = "y" ] || [ "$run_commands" = "Y" ]; then
+        echo
+        printf "🔄 Running git commands...\n"
+
+        if ! command -v git >/dev/null 2>&1; then
+            print_error "git is not available. Please run the commands manually."
+            return 1
+        fi
+
+        local file_path="${INSTALL_DIR%/}/h2ogpte.yaml"
+        if ! git add "$file_path"; then
+            print_error "Failed to add file: $file_path"
+            print_error "⚠️ You need to add, commit and push the changes manually."
+            return 1
+        fi
+
+        if ! git commit -m "task: add h2oGPTe action"; then
+            print_error "Failed to commit changes, the file may already be committed."
+            print_error "⚠️ You need to commit and push the changes manually."
+            return 1
+        fi
+
+        if ! git push origin "$current_branch"; then
+            print_error "Failed to push to origin $current_branch"
+            print_error "⚠️ You need to push the changes manually."
+            return 1
+        fi
+        print_success "Pushed to origin $current_branch"
+
+        printf "🎉 Setup complete! Your h2oGPTe Action is ready to use.\n"
+        echo
+    else
+        echo
+        printf "❗ Make sure you commit and push the changes to activate the workflow.\n"
+        echo
+    fi
 }
 
 # Main execution
@@ -414,17 +465,15 @@ main() {
     # Step 8: Show confirmation message
     show_confirmation
 
-    # Step 9: Show next steps
-    show_next_steps
-
-    # Step 10: Show API key instructions
+    # Step 9: Show API key instructions
     show_api_key_instructions
 
-    # Step 11: Show API base instructions
+    # Step 10: Show API base instructions
     show_api_base_instructions
 
-    echo
-    printf "🎉 Setup complete! Your h2oGPTe Action is ready to use.\n"
+    # Step 11: Show commit and push instructions
+    show_and_execute_commit_instructions
+
     echo
 
     exit 0
