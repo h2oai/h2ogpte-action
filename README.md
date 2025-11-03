@@ -53,7 +53,9 @@ See [examples](examples/) for more workflow configurations.
 
 ## ✅ Requirements
 
-- h2oGPTe version >= 1.6.31
+h2oGPTe Action v0.2.0-beta is tested on:
+
+$ 1.6.31 <= \text{h2oGPTe version} <= 1.6.42$
 
 ## 📄 License
 
