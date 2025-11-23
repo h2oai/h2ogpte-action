@@ -94,9 +94,23 @@ export function buildEventsText(
   githubData?: FetchDataResult,
   isPR?: boolean,
 ): string {
-  if (!githubData || !isPR) return "";
+  if (!githubData) {
+    return "";
+  }
 
-  return getAllEventsInOrder(githubData, isPR)
+  const events = getAllEventsInOrder(githubData, isPR ?? false);
+
+  if (events.length === 0) {
+    const entityType =
+      isPR === true
+        ? "pull request"
+        : isPR === false
+          ? "issue"
+          : "pull request or issue";
+    return `There are no previous events on this ${entityType}.`;
+  }
+
+  return events
     .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
     .join("\n");
 }

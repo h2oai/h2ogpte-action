@@ -11,6 +11,7 @@ import {
   extractPRReviewCommentDetails,
   extractHeadBranch,
   extractBaseBranch,
+  isInstructionEmpty,
 } from "./utils/instruction";
 import {
   isPRIssueEvent,
@@ -66,15 +67,34 @@ function applyReplacements(
     finalPrompt = finalPrompt.replace("{{userPrompt}}", USER_PROMPT);
   }
 
+  const instruction = extractInstruction(context) || "";
+  const isEmpty = isInstructionEmpty(instruction);
+
+  const emptyInstructionGuidance = isEmpty
+    ? dedent`
+      IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction. In this case, you should:
+      - Leave a polite comment explaining that you're ready to help but need more information
+      - Ask the user what they would like you to do
+      - DO NOT make any code changes, create branches, or open PRs
+      - DO NOT analyze code from the repository
+    `
+    : "";
+
+  const codeAnalysisGuidance = isEmpty
+    ? ""
+    : "Then read the code in the repository and understand the context of the code.";
+
   const replacements = {
     "{{AGENT_GITHUB_ENV_VAR}}": AGENT_GITHUB_ENV_VAR,
     "{{githubApiBase}}": getGithubApiUrl(),
     "{{repoName}}": context.repository.full_name,
-    "{{instruction}}": extractInstruction(context) || "",
+    "{{instruction}}": instruction,
     "{{idNumber}}": (extractIdNumber(context) || "undefined").toString(),
     "{{headBranch}}": extractHeadBranch(context, githubData) || "undefined",
     "{{baseBranch}}": extractBaseBranch(context, githubData) || "undefined",
     "{{eventsText}}": buildEventsText(githubData, context.isPR),
+    "{{emptyInstructionGuidance}}": emptyInstructionGuidance,
+    "{{codeAnalysisGuidance}}": codeAnalysisGuidance,
   };
 
   for (const [placeholder, value] of Object.entries(replacements)) {
@@ -109,6 +129,8 @@ function createAgentInstructionPromptForComment(
     - Approve pull requests
     - Execute commands outside the repository context
     - Modify files in the .github/workflows directory
+
+    CRITICAL: DO NOT make any changes to the repository (including creating branches, PRs, or modifying files) unless the user's instruction explicitly requests it using action words like 'add', 'create', 'make changes', 'open pr', 'fix', 'update', 'implement', 'refactor', 'modify', 'change', etc. If the user's instruction is empty or only contains the @h2ogpte tag without any specific task, you should politely inform them that there is nothing to do and ask how you can help.
   `;
 
   const prompt_pr_review = dedent`
@@ -129,7 +151,12 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_body = dedent`
-    Here is the user's instruction: '{{instruction}}'.
+    <user_instruction>
+    {{instruction}}
+    </user_instruction>
+
+    {{emptyInstructionGuidance}}
+
     You must only work in the user's repository, {{repoName}}.
     ${context.isPR ? prompt_pr : prompt_issue}
   `;
@@ -141,13 +168,13 @@ function createAgentInstructionPromptForComment(
     {{eventsText}}
 
     First read the previous events and understand the context of the conversation.
-    Then read the user's instruction and understand the task they want to complete.
-    Then read the code in the repository and understand the context of the code.
+    Then read the user's instruction (within the <user_instruction> tags) and understand the task they want to complete.
+    {{codeAnalysisGuidance}}
     Once you have a good understanding of the context, you can begin to respond to the user's instruction.
 
     If necessary, include GitHub referencing (e.g. #23) when referring to any other issues or PRs. Don't respond with the literal link.
 
-    Please respond and execute actions according to the user's instruction.
+    Please respond and execute actions according to the user's instruction. Remember: only make changes to the repository if the user explicitly requests it with clear action words.
 
     Format your response using GitHub Flavored Markdown with clean spacing. Keep one blank line between all block elements (headings, paragraphs, lists, tables, code blocks, etc.).
 
