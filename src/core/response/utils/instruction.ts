@@ -144,3 +144,21 @@ export function extractBaseBranch(
     return undefined;
   }
 }
+
+/**
+ * Checks if an instruction is effectively empty (only contains @h2ogpte tag with optional whitespace)
+ * @param instruction - The instruction text to check
+ * @returns true if the instruction only contains @h2ogpte (case-insensitive) and optional whitespace
+ */
+export function isInstructionEmpty(instruction: string): boolean {
+  if (!instruction) return true;
+
+  // Remove all whitespace and @h2ogpte (case-insensitive) from the instruction
+  const cleaned = instruction
+    .trim()
+    .replace(/@h2ogpte/gi, "")
+    .trim();
+
+  // If nothing remains, the instruction is effectively empty
+  return cleaned.length === 0;
+}

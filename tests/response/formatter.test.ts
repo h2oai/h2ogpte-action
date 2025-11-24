@@ -1,5 +1,8 @@
 import { describe, test, expect } from "bun:test";
-import { getAllEventsInOrder } from "../../src/core/response/utils/formatter";
+import {
+  getAllEventsInOrder,
+  buildEventsText,
+} from "../../src/core/response/utils/formatter";
 import { mockFetchDataResult } from "../resources/test-data";
 import type { GitHubPullRequest } from "../../src/core/data/queries/types";
 
@@ -228,5 +231,108 @@ describe("getAllEventsInOrder", () => {
 
     expect(eventsWithTimestamps.length).toBeGreaterThan(0);
     expect(eventsWithoutTimestamps.length).toBeGreaterThan(0);
+  });
+});
+
+describe("buildEventsText", () => {
+  test("should return empty string when githubData is undefined", () => {
+    const result = buildEventsText(undefined, true);
+    expect(result).toBe("");
+  });
+
+  test("should return empty string when githubData is undefined and isPR is undefined", () => {
+    const result = buildEventsText(undefined, undefined);
+    expect(result).toBe("");
+  });
+
+  test("should return explicit message when PR has no events", () => {
+    const emptyPR = {
+      ...mockFetchDataResult,
+      contextData: {
+        ...mockFetchDataResult.contextData,
+        commits: { totalCount: 0, nodes: [] },
+        comments: { nodes: [] },
+        reviews: { nodes: [] },
+      },
+    };
+
+    const result = buildEventsText(emptyPR, true);
+    expect(result).toBe("There are no previous events on this pull request.");
+  });
+
+  test("should return explicit message when issue has no events", () => {
+    const emptyIssue = {
+      ...mockFetchDataResult,
+      contextData: {
+        title: "Test Issue",
+        body: "",
+        author: { login: "testuser", name: "Test User" },
+        createdAt: "2025-06-24T07:00:00Z",
+        state: "OPEN",
+        comments: { nodes: [] },
+      },
+    };
+
+    const result = buildEventsText(emptyIssue, false);
+    expect(result).toBe("There are no previous events on this issue.");
+  });
+
+  test("should return explicit message with generic text when isPR is undefined", () => {
+    const emptyData = {
+      ...mockFetchDataResult,
+      contextData: {
+        ...mockFetchDataResult.contextData,
+        body: "",
+        commits: { totalCount: 0, nodes: [] },
+        comments: { nodes: [] },
+        reviews: { nodes: [] },
+      },
+    };
+
+    const result = buildEventsText(emptyData, undefined);
+    expect(result).toBe(
+      "There are no previous events on this pull request or issue.",
+    );
+  });
+
+  test("should return formatted events when PR has events", () => {
+    const result = buildEventsText(mockFetchDataResult, true);
+
+    expect(result).not.toBe("");
+    expect(result).not.toContain("There are no previous events");
+    expect(result).toContain("commit:");
+    expect(result).toContain("comment:");
+    expect(result).toContain("review:");
+  });
+
+  test("should return formatted events when issue has events", () => {
+    const issueData = {
+      ...mockFetchDataResult,
+      contextData: {
+        title: "Test Issue",
+        body: "This is a test issue",
+        author: { login: "testuser", name: "Test User" },
+        createdAt: "2025-06-24T07:00:00Z",
+        state: "OPEN",
+        comments: {
+          nodes: [
+            {
+              id: "issue_comment1",
+              databaseId: "1",
+              body: "Issue comment",
+              createdAt: "2025-06-24T07:16:09Z",
+              author: { login: "user1", name: "User One" },
+            },
+          ],
+        },
+      },
+    };
+
+    const result = buildEventsText(issueData, false);
+
+    expect(result).not.toBe("");
+    expect(result).not.toContain("There are no previous events");
+    expect(result).toContain("issue_body:");
+    expect(result).toContain("comment:");
   });
 });
