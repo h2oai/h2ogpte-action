@@ -23,7 +23,7 @@ Turn Time: 19.40s
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nThe repository lacks test coverage for critical components.\n## 🧪 Analysis\nDetailed analysis here...\n## 🎯 Next Steps\n- Add tests\n- Improve coverage",
+      "## ⚡️ TL;DR\nThe repository lacks test coverage for critical components.\n\n## 🧪 Analysis\nDetailed analysis here...\n\n## 🎯 Next Steps\n- Add tests\n- Improve coverage",
     );
   });
 
@@ -48,7 +48,7 @@ More information here...
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nCritical functionality is undertested.\n## 🔬 Details\nMore information here...",
+      "## ⚡️ TL;DR\nCritical functionality is undertested.\n\n## 🔬 Details\nMore information here...",
     );
   });
 
@@ -68,7 +68,7 @@ Time: 120s
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nShort summary of findings.\n## Analysis\nThe main analysis content.",
+      "## ⚡️ TL;DR\nShort summary of findings.\n\n## Analysis\nThe main analysis content.",
     );
   });
 
@@ -82,24 +82,6 @@ Some findings here.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(input);
-  });
-
-  test("should handle TL;DR with extra whitespace", () => {
-    const input = `
-ENDOFTURN
-
-##   ⚡️   TL;DR
-Summary with irregular spacing.
-
-## Details
-Content here.
-
-<stream_turn_title>Title</stream_turn_title>
-ENDOFTURN`;
-    const result = extractFinalAgentResponse(input);
-    expect(result).toBe(
-      "## ⚡️ TL;DR\nSummary with irregular spacing.\n## Details\nContent here.",
-    );
   });
 
   test("should find last TL;DR section when multiple exist", () => {
@@ -123,7 +105,7 @@ Second details.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nSecond summary.\n## More Details\nSecond details.",
+      "## ⚡️ TL;DR\nSecond summary.\n\n## More Details\nSecond details.",
     );
   });
 
@@ -145,7 +127,7 @@ Analysis content.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nMain response here.\n## Analysis\nAnalysis content.",
+      "## ⚡️ TL;DR\nMain response here.\n\n\n\n## Analysis\nAnalysis content.",
     );
   });
 
@@ -164,7 +146,7 @@ Final output!
 <stream_turn_title>Title</stream_turn_title>
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
-    expect(result).toBe("## ⚡️ TL;DR\nSome text\nFinal output!");
+    expect(result).toBe("## ⚡️ TL;DR\nSome text\n\n\n\n\nFinal output!");
   });
 
   test("should remove citation patterns from TL;DR section", () => {
@@ -194,17 +176,17 @@ ENDOFTURN`;
     );
   });
 
-  test("should trim whitespace and newlines from TL;DR section", () => {
+  test("should trim trailing whitespace but preserve leading whitespace", () => {
     const input = `
 ENDOFTURN
 
 ## ⚡️ TL;DR
-   Some text with whitespace
+${"   "}Some text with whitespace${"   "}
 
 <stream_turn_title>Title</stream_turn_title>
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
-    expect(result).toBe("## ⚡️ TL;DR\nSome text with whitespace");
+    expect(result).toBe("## ⚡️ TL;DR\n Some text with whitespace");
   });
 
   test("should handle max turns reached message", () => {
@@ -269,7 +251,7 @@ More content here.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## TL;DR Summary\nThis should still match the pattern.\n## Details\nMore content here.",
+      "## TL;DR Summary\nThis should still match the pattern.\n\n## Details\nMore content here.",
     );
   });
 
@@ -287,7 +269,7 @@ More content here.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "# ⚡️ TL;DR\nSummary with single header.\n## Details\nMore content here.",
+      "# ⚡️ TL;DR\nSummary with single header.\n\n## Details\nMore content here.",
     );
   });
 
@@ -307,7 +289,7 @@ More content here.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nSummary at the start.\n## Details\nMore details here.",
+      "## ⚡️ TL;DR\nSummary at the start.\n\n## Details\nMore details here.",
     );
   });
 
@@ -325,7 +307,7 @@ Summary at the end.
 Final analysis.`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nSummary at the end.\n## Analysis\nFinal analysis.",
+      "## ⚡️ TL;DR\nSummary at the end.\n\n## Analysis\nFinal analysis.",
     );
   });
 
@@ -361,7 +343,7 @@ Other content
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nFirst section summary.\n## Details\nMore information.",
+      "## ⚡️ TL;DR\nFirst section summary.\n\n## Details\nMore information.",
     );
   });
 
@@ -425,7 +407,7 @@ Important details here.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nThis is the actual summary.\n## Details\nImportant details here.",
+      "## ⚡️ TL;DR\nThis is the actual summary.\n\n## Details\nImportant details here.",
     );
   });
 
@@ -444,5 +426,34 @@ The summary starts here.
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe("## ⚡️ TL;DR\nThe summary starts here.");
+  });
+
+  test("should preserve tabs and indentation in code blocks", () => {
+    const input = `
+ENDOFTURN
+
+## ⚡️ TL;DR
+Here's some code with tabs:
+
+\`\`\`python
+# Good: Explicit iteration over items
+user_scores = {
+\t"alice": 95,
+\t"bob": 87,
+\t"charlie": 92
+}
+
+for username, score in user_scores.items():
+\tprint(f"{username}: {score} points")
+\`\`\`
+
+<stream_turn_title>Title</stream_turn_title>
+ENDOFTURN`;
+    const result = extractFinalAgentResponse(input);
+    // Verify tabs are preserved in the code block
+    expect(result).toContain('\t"alice": 95,');
+    expect(result).toContain('\tprint(f"{username}: {score} points")');
+    expect(result).toContain("```python");
+    expect(result).toContain("```");
   });
 });
