@@ -406,4 +406,43 @@ ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe("## ⚡️ TL;DR\nSummary here.");
   });
+
+  test("should remove everything before ## ⚡️ TL;DR in the final section", () => {
+    const input = `
+ENDOFTURN
+
+Some unwanted content before TL;DR
+More unwanted text here
+Random information
+
+## ⚡️ TL;DR
+This is the actual summary.
+
+## Details
+Important details here.
+
+<stream_turn_title>Title</stream_turn_title>
+ENDOFTURN`;
+    const result = extractFinalAgentResponse(input);
+    expect(result).toBe(
+      "## ⚡️ TL;DR\nThis is the actual summary.\n## Details\nImportant details here.",
+    );
+  });
+
+  test("should remove content before ## ⚡️ TL;DR even with multiple lines", () => {
+    const input = `
+ENDOFTURN
+
+Line 1 before TL;DR
+Line 2 before TL;DR
+Line 3 before TL;DR
+
+## ⚡️ TL;DR
+The summary starts here.
+
+<stream_turn_title>Title</stream_turn_title>
+ENDOFTURN`;
+    const result = extractFinalAgentResponse(input);
+    expect(result).toBe("## ⚡️ TL;DR\nThe summary starts here.");
+  });
 });
