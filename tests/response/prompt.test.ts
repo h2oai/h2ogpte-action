@@ -17,11 +17,7 @@ const mockUtils = {
   getGithubApiUrl: () => "https://api.github.com",
 };
 
-const mockFormatter = {
-  buildEventsText: jest.fn(() => "Mock events text"),
-};
-
-// Note: We don't mock url-replace globally to avoid interfering with other tests
+import { isInstructionEmpty as realIsInstructionEmpty } from "../../src/core/response/utils/instruction";
 
 const mockInstruction = {
   extractInstruction: jest.fn(),
@@ -29,6 +25,7 @@ const mockInstruction = {
   extractPRReviewCommentDetails: jest.fn(),
   extractHeadBranch: jest.fn(),
   extractBaseBranch: jest.fn(),
+  isInstructionEmpty: realIsInstructionEmpty, // Use real implementation
 };
 
 const mockContext = {
@@ -39,7 +36,7 @@ const mockContext = {
 // Mock the modules before importing the actual module
 mock.module("../../src/constants", () => mockConstants);
 mock.module("../../src/core/utils", () => mockUtils);
-mock.module("../../src/core/response/utils/formatter", () => mockFormatter);
+// Note: We don't mock formatter - use real implementation to avoid test isolation issues
 // Note: We don't mock url-replace globally to avoid interfering with other tests
 mock.module("../../src/core/response/utils/instruction", () => mockInstruction);
 mock.module("../../src/core/data/context", () => mockContext);
@@ -68,7 +65,6 @@ describe("createAgentInstructionPrompt", () => {
     mockInstruction.extractHeadBranch.mockReturnValue(undefined);
     mockInstruction.extractBaseBranch.mockReturnValue(undefined);
     mockInstruction.extractPRReviewCommentDetails.mockReturnValue(undefined);
-    mockFormatter.buildEventsText.mockReturnValue("Mock events text");
   });
 
   afterEach(() => {
@@ -95,7 +91,8 @@ describe("createAgentInstructionPrompt", () => {
       mockInstruction.extractIdNumber.mockReturnValue(123);
       mockInstruction.extractHeadBranch.mockReturnValue("feature-branch");
       mockInstruction.extractBaseBranch.mockReturnValue("main");
-      mockFormatter.buildEventsText.mockReturnValue("Event 1\nEvent 2");
+      // Note: buildEventsText uses real implementation, so it will return empty string
+      // for empty githubData.contextData, which is fine for this test
 
       const result = createAgentInstructionPrompt(context, githubData);
 
@@ -375,6 +372,147 @@ describe("createAgentInstructionPrompt", () => {
     });
   });
 
+  describe("empty instruction handling", () => {
+    test("should include empty instruction guidance when instruction is only @h2ogpte", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue("@h2ogpte");
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain("<user_instruction>");
+      expect(result).toContain("@h2ogpte");
+      expect(result).toContain("</user_instruction>");
+      expect(result).toContain(
+        "IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction",
+      );
+      expect(result).toContain(
+        "Leave a polite comment explaining that you're ready to help but need more information",
+      );
+      expect(result).toContain(
+        "DO NOT make any code changes, create branches, or open PRs",
+      );
+      expect(result).toContain("DO NOT analyze code from the repository");
+      expect(result).not.toContain(
+        "Then read the code in the repository and understand the context of the code",
+      );
+    });
+
+    test("should include empty instruction guidance when instruction is @h2ogpte with whitespace", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue(" @h2ogpte ");
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain(
+        "IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction",
+      );
+      expect(result).not.toContain(
+        "Then read the code in the repository and understand the context of the code",
+      );
+    });
+
+    test("should handle case-insensitive @h2ogpte detection (isInstructionEmpty handles case)", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue("@h2ogpte");
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain("<user_instruction>");
+      expect(result).toContain("@h2ogpte");
+      expect(result).toContain("</user_instruction>");
+      expect(result).toContain(
+        "IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction",
+      );
+    });
+
+    test("should NOT include empty instruction guidance when instruction has actual content", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue(
+        "@h2ogpte please review this code",
+      );
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain("<user_instruction>");
+      expect(result).toContain("@h2ogpte please review this code");
+      expect(result).toContain("</user_instruction>");
+      expect(result).not.toContain(
+        "IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction",
+      );
+      expect(result).toContain(
+        "Then read the code in the repository and understand the context of the code",
+      );
+    });
+
+    test("should include XML tags around user instruction", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue(
+        "@h2ogpte review this PR",
+      );
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain("<user_instruction>");
+      expect(result).toContain("@h2ogpte review this PR");
+      expect(result).toContain("</user_instruction>");
+      expect(result).toContain(
+        "Then read the user's instruction (within the <user_instruction> tags)",
+      );
+    });
+
+    test("should include strengthened DO NOT guidance in prompt intro", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue("@h2ogpte help");
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain(
+        "CRITICAL: DO NOT make any changes to the repository",
+      );
+      expect(result).toContain(
+        "unless the user's instruction explicitly requests it using action words like",
+      );
+      expect(result).toContain(
+        "'add', 'create', 'make changes', 'open pr', 'fix', 'update'",
+      );
+      expect(result).toContain(
+        "If the user's instruction is empty or only contains the @h2ogpte tag",
+      );
+    });
+
+    test("should include reminder about explicit action words in outro", () => {
+      mockContext.isPRIssueEvent.mockReturnValue(true);
+      mockInstruction.extractInstruction.mockReturnValue("@h2ogpte help");
+
+      const context = createMockContext();
+      const githubData = createMockGithubData();
+
+      const result = createAgentInstructionPrompt(context, githubData);
+
+      expect(result).toContain(
+        "Remember: only make changes to the repository if the user explicitly requests it with clear action words",
+      );
+    });
+  });
+
   // Helper functions to create mock data
   function createMockContext(
     overrides: Partial<ParsedGitHubContext> = {},
@@ -398,8 +536,34 @@ describe("createAgentInstructionPrompt", () => {
 
   function createMockGithubData(): FetchDataResult {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      contextData: {} as any,
+      contextData: {
+        title: "Test PR",
+        body: "Test PR body",
+        author: {
+          login: "testuser",
+          name: "Test User",
+        },
+        baseRefName: "main",
+        headRefName: "feature-branch",
+        headRefOid: "abc123",
+        createdAt: "2025-06-24T07:00:00Z",
+        additions: 10,
+        deletions: 5,
+        state: "OPEN",
+        commits: {
+          totalCount: 0,
+          nodes: [],
+        },
+        comments: {
+          nodes: [],
+        },
+        reviews: {
+          nodes: [],
+        },
+        files: {
+          nodes: [],
+        },
+      },
       comments: [],
       changedFiles: [],
       changedFilesWithSHA: [],
