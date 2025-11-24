@@ -66,12 +66,9 @@ export function extractFinalAgentResponse(input: string): string {
       "",
     )
     .replace(/\s*\[citation:\s*\d+\]\s*/g, " ")
-    .replace(/\s+\./g, ".")
-    .replace(/ {2,}/g, " ")
-    .replace(/\n{2,}/g, "\n")
     .replace(/^\n+|\n+$/g, "")
     .split("\n")
-    .map((line) => line.trim())
+    .map((line) => line.replace(/\s+$/, ""))
     .join("\n")
     .trim();
 
