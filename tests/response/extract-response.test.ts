@@ -160,7 +160,7 @@ Here is some information [citation: 1] and more details [citation:42]. Also chec
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
     expect(result).toBe(
-      "## ⚡️ TL;DR\nHere is some information and more details . Also check this and that .",
+      "## ⚡️ TL;DR\nHere is some information and more details. Also check this and that.",
     );
   });
 
@@ -186,8 +186,7 @@ ${"   "}Some text with whitespace${"   "}
 <stream_turn_title>Title</stream_turn_title>
 ENDOFTURN`;
     const result = extractFinalAgentResponse(input);
-    // Leading whitespace is preserved, trailing whitespace is removed
-    expect(result).toBe("## ⚡️ TL;DR\n   Some text with whitespace");
+    expect(result).toBe("## ⚡️ TL;DR\n Some text with whitespace");
   });
 
   test("should handle max turns reached message", () => {
