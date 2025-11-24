@@ -2,7 +2,7 @@ name: h2oGPTe Agent Automatic Review
 
 on:
   pull_request_target:
-    branches: [main, task/change-auto-review]
+    branches: [main]
     types: [opened]
 
 permissions:
