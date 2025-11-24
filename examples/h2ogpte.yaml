@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: h2oGPTe Agent Assistant
         id: h2ogpte-agent-assistant
-        uses: h2oai/h2ogpte-action@v0.2.0-beta
+        uses: h2oai/h2ogpte-action@v0.2.1-beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
