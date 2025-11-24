@@ -1,6 +1,6 @@
 # h2oGPTe Action
 
-![h2oGPTe responding to a comment (light mode)](https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/docs/images/h2ogpte_hero_light.png#gh-light-mode-only)
+<!-- ![h2oGPTe responding to a comment (light mode)](https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/docs/images/h2ogpte_hero_light.png#gh-light-mode-only) -->
 ![h2oGPTe responding to a comment (dark mode)](https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/main/docs/images/h2ogpte_hero_dark.png#gh-dark-mode-only)
 
 The h2oGPTe GitHub Action brings intelligent AI assistance directly into your GitHub workflow. Simply tag `@h2ogpte` in any comment, issue, or pull request, and the agent will provide instant AI-powered code review feedback, understand your codebase context, and even write code and make commits when requested.
