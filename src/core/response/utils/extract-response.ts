@@ -49,8 +49,15 @@ export function extractFinalAgentResponse(input: string): string {
     textBeforeTitle = finalSection.substring(0, titleIndex);
   }
 
+  // Remove everything before `## ⚡️ TL;DR`
+  let tlDrSection = textBeforeTitle;
+  const tlDrIndex = tlDrSection.indexOf("## ⚡️ TL;DR");
+  if (tlDrIndex !== -1) {
+    tlDrSection = tlDrSection.substring(tlDrIndex);
+  }
+
   // Remove agent metadata and clean up the whitespace in the text
-  const cleanedText = textBeforeTitle
+  const cleanedText = tlDrSection
     .replace(/\*\*Completed LLM call in.*?\*\*/g, "")
     .replace(/\*\* \[.*?\] .*?\*\*/g, "")
     .replace(/\*\*Executing python code blocks\*\*/g, "")
