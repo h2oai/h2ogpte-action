@@ -272,7 +272,7 @@ describe("createAgentInstructionPrompt", () => {
       const result = createAgentInstructionPrompt(context, githubData);
 
       expect(result).toContain(
-        "GitHub referencing (using '#' followed by the issue or PR number, e.g. #[0-9]+)",
+        "reference GitHub issues or PRs using the # symbol followed by their number (e.g., #42, #123)",
       );
       expect(result).toContain("Don't respond with the literal link");
     });
