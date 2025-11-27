@@ -172,7 +172,7 @@ function createAgentInstructionPromptForComment(
     {{codeAnalysisGuidance}}
     Once you have a good understanding of the context, you can begin to respond to the user's instruction.
 
-    If necessary, include GitHub referencing (e.g. #23) when referring to any other issues or PRs. Don't respond with the literal link.
+    If necessary, reference GitHub issues or PRs using the # symbol followed by their number (e.g., #42, #123). Don't respond with the literal link.
 
     Please respond and execute actions according to the user's instruction. Remember: only make changes to the repository if the user explicitly requests it with clear action words.
 
