@@ -271,7 +271,9 @@ describe("createAgentInstructionPrompt", () => {
 
       const result = createAgentInstructionPrompt(context, githubData);
 
-      expect(result).toContain("GitHub referencing (e.g. #23)");
+      expect(result).toContain(
+        "GitHub referencing (using '#' followed by the issue or PR number, e.g. #[0-9]+)",
+      );
       expect(result).toContain("Don't respond with the literal link");
     });
 
