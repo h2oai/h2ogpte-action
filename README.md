@@ -4,7 +4,7 @@
 
 The h2oGPTe GitHub Action brings intelligent AI assistance directly into your GitHub workflow. Simply tag `@h2ogpte` in any comment, issue, or pull request, and the agent will provide instant AI-powered code review feedback, understand your codebase context, and even write code and make commits when requested.
 
-🎥 Watch our **[YouTube Video](https://youtu.be/nx8qoFsxCk8?si=gp1iFbpKHRoVQrjl)** introducing the action.
+🎥 Watch our **[YouTube Video](https://youtu.be/nx8qoFsxCk8)** to get started.
 
 ## 🚀 Quick Start
 
@@ -16,7 +16,7 @@ curl -fsSL https://raw.githubusercontent.com/h2oai/h2ogpte-action/refs/heads/mai
 
 Running the installation script will lock the action to the latest [tag version](https://github.com/h2oai/h2ogpte-action/tags).
 
-Watch our [installation video](https://youtu.be/SYlSfo-zzZ8?si=4igA00b-Wy5KHcGf) for a step-by-step guide.
+Watch our [installation video](https://youtu.be/SYlSfo-zzZ8) for a step-by-step guide.
 
 ## 💬 Basic Usage
 
@@ -46,7 +46,7 @@ The repository includes several example workflows:
 - **[Auto PR Review](examples/custom_workflows/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
 - **[Auto Documentation](examples/custom_workflows/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 
-See [examples](examples/) for more workflow configurations. Or, check-out our [use case series on YouTube](https://youtu.be/eZQei55KMBU?si=utLgJlq8Bn-1-W7k).
+See [examples](examples/) for more workflow configurations. Or, check out our [use case series on YouTube](https://www.youtube.com/watch?v=eZQei55KMBU&list=PLNtMya54qvOEgXpCqylmMwFagqqfOpK8b&index=3).
 
 ## 📖 Documentation
 
