@@ -43,3 +43,11 @@ jobs:
           agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
           agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          # Slash Commands Configuration
+          slash_commands: |
+            [
+              {
+                "name": "/explain",
+                "prompt": "You are a helpful assistant that explains code.\nYou are given a code snippet and you need to explain it to the user.\nYou are also given a user prompt and you need to explain the code to the user."
+              }
+            ]
