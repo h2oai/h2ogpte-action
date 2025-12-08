@@ -2,6 +2,8 @@
 
 The h2oGPTe GitHub Action integrates AI assistance directly into your GitHub workflow. Simply tag `@h2ogpte` in any comment, issue, or pull request, and the agent will provide intelligent feedback and assistance.
 
+🎥 Watch our use case series on [YouTube](https://www.youtube.com/watch?v=eZQei55KMBU&list=PLNtMya54qvOEgXpCqylmMwFagqqfOpK8b&index=3).
+
 ## 💬 Basic Usage
 
 ### 🔍 Pull Request Comment
