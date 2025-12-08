@@ -23,6 +23,7 @@ const CASE_SENSITIVE_COMMAND = JSON.stringify([
 const INVALID_JSON = "not valid json";
 const NOT_AN_ARRAY = JSON.stringify({ not: "an array" });
 const INVALID_COMMAND = JSON.stringify([{ name: 123, prompt: "Invalid" }]);
+const NULL_COMMAND = JSON.stringify([null]);
 
 describe("getSlashCommandsPrompt", () => {
   beforeEach(() => {
@@ -108,6 +109,14 @@ and /test it`;
 
     test("should throw error when command has invalid structure", () => {
       process.env.SLASH_COMMANDS = INVALID_COMMAND;
+      const instruction = "Please review this";
+      expect(() => getSlashCommandsPrompt(instruction)).toThrow(
+        "Each entry in SLASH_COMMANDS must be an object with string 'name' and 'prompt' properties",
+      );
+    });
+
+    test("should throw proper error when command is null", () => {
+      process.env.SLASH_COMMANDS = NULL_COMMAND;
       const instruction = "Please review this";
       expect(() => getSlashCommandsPrompt(instruction)).toThrow(
         "Each entry in SLASH_COMMANDS must be an object with string 'name' and 'prompt' properties",

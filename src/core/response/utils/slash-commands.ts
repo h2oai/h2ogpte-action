@@ -12,6 +12,7 @@ function getSlashCommands(): SlashCommand[] {
   }
   for (const command of slashCommands) {
     if (
+      command === null ||
       typeof command !== "object" ||
       typeof command.name !== "string" ||
       typeof command.prompt !== "string"
