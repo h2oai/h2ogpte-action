@@ -39,6 +39,14 @@ describe("getSlashCommandsPrompt", () => {
       expect(result).toBe("");
     });
 
+    test("should return empty string when no slash commands are defined but user tries to use one", () => {
+      process.env.SLASH_COMMANDS = EMPTY_COMMANDS;
+      const instruction = "Please /review this code";
+      // Even though instruction contains /review, no commands are defined, so should return empty string
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toBe("");
+    });
+
     test("should return empty string when instruction does not contain any command names", () => {
       process.env.SLASH_COMMANDS = MULTIPLE_COMMANDS;
       const instruction = "Please help me with this";
