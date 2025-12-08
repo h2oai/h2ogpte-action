@@ -32,22 +32,18 @@ describe("getSlashCommandsPrompt", () => {
   });
 
   describe("valid slash commands", () => {
-    test("should return header when no slash commands are configured", () => {
+    test("should return empty string when no slash commands are configured", () => {
       process.env.SLASH_COMMANDS = EMPTY_COMMANDS;
       const instruction = "Please review this code";
       const result = getSlashCommandsPrompt(instruction);
-      expect(result).toBe(
-        "The following slash commands were requested by the user:",
-      );
+      expect(result).toBe("");
     });
 
-    test("should return header when instruction does not contain any command names", () => {
+    test("should return empty string when instruction does not contain any command names", () => {
       process.env.SLASH_COMMANDS = MULTIPLE_COMMANDS;
       const instruction = "Please help me with this";
       const result = getSlashCommandsPrompt(instruction);
-      expect(result).toBe(
-        "The following slash commands were requested by the user:",
-      );
+      expect(result).toBe("");
     });
 
     test("should include matching command when instruction contains command name", () => {
@@ -55,7 +51,7 @@ describe("getSlashCommandsPrompt", () => {
       const instruction = "Please /review this code";
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe(
-        "The following slash commands were requested by the user:- /review: Review the code and provide feedback\n",
+        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:- /review: Review the code and provide feedback\n",
       );
     });
 
@@ -63,6 +59,9 @@ describe("getSlashCommandsPrompt", () => {
       process.env.SLASH_COMMANDS = MULTIPLE_COMMANDS;
       const instruction = "Please /review and /test this code";
       const result = getSlashCommandsPrompt(instruction);
+      expect(result).toContain(
+        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.",
+      );
       expect(result).toContain(
         "- /review: Review the code and provide feedback",
       );
@@ -77,6 +76,9 @@ describe("getSlashCommandsPrompt", () => {
 and /test it`;
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toContain(
+        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.",
+      );
+      expect(result).toContain(
         "- /review: Review the code and provide feedback",
       );
       expect(result).toContain("- /test: Run tests and report results");
@@ -86,6 +88,9 @@ and /test it`;
       process.env.SLASH_COMMANDS = COMMAND_WITH_SPECIAL_CHARS;
       const instruction = "Please /review this";
       const result = getSlashCommandsPrompt(instruction);
+      expect(result).toContain(
+        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.",
+      );
       expect(result).toContain(
         "- /review: Review code with: - Error handling\n- Performance\n- Security",
       );
@@ -128,9 +133,9 @@ and /test it`;
     test("should handle case-sensitive matching", () => {
       process.env.SLASH_COMMANDS = CASE_SENSITIVE_COMMAND;
       const instruction = "Please /review this";
-      // Should not match because case is different
+      // Should not match because case is different, so should return empty string
       const result = getSlashCommandsPrompt(instruction);
-      expect(result).not.toContain("/Review");
+      expect(result).toBe("");
     });
 
     test("should not match command name as substring of another word", () => {
@@ -138,9 +143,9 @@ and /test it`;
         { name: "/test", prompt: "Run tests" },
       ]);
       const instruction = "Please test this code";
-      // Should not match because "/test" is not in the instruction
+      // Should not match because "/test" is not in the instruction, so should return empty string
       const result = getSlashCommandsPrompt(instruction);
-      expect(result).not.toContain("/test");
+      expect(result).toBe("");
     });
   });
 });
