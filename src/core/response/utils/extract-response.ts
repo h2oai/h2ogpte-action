@@ -76,7 +76,7 @@ export function extractFinalAgentResponse(input: string): string {
       /\*\*No executable code blocks found, terminating conversation\.*\*\*/g,
       "",
     )
-    .replace(/\s*\[citation:\s*\d+\]\s*/g, " ")
+    .replace(/\[citation:\s*\d+\]/g, "")
     .replace(/\s+([.,!?;:])/g, "$1")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/^\n+|\n+$/g, "")

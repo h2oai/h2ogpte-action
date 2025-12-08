@@ -164,6 +164,24 @@ ENDOFTURN`;
     );
   });
 
+  test("should remove citation patterns followed by newlines without breaking formatting", () => {
+    const input = `
+ENDOFTURN
+
+## ⚡️ TL;DR
+Here is some information [citation: 1]
+and more details [citation:42].
+Also check this [citation: 123]
+and that [citation:1].
+
+<stream_turn_title>Citations</stream_turn_title>
+ENDOFTURN`;
+    const result = extractFinalAgentResponse(input);
+    expect(result).toBe(
+      "## ⚡️ TL;DR\nHere is some information\nand more details.\nAlso check this\nand that.",
+    );
+  });
+
   test("should handle null, undefined, or empty input", () => {
     expect(extractFinalAgentResponse("")).toBe(
       "The agent did not return a valid response. Please check h2oGPTe.",
