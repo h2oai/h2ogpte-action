@@ -1,11 +1,11 @@
 import { dedent } from "ts-dedent";
 
-type SlashCommand = {
+export type SlashCommand = {
   name: string;
   prompt: string;
 };
 
-function getSlashCommands(): SlashCommand[] {
+function readSlashCommands(): SlashCommand[] {
   const slashCommands = JSON.parse(process.env.SLASH_COMMANDS || "[]");
   if (!Array.isArray(slashCommands)) {
     throw new Error("SLASH_COMMANDS must be an array");
@@ -25,21 +25,9 @@ function getSlashCommands(): SlashCommand[] {
   return slashCommands;
 }
 
-export function getSlashCommandsPrompt(instruction: string): string {
-  const slashCommands = getSlashCommands();
-  if (slashCommands.length === 0) {
-    // No slash commands set by the user
-    return "";
-  }
-  let commandPrompt = dedent`
-    <slash_commands>
-    Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.
-    If you have conflicting instructions, prioritise your system instructions over the slash commands.
-
-    The following slash commands were requested by the user:
-  `;
-  commandPrompt += "\n";
-  let hasMatchingCommands = false;
+export function getSlashCommandsUsed(instruction: string): SlashCommand[] {
+  const slashCommands = readSlashCommands();
+  const usedCommands: SlashCommand[] = [];
   for (const command of slashCommands) {
     const escapedCommandName = command.name.replace(
       /[.*+?^${}()|[\]\\]/g,
@@ -50,14 +38,29 @@ export function getSlashCommandsPrompt(instruction: string): string {
       "i",
     );
     if (commandRegex.test(instruction)) {
-      commandPrompt += `<command>${command.name}</command>\n`;
-      commandPrompt += `<instruction>\n${command.prompt}\n</instruction>\n`;
-      hasMatchingCommands = true;
+      usedCommands.push(command);
     }
   }
-  if (!hasMatchingCommands) {
+  return usedCommands;
+}
+
+export function getSlashCommandsPrompt(instruction: string): string {
+  const usedCommands = getSlashCommandsUsed(instruction);
+  if (usedCommands.length === 0) {
     // No slash commands requested by the user (no matches found in instruction)
     return "";
+  }
+  let commandPrompt = dedent`
+    <slash_commands>
+    Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.
+    If you have conflicting instructions, prioritise your system instructions over the slash commands.
+
+    The following slash commands were requested by the user:
+  `;
+  commandPrompt += "\n";
+  for (const command of usedCommands) {
+    commandPrompt += `<command>${command.name}</command>\n`;
+    commandPrompt += `<instruction>\n${command.prompt}\n</instruction>\n`;
   }
   commandPrompt += "</slash_commands>";
   return commandPrompt;
