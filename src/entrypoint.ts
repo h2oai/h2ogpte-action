@@ -116,6 +116,8 @@ export async function run(): Promise<void> {
       );
       core.debug(`Extracted response: ${updatedCommentBody}`);
 
+      core.debug(`Commands used: ${JSON.stringify(usedCommands, null, 2)}`);
+
       // 8. Update initial comment
       await updateComment(
         octokits.rest,
