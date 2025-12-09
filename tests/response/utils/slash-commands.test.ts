@@ -56,7 +56,7 @@ describe("getSlashCommandsPrompt", () => {
       const instruction = "Please /review this code";
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe(
-        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n- /review: Review the code and provide feedback\n",
+        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n- /review: Review the code and provide feedback\n</slash_commands>",
       );
     });
 
