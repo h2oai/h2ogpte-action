@@ -112,6 +112,7 @@ export async function run(): Promise<void> {
         instruction,
         url,
         chatSessionUrl,
+        usedCommands,
       );
       core.debug(`Extracted response: ${updatedCommentBody}`);
 

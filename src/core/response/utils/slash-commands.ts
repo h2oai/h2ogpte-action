@@ -41,7 +41,8 @@ export function getSlashCommandsUsed(instruction: string): SlashCommand[] {
       usedCommands.push(command);
     }
   }
-  return usedCommands;
+  // Sort commands alphabetically by name
+  return usedCommands.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function getSlashCommandsPrompt(instruction: string): string {
