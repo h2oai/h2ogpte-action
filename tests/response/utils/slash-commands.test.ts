@@ -17,9 +17,6 @@ const COMMAND_WITH_SPECIAL_CHARS = JSON.stringify([
     prompt: "Review code with: - Error handling\n- Performance\n- Security",
   },
 ]);
-const CASE_SENSITIVE_COMMAND = JSON.stringify([
-  { name: "/Review", prompt: "Review code" },
-]);
 const INVALID_JSON = "not valid json";
 const NOT_AN_ARRAY = JSON.stringify({ not: "an array" });
 const INVALID_COMMAND = JSON.stringify([{ name: 123, prompt: "Invalid" }]);
@@ -59,7 +56,7 @@ describe("getSlashCommandsPrompt", () => {
       const instruction = "Please /review this code";
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe(
-        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:- /review: Review the code and provide feedback\n",
+        "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n- /review: Review the code and provide feedback\n",
       );
     });
 
@@ -138,22 +135,42 @@ and /test it`;
   });
 
   describe("edge cases", () => {
-    test("should handle case-sensitive matching", () => {
-      process.env.SLASH_COMMANDS = CASE_SENSITIVE_COMMAND;
-      const instruction = "Please /review this";
-      // Should not match because case is different, so should return empty string
+    test("should match command with different case", () => {
+      process.env.SLASH_COMMANDS = SINGLE_COMMAND;
+      const instruction = "Please /REVIEW this code";
       const result = getSlashCommandsPrompt(instruction);
-      expect(result).toBe("");
+      expect(result).toContain(
+        "- /review: Review the code and provide feedback",
+      );
     });
 
     test("should not match command name as substring of another word", () => {
       process.env.SLASH_COMMANDS = JSON.stringify([
         { name: "/test", prompt: "Run tests" },
       ]);
-      const instruction = "Please test this code";
-      // Should not match because "/test" is not in the instruction, so should return empty string
+      const instruction = "Please /testing this code";
+      // Should not match because "/test" is part of "/testing", so should return empty string
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe("");
+    });
+
+    test("should not match command name in hyphenated word", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "/test", prompt: "Run tests" },
+      ]);
+      const instruction = "Please /test-drive this code";
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toBe("");
+    });
+
+    test("should match exact command name with word boundaries", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "/test", prompt: "Run tests" },
+      ]);
+      const instruction = "Please /test this code";
+      // Should match exact "/test" command
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toContain("- /test: Run tests");
     });
   });
 });

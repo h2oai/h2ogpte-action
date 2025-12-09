@@ -35,9 +35,18 @@ export function getSlashCommandsPrompt(instruction: string): string {
     Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.
     The following slash commands were requested by the user:
   `;
+  commandPrompt += "\n";
   let hasMatchingCommands = false;
   for (const command of slashCommands) {
-    if (instruction.includes(command.name)) {
+    const escapedCommandName = command.name.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&",
+    );
+    const commandRegex = new RegExp(
+      `(^|[^\\w])${escapedCommandName}(?![a-zA-Z0-9_-])`,
+      "i",
+    );
+    if (commandRegex.test(instruction)) {
       commandPrompt += `- ${command.name}: ${command.prompt}\n`;
       hasMatchingCommands = true;
     }
