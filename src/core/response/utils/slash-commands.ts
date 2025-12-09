@@ -48,14 +48,15 @@ export function getSlashCommandsPrompt(instruction: string): string {
       "i",
     );
     if (commandRegex.test(instruction)) {
-      commandPrompt += `- ${command.name}: ${command.prompt}\n`;
+      commandPrompt += `<command>${command.name}</command>\n`;
+      commandPrompt += `<instruction>${command.prompt}</instruction>\n`;
       hasMatchingCommands = true;
     }
   }
-  commandPrompt += "</slash_commands>";
-  // No slash commands requested by the user (no matches found in instruction)
   if (!hasMatchingCommands) {
+    // No slash commands requested by the user (no matches found in instruction)
     return "";
   }
+  commandPrompt += "</slash_commands>";
   return commandPrompt;
 }

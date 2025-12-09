@@ -56,7 +56,7 @@ describe("getSlashCommandsPrompt", () => {
       const instruction = "Please /review this code";
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe(
-        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n- /review: Review the code and provide feedback\n</slash_commands>",
+        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n<command>/review</command>\n<instruction>Review the code and provide feedback</instruction>\n</slash_commands>",
       );
     });
 
@@ -67,10 +67,14 @@ describe("getSlashCommandsPrompt", () => {
       expect(result).toContain(
         "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.",
       );
+      expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "- /review: Review the code and provide feedback",
+        "<instruction>Review the code and provide feedback</instruction>",
       );
-      expect(result).toContain("- /test: Run tests and report results");
+      expect(result).toContain("<command>/test</command>");
+      expect(result).toContain(
+        "<instruction>Run tests and report results</instruction>",
+      );
       expect(result).not.toContain("/docs");
     });
 
@@ -83,10 +87,14 @@ and /test it`;
       expect(result).toContain(
         "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.",
       );
+      expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "- /review: Review the code and provide feedback",
+        "<instruction>Review the code and provide feedback</instruction>",
       );
-      expect(result).toContain("- /test: Run tests and report results");
+      expect(result).toContain("<command>/test</command>");
+      expect(result).toContain(
+        "<instruction>Run tests and report results</instruction>",
+      );
     });
 
     test("should handle commands with special characters in prompt", () => {
@@ -96,8 +104,9 @@ and /test it`;
       expect(result).toContain(
         "Slash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.",
       );
+      expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "- /review: Review code with: - Error handling\n- Performance\n- Security",
+        "<instruction>Review code with: - Error handling\n- Performance\n- Security</instruction>",
       );
     });
   });
@@ -139,8 +148,9 @@ and /test it`;
       process.env.SLASH_COMMANDS = SINGLE_COMMAND;
       const instruction = "Please /REVIEW this code";
       const result = getSlashCommandsPrompt(instruction);
+      expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "- /review: Review the code and provide feedback",
+        "<instruction>Review the code and provide feedback</instruction>",
       );
     });
 
@@ -170,7 +180,8 @@ and /test it`;
       const instruction = "Please /test this code";
       // Should match exact "/test" command
       const result = getSlashCommandsPrompt(instruction);
-      expect(result).toContain("- /test: Run tests");
+      expect(result).toContain("<command>/test</command>");
+      expect(result).toContain("<instruction>Run tests</instruction>");
     });
   });
 });
