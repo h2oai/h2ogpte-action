@@ -49,7 +49,7 @@ export function getSlashCommandsPrompt(instruction: string): string {
     );
     if (commandRegex.test(instruction)) {
       commandPrompt += `<command>${command.name}</command>\n`;
-      commandPrompt += `<instruction>${command.prompt}</instruction>\n`;
+      commandPrompt += `<instruction>\n${command.prompt}\n</instruction>\n`;
       hasMatchingCommands = true;
     }
   }

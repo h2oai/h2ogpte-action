@@ -56,7 +56,7 @@ describe("getSlashCommandsPrompt", () => {
       const instruction = "Please /review this code";
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe(
-        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n<command>/review</command>\n<instruction>Review the code and provide feedback</instruction>\n</slash_commands>",
+        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n<command>/review</command>\n<instruction>\nReview the code and provide feedback\n</instruction>\n</slash_commands>",
       );
     });
 
@@ -69,11 +69,11 @@ describe("getSlashCommandsPrompt", () => {
       );
       expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "<instruction>Review the code and provide feedback</instruction>",
+        "<instruction>\nReview the code and provide feedback\n</instruction>",
       );
       expect(result).toContain("<command>/test</command>");
       expect(result).toContain(
-        "<instruction>Run tests and report results</instruction>",
+        "<instruction>\nRun tests and report results\n</instruction>",
       );
       expect(result).not.toContain("/docs");
     });
@@ -89,11 +89,11 @@ and /test it`;
       );
       expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "<instruction>Review the code and provide feedback</instruction>",
+        "<instruction>\nReview the code and provide feedback\n</instruction>",
       );
       expect(result).toContain("<command>/test</command>");
       expect(result).toContain(
-        "<instruction>Run tests and report results</instruction>",
+        "<instruction>\nRun tests and report results\n</instruction>",
       );
     });
 
@@ -106,7 +106,7 @@ and /test it`;
       );
       expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "<instruction>Review code with: - Error handling\n- Performance\n- Security</instruction>",
+        "<instruction>\nReview code with: - Error handling\n- Performance\n- Security\n</instruction>",
       );
     });
   });
@@ -150,7 +150,7 @@ and /test it`;
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toContain("<command>/review</command>");
       expect(result).toContain(
-        "<instruction>Review the code and provide feedback</instruction>",
+        "<instruction>\nReview the code and provide feedback\n</instruction>",
       );
     });
 
@@ -181,7 +181,7 @@ and /test it`;
       // Should match exact "/test" command
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toContain("<command>/test</command>");
-      expect(result).toContain("<instruction>Run tests</instruction>");
+      expect(result).toContain("<instruction>\nRun tests\n</instruction>");
     });
   });
 });
