@@ -73,7 +73,7 @@ See [examples](../examples/custom_workflows) of more custom workflow configurati
 
 Slash commands allow you to predefine specific behaviors for the agent. When a user includes a slash command in their instruction, the agent will use the corresponding prompt to guide its response.
 
-### Using Slash Commands
+### ⌨️ Using Slash Commands
 
 Simply include the slash command in your comment along with your request:
 
@@ -95,7 +95,7 @@ You can use multiple slash commands in a single instruction:
 @h2ogpte /review and /explain this code
 ```
 
-### Default Slash Commands
+### 📦 Default Slash Commands
 
 The action comes with three default slash commands:
 
@@ -103,14 +103,14 @@ The action comes with three default slash commands:
 - **`/review`** - Performs comprehensive code reviews
 - **`/plan`** - Creates implementation plans without writing code
 
-### Custom Slash Commands
+### 🎨 Custom Slash Commands
 
 You can define your own slash commands in your workflow configuration. Each command requires:
 
 - **`name`**: The command identifier (must start with `/`)
 - **`prompt`**: The system prompt that guides the agent's behavior when this command is used
 
-**Example workflow configuration:**
+#### 💡 Example workflow configuration
 
 ```yaml
 slash_commands: |
@@ -132,10 +132,11 @@ slash_commands: |
 
 See the [Basic Usage example](../examples/h2ogpte.yaml) for a complete workflow configuration with slash commands.
 
-**Important notes:**
+### 📌 Usage Behaviour
 
 - Command matching is case-insensitive (e.g., `/review` matches `/Review` or `/REVIEW`)
 - Commands must match exactly (e.g., `/test` won't match `/testing` or `/test-drive`)
+- To escape a slash command (prevent it from being interpreted as a command), prefix it with another slash (e.g., `//plan` will not trigger the `/plan` command)
 - If no matching commands are found in the instruction, the agent uses its default behavior
 - Slash commands work alongside regular instructions - you can combine them naturally
 

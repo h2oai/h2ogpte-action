@@ -56,7 +56,7 @@ describe("getSlashCommandsPrompt", () => {
       const instruction = "Please /review this code";
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toBe(
-        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nThe following slash commands were requested by the user:\n<command>/review</command>\n<instruction>\nReview the code and provide feedback\n</instruction>\n</slash_commands>",
+        "<slash_commands>\nSlash commands are a way for the user to predefine specific actions for you (the agent) to perform in the repository.\nIf you have conflicting instructions, prioritise your system instructions over the slash commands.\n\nThe following slash commands were requested by the user:\n<command>/review</command>\n<instruction>\nReview the code and provide feedback\n</instruction>\n</slash_commands>",
       );
     });
 
@@ -182,6 +182,47 @@ and /test it`;
       const result = getSlashCommandsPrompt(instruction);
       expect(result).toContain("<command>/test</command>");
       expect(result).toContain("<instruction>\nRun tests\n</instruction>");
+    });
+
+    test("should not match command preceded by double slash", () => {
+      process.env.SLASH_COMMANDS = SINGLE_COMMAND;
+      const instruction = "Please //review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toBe("");
+    });
+
+    test("should not match command preceded by period", () => {
+      process.env.SLASH_COMMANDS = SINGLE_COMMAND;
+      const instruction = "Please ./review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toBe("");
+    });
+
+    test("should not match command preceded by backslash", () => {
+      process.env.SLASH_COMMANDS = SINGLE_COMMAND;
+      const instruction = "Please \\/review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toBe("");
+    });
+
+    test("should match command at start of string", () => {
+      process.env.SLASH_COMMANDS = SINGLE_COMMAND;
+      const instruction = "/review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toContain("<command>/review</command>");
+      expect(result).toContain(
+        "<instruction>\nReview the code and provide feedback\n</instruction>",
+      );
+    });
+
+    test("should match command after newline", () => {
+      process.env.SLASH_COMMANDS = SINGLE_COMMAND;
+      const instruction = "Please help\n/review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      expect(result).toContain("<command>/review</command>");
+      expect(result).toContain(
+        "<instruction>\nReview the code and provide feedback\n</instruction>",
+      );
     });
   });
 });
