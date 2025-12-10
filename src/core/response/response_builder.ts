@@ -47,6 +47,8 @@ function formatUserInstruction(instruction: string): string {
 }
 
 function formatSlashCommands(usedCommands: SlashCommand[]): string {
+  console.log(`usedCommands: ${JSON.stringify(usedCommands, null, 2)}`);
+  console.log(`usedCommands length: ${usedCommands.length}`);
   if (usedCommands.length === 0) {
     return "";
   }
