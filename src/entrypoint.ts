@@ -81,7 +81,8 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const usedCommands = getSlashCommandsUsed(instruction);
+      const { commands: usedCommands, error: slashCommandError } =
+        getSlashCommandsUsed(instruction);
       const initialCommentBody = createInitialWorkingComment(url, usedCommands);
       const h2ogpteComment = await createReply(
         octokits.rest,
@@ -113,6 +114,7 @@ export async function run(): Promise<void> {
         url,
         chatSessionUrl,
         usedCommands,
+        slashCommandError,
       );
       core.debug(`Extracted response: ${updatedCommentBody}`);
 

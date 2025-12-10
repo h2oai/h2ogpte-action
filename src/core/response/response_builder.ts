@@ -8,6 +8,7 @@ export function buildH2ogpteResponse(
   actionUrl: string,
   chatUrl: string,
   usedCommands: SlashCommand[],
+  slashCommandError?: string,
 ): string {
   const formattedInstruction = formatUserInstruction(instruction);
   const references = `For more details see the [github action run](${actionUrl}) or contact the repository admin to see the [chat session](${chatUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
@@ -17,12 +18,12 @@ export function buildH2ogpteResponse(
   if (chatCompletion.success) {
     const cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
 
-    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${formatSlashCommands(usedCommands)}${references}`;
+    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${formatSlashCommands(usedCommands, slashCommandError)}${references}`;
   } else {
     const header = `❌ h2oGPTe ran into some issues`;
     const response = chatCompletion.body;
 
-    commentFormat = `${header}\n---\n${formattedInstruction}\n---\n${response}\n\n---\n${formatSlashCommands(usedCommands)}${references}`;
+    commentFormat = `${header}\n---\n${formattedInstruction}\n---\n${response}\n\n---\n${formatSlashCommands(usedCommands, slashCommandError)}${references}`;
   }
 
   return commentFormat;
@@ -46,7 +47,13 @@ function formatUserInstruction(instruction: string): string {
   return replacedInstruction;
 }
 
-function formatSlashCommands(usedCommands: SlashCommand[]): string {
+function formatSlashCommands(
+  usedCommands: SlashCommand[],
+  error?: string,
+): string {
+  if (error) {
+    return `Slash command config invalid. ${error}\n\n---\n`;
+  }
   if (usedCommands.length === 0) {
     return "";
   }

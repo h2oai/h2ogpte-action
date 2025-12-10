@@ -21,34 +21,64 @@ function readSlashCommands(): SlashCommand[] {
         "Each entry in SLASH_COMMANDS must be an object with string 'name' and 'prompt' properties",
       );
     }
+
+    // Validate command name format
+    const name = command.name;
+    if (!name.startsWith("/")) {
+      throw new Error(
+        `Command name "${name}" must start with "/". Each entry in SLASH_COMMANDS must have a 'name' property that starts with "/".`,
+      );
+    }
+    if (/\s/.test(name)) {
+      throw new Error(
+        `Command name "${name}" cannot contain whitespace. Each entry in SLASH_COMMANDS must have a 'name' property without whitespace.`,
+      );
+    }
+    if (name.length < 2 || name.length > 50) {
+      throw new Error(
+        `Command name "${name}" must be between 2 and 50 characters long. Each entry in SLASH_COMMANDS must have a 'name' property within this length range.`,
+      );
+    }
   }
   return slashCommands;
 }
 
-export function getSlashCommandsUsed(instruction: string): SlashCommand[] {
-  const slashCommands = readSlashCommands();
-  const usedCommands: SlashCommand[] = [];
-  for (const command of slashCommands) {
-    const escapedCommandName = command.name.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&",
-    );
-    const commandRegex = new RegExp(
-      `(^|[\\n ])${escapedCommandName}(?![a-zA-Z0-9_-])`,
-      "i",
-    );
-    if (commandRegex.test(instruction)) {
-      usedCommands.push(command);
+export function getSlashCommandsUsed(instruction: string): {
+  commands: SlashCommand[];
+  error?: string;
+} {
+  try {
+    const slashCommands = readSlashCommands();
+    const usedCommands: SlashCommand[] = [];
+    for (const command of slashCommands) {
+      const escapedCommandName = command.name.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
+      const commandRegex = new RegExp(
+        `(^|[\\n ])${escapedCommandName}(?![a-zA-Z0-9_-])`,
+        "i",
+      );
+      if (commandRegex.test(instruction)) {
+        usedCommands.push(command);
+      }
     }
+    // Sort commands alphabetically by name
+    return {
+      commands: usedCommands.sort((a, b) => a.name.localeCompare(b.name)),
+    };
+  } catch (error) {
+    return {
+      commands: [],
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
-  // Sort commands alphabetically by name
-  return usedCommands.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function getSlashCommandsPrompt(instruction: string): string {
-  const usedCommands = getSlashCommandsUsed(instruction);
+  const { commands: usedCommands } = getSlashCommandsUsed(instruction);
   if (usedCommands.length === 0) {
-    // No slash commands requested by the user (no matches found in instruction)
+    // No slash commands requested by the user (no matches found in instruction) or error occurred
     return "";
   }
   let commandPrompt = dedent`

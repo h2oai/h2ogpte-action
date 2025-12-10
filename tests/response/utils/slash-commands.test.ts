@@ -1,5 +1,8 @@
 import { describe, test, expect, beforeEach } from "bun:test";
-import { getSlashCommandsPrompt } from "../../../src/core/response/utils/slash-commands";
+import {
+  getSlashCommandsPrompt,
+  getSlashCommandsUsed,
+} from "../../../src/core/response/utils/slash-commands";
 
 // Test data constants
 const EMPTY_COMMANDS = "[]";
@@ -112,34 +115,140 @@ and /test it`;
   });
 
   describe("error handling", () => {
-    test("should throw error when SLASH_COMMANDS is not valid JSON", () => {
+    test("getSlashCommandsUsed should return error when SLASH_COMMANDS is not valid JSON", () => {
       process.env.SLASH_COMMANDS = INVALID_JSON;
       const instruction = "Please review this";
-      expect(() => getSlashCommandsPrompt(instruction)).toThrow();
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
     });
 
-    test("should throw error when SLASH_COMMANDS is not an array", () => {
+    test("getSlashCommandsUsed should return error when SLASH_COMMANDS is not an array", () => {
       process.env.SLASH_COMMANDS = NOT_AN_ARRAY;
       const instruction = "Please review this";
-      expect(() => getSlashCommandsPrompt(instruction)).toThrow(
-        "SLASH_COMMANDS must be an array",
-      );
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain("must be an array");
     });
 
-    test("should throw error when command has invalid structure", () => {
+    test("getSlashCommandsUsed should return error when command has invalid structure", () => {
       process.env.SLASH_COMMANDS = INVALID_COMMAND;
       const instruction = "Please review this";
-      expect(() => getSlashCommandsPrompt(instruction)).toThrow(
-        "Each entry in SLASH_COMMANDS must be an object with string 'name' and 'prompt' properties",
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain(
+        "must be an object with string 'name' and 'prompt' properties",
       );
     });
 
-    test("should throw proper error when command is null", () => {
+    test("getSlashCommandsUsed should return error when command is null", () => {
       process.env.SLASH_COMMANDS = NULL_COMMAND;
       const instruction = "Please review this";
-      expect(() => getSlashCommandsPrompt(instruction)).toThrow(
-        "Each entry in SLASH_COMMANDS must be an object with string 'name' and 'prompt' properties",
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain(
+        "must be an object with string 'name' and 'prompt' properties",
       );
+    });
+
+    test("getSlashCommandsUsed should return error when command name does not start with /", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "review", prompt: "Review the code" },
+      ]);
+      const instruction = "Please review this";
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain('must start with "/"');
+    });
+
+    test("getSlashCommandsUsed should return error when command name contains whitespace", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "/review code", prompt: "Review the code" },
+      ]);
+      const instruction = "Please review this";
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain("cannot contain whitespace");
+    });
+
+    test("getSlashCommandsUsed should return error when command name is too short", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "/", prompt: "Invalid command" },
+      ]);
+      const instruction = "Please review this";
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain(
+        "must be between 2 and 50 characters long",
+      );
+    });
+
+    test("getSlashCommandsUsed should return error when command name is too long", () => {
+      const longName = "/" + "a".repeat(50);
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: longName, prompt: "Invalid command" },
+      ]);
+      const instruction = "Please review this";
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain(
+        "must be between 2 and 50 characters long",
+      );
+    });
+  });
+
+  describe("error handling - graceful degradation", () => {
+    test("getSlashCommandsPrompt should return empty string when config has errors", () => {
+      process.env.SLASH_COMMANDS = INVALID_JSON;
+      const instruction = "Please /review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      // Should ignore errors and return empty string
+      expect(result).toBe("");
+    });
+
+    test("getSlashCommandsPrompt should return empty string when config is not an array", () => {
+      process.env.SLASH_COMMANDS = NOT_AN_ARRAY;
+      const instruction = "Please /review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      // Should ignore errors and return empty string
+      expect(result).toBe("");
+    });
+
+    test("getSlashCommandsPrompt should return empty string when command name doesn't start with /", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "review", prompt: "Review the code" },
+      ]);
+      const instruction = "Please /review this code";
+      const result = getSlashCommandsPrompt(instruction);
+      // Should ignore errors and return empty string
+      expect(result).toBe("");
+    });
+
+    test("getSlashCommandsUsed should return error in result when config has errors", () => {
+      process.env.SLASH_COMMANDS = INVALID_JSON;
+      const instruction = "Please /review this code";
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain("JSON");
+    });
+
+    test("getSlashCommandsUsed should return error when command name doesn't start with /", () => {
+      process.env.SLASH_COMMANDS = JSON.stringify([
+        { name: "review", prompt: "Review the code" },
+      ]);
+      const instruction = "Please /review this code";
+      const result = getSlashCommandsUsed(instruction);
+      expect(result.commands).toEqual([]);
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain('must start with "/"');
     });
   });
 

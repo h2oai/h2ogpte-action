@@ -522,5 +522,73 @@ describe("buildH2ogpteResponse", () => {
 
       expect(result).toBe(expected);
     });
+
+    test("should display slash command config error in successful response", () => {
+      const chatCompletion: ChatResponse = {
+        success: true,
+        body: "This is a successful response",
+      };
+      const instruction = "Please review this code";
+      const usedCommands: SlashCommand[] = [];
+      const errorMessage = "SLASH_COMMANDS must be an array";
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+        usedCommands,
+        errorMessage,
+      );
+
+      const expected = [
+        "> Please review this code",
+        "---",
+        "This is a successful response",
+        "",
+        "---",
+        `Slash command config invalid. ${errorMessage}`,
+        "",
+        "---",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
+      ].join("\n");
+
+      expect(result).toBe(expected);
+    });
+
+    test("should display slash command config error in failed response", () => {
+      const chatCompletion: ChatResponse = {
+        success: false,
+        body: "Error: Connection failed",
+      };
+      const instruction = "Please analyze this code";
+      const usedCommands: SlashCommand[] = [];
+      const errorMessage = 'Command name "review" must start with "/"';
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+        usedCommands,
+        errorMessage,
+      );
+
+      const expected = [
+        "❌ h2oGPTe ran into some issues",
+        "---",
+        "> Please analyze this code",
+        "---",
+        "Error: Connection failed",
+        "",
+        "---",
+        `Slash command config invalid. ${errorMessage}`,
+        "",
+        "---",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
+      ].join("\n");
+
+      expect(result).toBe(expected);
+    });
   });
 });
