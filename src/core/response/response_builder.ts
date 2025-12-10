@@ -53,5 +53,5 @@ function formatSlashCommands(usedCommands: SlashCommand[]): string {
   const formattedCommands = usedCommands
     .map((command) => `${command.name}`)
     .join(" ");
-  return `Slash commands used: ${formattedCommands}\n\n---\n`;
+  return `Slash commands used: \`${formattedCommands}\`\n\n---\n`;
 }

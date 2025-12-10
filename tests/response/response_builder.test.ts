@@ -410,7 +410,7 @@ describe("buildH2ogpteResponse", () => {
         "This is a successful response",
         "",
         "---",
-        "Slash commands used: /review",
+        "Slash commands used: `/review`",
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
@@ -439,7 +439,7 @@ describe("buildH2ogpteResponse", () => {
         usedCommands,
       );
 
-      expect(result).toContain("Slash commands used: /docs /review /test");
+      expect(result).toContain("Slash commands used: `/docs /review /test`");
       expect(result).toContain("This is a successful response");
     });
 
@@ -463,7 +463,7 @@ describe("buildH2ogpteResponse", () => {
       );
 
       expect(result).toContain(
-        "Slash commands used: /custom-command /test_command",
+        "Slash commands used: `/custom-command /test_command`",
       );
       expect(result).toContain("Response with special chars");
     });
@@ -514,7 +514,7 @@ describe("buildH2ogpteResponse", () => {
         "Error: Connection failed",
         "",
         "---",
-        "Slash commands used: /review",
+        "Slash commands used: `/review`",
         "",
         "---",
         getExpectedReferences(mockActionUrl, mockChatUrl),
