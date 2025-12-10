@@ -386,7 +386,7 @@ describe("buildH2ogpteResponse", () => {
   });
 
   describe("slash commands", () => {
-    test("should not include slash commands in successful response", () => {
+    test("should include single slash command in successful response", () => {
       const chatCompletion: ChatResponse = {
         success: true,
         body: "This is a successful response",
@@ -404,11 +404,91 @@ describe("buildH2ogpteResponse", () => {
         usedCommands,
       );
 
+      const expected = [
+        "> Please review this code",
+        "---",
+        "This is a successful response",
+        "",
+        "---",
+        "Slash commands used: /review",
+        "",
+        "---",
+        getExpectedReferences(mockActionUrl, mockChatUrl),
+      ].join("\n");
+
+      expect(result).toBe(expected);
+    });
+
+    test("should include multiple slash commands in successful response", () => {
+      const chatCompletion: ChatResponse = {
+        success: true,
+        body: "This is a successful response",
+      };
+      const instruction = "Please review and test this code";
+      const usedCommands: SlashCommand[] = [
+        { name: "/review", prompt: "Review the code" },
+        { name: "/test", prompt: "Run tests" },
+        { name: "/docs", prompt: "Generate documentation" },
+      ].sort((a, b) => a.name.localeCompare(b.name)); // sorted since it is sorted in `src/core/response/utils/slash-commands.ts`
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+        usedCommands,
+      );
+
+      expect(result).toContain("Slash commands used: /docs /review /test");
+      expect(result).toContain("This is a successful response");
+    });
+
+    test("should handle slash commands with special characters in successful response", () => {
+      const chatCompletion: ChatResponse = {
+        success: true,
+        body: "Response with special chars",
+      };
+      const instruction = "Check this out";
+      const usedCommands: SlashCommand[] = [
+        { name: "/custom-command", prompt: "Custom prompt" },
+        { name: "/test_command", prompt: "Test prompt" },
+      ];
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+        usedCommands,
+      );
+
+      expect(result).toContain(
+        "Slash commands used: /custom-command /test_command",
+      );
+      expect(result).toContain("Response with special chars");
+    });
+
+    test("should not include slash commands section when empty array in successful response", () => {
+      const chatCompletion: ChatResponse = {
+        success: true,
+        body: "This is a successful response",
+      };
+      const instruction = "Do something";
+      const usedCommands: SlashCommand[] = [];
+
+      const result = buildH2ogpteResponse(
+        chatCompletion,
+        instruction,
+        mockActionUrl,
+        mockChatUrl,
+        usedCommands,
+      );
+
       expect(result).not.toContain("Slash commands used:");
       expect(result).toContain("This is a successful response");
     });
 
-    test("should include single slash command in failed response", () => {
+    test("should include slash commands in failed response", () => {
       const chatCompletion: ChatResponse = {
         success: false,
         body: "Error: Connection failed",
@@ -441,88 +521,6 @@ describe("buildH2ogpteResponse", () => {
       ].join("\n");
 
       expect(result).toBe(expected);
-    });
-
-    test("should include multiple slash commands in failed response", () => {
-      const chatCompletion: ChatResponse = {
-        success: false,
-        body: "Error: Processing failed",
-      };
-      const instruction = "Please review and test this code";
-      const usedCommands: SlashCommand[] = [
-        { name: "/review", prompt: "Review the code" },
-        { name: "/test", prompt: "Run tests" },
-        { name: "/docs", prompt: "Generate documentation" },
-      ].sort((a, b) => a.name.localeCompare(b.name)); // sorted since it is sorted in `src/core/response/utils/slash-commands.ts`
-
-      const result = buildH2ogpteResponse(
-        chatCompletion,
-        instruction,
-        mockActionUrl,
-        mockChatUrl,
-        usedCommands,
-      );
-
-      const expected = [
-        "❌ h2oGPTe ran into some issues",
-        "---",
-        "> Please review and test this code",
-        "---",
-        "Error: Processing failed",
-        "",
-        "---",
-        "Slash commands used: /docs /review /test",
-        "",
-        "---",
-        getExpectedReferences(mockActionUrl, mockChatUrl),
-      ].join("\n");
-
-      expect(result).toBe(expected);
-    });
-
-    test("should handle slash commands with special characters in failed response", () => {
-      const chatCompletion: ChatResponse = {
-        success: false,
-        body: "Error: Validation error",
-      };
-      const instruction = "Check this out";
-      const usedCommands: SlashCommand[] = [
-        { name: "/custom-command", prompt: "Custom prompt" },
-        { name: "/test_command", prompt: "Test prompt" },
-      ];
-
-      const result = buildH2ogpteResponse(
-        chatCompletion,
-        instruction,
-        mockActionUrl,
-        mockChatUrl,
-        usedCommands,
-      );
-
-      expect(result).toContain(
-        "Slash commands used: /custom-command /test_command",
-      );
-      expect(result).toContain("Error: Validation error");
-    });
-
-    test("should not include slash commands section when empty array in failed response", () => {
-      const chatCompletion: ChatResponse = {
-        success: false,
-        body: "Error: Something went wrong",
-      };
-      const instruction = "Do something";
-      const usedCommands: SlashCommand[] = [];
-
-      const result = buildH2ogpteResponse(
-        chatCompletion,
-        instruction,
-        mockActionUrl,
-        mockChatUrl,
-        usedCommands,
-      );
-
-      expect(result).not.toContain("Slash commands used:");
-      expect(result).toContain("Error: Something went wrong");
     });
   });
 });

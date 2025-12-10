@@ -17,7 +17,7 @@ export function buildH2ogpteResponse(
   if (chatCompletion.success) {
     const cleanedResponse = extractFinalAgentResponse(chatCompletion.body);
 
-    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${references}`;
+    commentFormat = `${formattedInstruction}\n---\n${cleanedResponse}\n\n---\n${formatSlashCommands(usedCommands)}${references}`;
   } else {
     const header = `❌ h2oGPTe ran into some issues`;
     const response = chatCompletion.body;
@@ -47,8 +47,6 @@ function formatUserInstruction(instruction: string): string {
 }
 
 function formatSlashCommands(usedCommands: SlashCommand[]): string {
-  console.log(`usedCommands: ${JSON.stringify(usedCommands, null, 2)}`);
-  console.log(`usedCommands length: ${usedCommands.length}`);
   if (usedCommands.length === 0) {
     return "";
   }
