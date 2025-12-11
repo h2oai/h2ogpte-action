@@ -28,8 +28,7 @@ describe("createInitialWorkingComment", () => {
     expect(result).toContain(
       '<img src="https://h2ogpte-github-action.cdn.h2o.ai/h2o_loading.gif" width="40px"/>',
     );
-    expect(result).toContain("Commands used:");
-    expect(result).toContain("- /review\n");
+    expect(result).toContain("Slash commands used: `/review`");
     expect(result).toContain(
       `Follow progress in the [GitHub Action run](${TEST_ACTION_URL})`,
     );
@@ -37,9 +36,9 @@ describe("createInitialWorkingComment", () => {
 
   test("should create comment with multiple commands", () => {
     const usedCommands: SlashCommand[] = [
+      { name: "/docs", prompt: "Generate docs" },
       { name: "/review", prompt: "Review the code" },
       { name: "/test", prompt: "Run tests" },
-      { name: "/docs", prompt: "Generate docs" },
     ];
     const result = createInitialWorkingComment(TEST_ACTION_URL, usedCommands);
 
@@ -47,10 +46,7 @@ describe("createInitialWorkingComment", () => {
     expect(result).toContain(
       '<img src="https://h2ogpte-github-action.cdn.h2o.ai/h2o_loading.gif" width="40px"/>',
     );
-    expect(result).toContain("Commands used:");
-    expect(result).toContain("- /review\n");
-    expect(result).toContain("- /test\n");
-    expect(result).toContain("- /docs\n");
+    expect(result).toContain("Slash commands used: `/docs /review /test`");
     expect(result).toContain(
       `Follow progress in the [GitHub Action run](${TEST_ACTION_URL})`,
     );
@@ -75,19 +71,15 @@ describe("createInitialWorkingComment", () => {
     expect(containsOneMessage).toBe(true);
   });
 
-  test("should format commands with correct indentation", () => {
+  test("should format commands with correct formatting", () => {
     const usedCommands: SlashCommand[] = [
       { name: "/review", prompt: "Review code" },
       { name: "/test", prompt: "Run tests" },
     ];
     const result = createInitialWorkingComment(TEST_ACTION_URL, usedCommands);
 
-    // Verify each command is on its own line
-    const lines = result.split("\n");
-    const commandLines = lines.filter((line) => line.includes("- /"));
-    expect(commandLines).toHaveLength(2);
-    expect(commandLines[0]).toBe("- /review");
-    expect(commandLines[1]).toBe("- /test");
+    // Verify commands are space-separated in backticks
+    expect(result).toContain("Slash commands used: `/review /test`");
   });
 
   test("should maintain correct markdown structure", () => {
@@ -98,7 +90,7 @@ describe("createInitialWorkingComment", () => {
 
     // Should have proper markdown structure
     expect(result).toMatch(/^### .+ &nbsp;.+$/m); // Header with GIF
-    expect(result).toContain("Commands used:");
+    expect(result).toContain("Slash commands used:");
     expect(result).toMatch(/\[GitHub Action run\]\(.+\)/); // Link format
   });
 
@@ -109,7 +101,8 @@ describe("createInitialWorkingComment", () => {
     ];
     const result = createInitialWorkingComment(TEST_ACTION_URL, usedCommands);
 
-    expect(result).toContain("- /custom-command\n");
-    expect(result).toContain("- /test_command\n");
+    expect(result).toContain(
+      "Slash commands used: `/custom-command /test_command`",
+    );
   });
 });

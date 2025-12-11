@@ -20,12 +20,13 @@ export function createInitialWorkingComment(
 
   let commentBody = `### ${randomMessage} &nbsp;<img src="${GIF_DATA_URL}" width="40px"/>\n\n`;
 
-  if (usedCommands.length > 0) {
-    commentBody += `Commands used:\n`;
-    for (const command of usedCommands) {
-      commentBody += `- ${command.name}\n`;
-    }
-    commentBody += "\n";
+  if (usedCommands.length === 0) {
+    // No commands to display
+  } else {
+    const formattedCommands = usedCommands
+      .map((command) => `${command.name}`)
+      .join(" ");
+    commentBody += `Slash commands used: \`${formattedCommands}\`\n\n`;
   }
 
   commentBody += `Follow progress in the [GitHub Action run](${actionUrl})`;
