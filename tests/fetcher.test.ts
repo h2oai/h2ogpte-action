@@ -6,6 +6,7 @@
  * that use real GitHub APIs and repositories.
  */
 
+import * as core from "@actions/core";
 import {
   afterEach,
   beforeEach,
@@ -36,9 +37,9 @@ import type { Octokits } from "../src/core/services/github/octokits";
 
 describe("fetchGitHubData", () => {
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  let consoleLogSpy: any;
-  let consoleWarnSpy: any;
-  let consoleErrorSpy: any;
+  let coreInfoSpy: any;
+  let coreWarningSpy: any;
+  let coreErrorSpy: any;
   let execSyncSpy: any;
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
@@ -46,19 +47,19 @@ describe("fetchGitHubData", () => {
     // Set up environment variables required for tests
     process.env.GITHUB_SERVER_URL = "https://github.com";
 
-    // Spy on console methods
-    consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
-    consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => {});
-    consoleErrorSpy = spyOn(console, "error").mockImplementation(() => {});
+    // Spy on core logging
+    coreInfoSpy = spyOn(core, "info").mockImplementation(() => {});
+    coreWarningSpy = spyOn(core, "warning").mockImplementation(() => {});
+    coreErrorSpy = spyOn(core, "error").mockImplementation(() => {});
 
     // Spy on external dependencies
     execSyncSpy = spyOn({ execSync }, "execSync");
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
-    consoleWarnSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    coreInfoSpy.mockRestore();
+    coreWarningSpy.mockRestore();
+    coreErrorSpy.mockRestore();
     execSyncSpy.mockRestore();
   });
 
@@ -144,19 +145,19 @@ describe("fetchGitHubData", () => {
       .fn()
       .mockRejectedValue(new Error("API rate limit exceeded"));
 
-    await expect(
-      fetchGitHubData({
-        octokits: mockOctokits,
-        repository: "owner/repo",
-        prNumber: "42",
-        isPR: true,
-      }),
-    ).rejects.toThrow("Failed to fetch PR data");
+    const fetchPromise = fetchGitHubData({
+      octokits: mockOctokits,
+      repository: "owner/repo",
+      prNumber: "42",
+      isPR: true,
+    });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to fetch PR data:",
-      expect.any(Error),
+    await expect(fetchPromise).rejects.toThrow(
+      "Failed to fetch PR data: API rate limit exceeded",
     );
+    await expect(fetchPromise).rejects.toMatchObject({
+      cause: expect.any(Error),
+    });
   });
 
   test("should compute SHA for added/modified files", async () => {
@@ -191,7 +192,6 @@ describe("fetchGitHubData", () => {
 
     // Mock successful SHA computation
     execSyncSpy.mockReturnValue("abc123def456\n");
-    consoleWarnSpy.mockRestore();
     const result = await fetchGitHubData({
       octokits: mockOctokits,
       repository: "owner/repo",
@@ -312,9 +312,8 @@ describe("fetchGitHubData", () => {
       sha: "unknown",
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      "Failed to compute SHA for src/test.ts:",
-      expect.any(Error),
+    expect(coreWarningSpy).toHaveBeenCalledWith(
+      "Failed to compute SHA for src/test.ts: Error: git command failed",
     );
   });
 
@@ -390,14 +389,14 @@ describe("fetchGitHubData", () => {
 
 describe("fetchUserDisplayName", () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let consoleWarnSpy: any;
+  let coreWarningSpy: any;
 
   beforeEach(() => {
-    consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => {});
+    coreWarningSpy = spyOn(core, "warning").mockImplementation(() => {});
   });
 
   afterEach(() => {
-    consoleWarnSpy.mockRestore();
+    coreWarningSpy.mockRestore();
   });
 
   test("should return null when user has no display name", async () => {
@@ -422,9 +421,8 @@ describe("fetchUserDisplayName", () => {
     const result = await fetchUserDisplayName(mockGraphql, "nonexistent");
 
     expect(result).toBeNull();
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      "Failed to fetch user display name for nonexistent:",
-      expect.any(Error),
+    expect(coreWarningSpy).toHaveBeenCalledWith(
+      "Failed to fetch user display name for nonexistent: Error: User not found",
     );
   });
 });

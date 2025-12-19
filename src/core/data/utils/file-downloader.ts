@@ -352,7 +352,11 @@ export async function downloadCommentAttachments(
 
     return urlToPathMap;
   } catch (error) {
-    core.error("Error in downloadCommentAttachments:", error as Error);
+    core.error(
+      `Error in downloadCommentAttachments: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
     return urlToPathMap;
   }
 }

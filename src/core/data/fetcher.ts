@@ -146,8 +146,9 @@ export async function fetchGitHubData({
       }
     }
   } catch (error) {
-    core.error(`Failed to fetch ${isPR ? "PR" : "issue"} data: ${error}`);
-    throw new Error(`Failed to fetch ${isPR ? "PR" : "issue"} data`);
+    const baseMessage = `Failed to fetch ${isPR ? "PR" : "issue"} data`;
+    const details = error instanceof Error ? error.message : String(error);
+    throw new Error(`${baseMessage}: ${details}`, { cause: error });
   }
 
   // Compute SHAs for changed files
