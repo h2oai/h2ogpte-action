@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { AGENT_GITHUB_ENV_VAR } from "../constants";
 import type { ParsedGitHubContext } from "./services/github/types";
@@ -49,7 +50,7 @@ export async function checkWritePermissions(
   const { repository, actor } = context;
 
   try {
-    console.log(`Checking permissions for actor: ${actor}`);
+    core.debug(`Checking permissions for actor: ${actor}`);
 
     // Check permissions directly using the permission endpoint
     const response = await octokit.repos.getCollaboratorPermissionLevel({
@@ -59,17 +60,17 @@ export async function checkWritePermissions(
     });
 
     const permissionLevel = response.data.permission;
-    console.log(`Permission level retrieved: ${permissionLevel}`);
+    core.debug(`Permission level retrieved: ${permissionLevel}`);
 
     if (permissionLevel === "admin" || permissionLevel === "write") {
-      console.log(`Actor has write access: ${permissionLevel}`);
+      core.debug(`Actor has write access: ${permissionLevel}`);
       return true;
     } else {
-      console.warn(`Actor has insufficient permissions: ${permissionLevel}`);
+      core.warning(`Actor has insufficient permissions: ${permissionLevel}`);
       return false;
     }
   } catch (error) {
-    console.error(`Failed to check permissions: ${error}`);
+    core.error(`Failed to check permissions: ${error}`);
     throw new Error(`Failed to check permissions for ${actor}: ${error}`);
   }
 }
@@ -97,11 +98,11 @@ export async function cleanup(keyUuid: string | null): Promise<void> {
     try {
       await deleteAgentKey(keyUuid);
     } catch (error) {
-      console.warn(
+      core.warning(
         `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   } else {
-    console.log(`No agent key to clean up`);
+    core.warning(`No agent key to clean up`);
   }
 }

@@ -4,26 +4,28 @@
  * License: MIT
  */
 
+import * as core from "@actions/core";
 import {
-  describe,
-  test,
-  expect,
-  spyOn,
-  beforeEach,
   afterEach,
+  beforeEach,
+  describe,
+  expect,
   jest,
   setSystemTime,
+  spyOn,
+  test,
 } from "bun:test";
 import fs from "fs/promises";
-import { downloadCommentAttachments } from "../src/core/data/utils/file-downloader";
 import type { CommentWithAttachments } from "../src/core/data/utils/file-downloader";
+import { downloadCommentAttachments } from "../src/core/data/utils/file-downloader";
 import type { Octokits } from "../src/core/services/github/octokits";
 
 describe("downloadCommentAttachments", () => {
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  let consoleLogSpy: any;
-  let consoleWarnSpy: any;
-  let consoleErrorSpy: any;
+  let coreErrorSpy: any;
+  let coreInfoSpy: any;
+  let coreWarningSpy: any;
+  let coreDebugSpy: any;
   let fsMkdirSpy: any;
   let fsWriteFileSpy: any;
   let fetchSpy: any;
@@ -33,10 +35,11 @@ describe("downloadCommentAttachments", () => {
     // Set up environment variables required for tests
     process.env.GITHUB_SERVER_URL = "https://github.com";
 
-    // Spy on console methods
-    consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
-    consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => {});
-    consoleErrorSpy = spyOn(console, "error").mockImplementation(() => {});
+    // Spy on core logging
+    coreInfoSpy = spyOn(core, "info").mockImplementation(() => {});
+    coreWarningSpy = spyOn(core, "warning").mockImplementation(() => {});
+    coreDebugSpy = spyOn(core, "debug").mockImplementation(() => {});
+    coreErrorSpy = spyOn(core, "error").mockImplementation(() => {});
 
     // Spy on fs methods
     fsMkdirSpy = spyOn(fs, "mkdir").mockResolvedValue(undefined);
@@ -47,9 +50,10 @@ describe("downloadCommentAttachments", () => {
   });
 
   afterEach(() => {
-    consoleLogSpy.mockRestore();
-    consoleWarnSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    coreInfoSpy.mockRestore();
+    coreWarningSpy.mockRestore();
+    coreDebugSpy.mockRestore();
+    coreErrorSpy.mockRestore();
     fsMkdirSpy.mockRestore();
     fsWriteFileSpy.mockRestore();
     if (fetchSpy) fetchSpy.mockRestore();
@@ -112,7 +116,7 @@ describe("downloadCommentAttachments", () => {
     );
 
     expect(result.size).toBe(0);
-    expect(consoleLogSpy).not.toHaveBeenCalledWith(
+    expect(coreInfoSpy).not.toHaveBeenCalledWith(
       expect.stringContaining("Found"),
     );
   });
@@ -175,13 +179,13 @@ describe("downloadCommentAttachments", () => {
     expect(result.get(imageUrl)).toBe(
       "/tmp/github-attachments/images-test-ima-1704067200000-0.png",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "Found 1 attachment(s) in issue_comment 123",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       `Downloading image (images): https://github.com/user-attachments/assets/test-image.png...`,
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "✓ Downloaded image (images): images-test-ima-1704067200000-0.png",
     );
   });
@@ -244,13 +248,13 @@ describe("downloadCommentAttachments", () => {
     expect(result.get(imageUrl)).toBe(
       "/tmp/github-attachments/images-test-ima-1704067200000-0.png",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "Found 1 attachment(s) in issue_comment 456",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       `Downloading image (images): https://github.com/user-attachments/assets/test-image.png...`,
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "✓ Downloaded image (images): images-test-ima-1704067200000-0.png",
     );
   });
@@ -405,7 +409,7 @@ describe("downloadCommentAttachments", () => {
     expect(result.get(imageUrl)).toBe(
       "/tmp/github-attachments/images-issue-bo-1704067200000-0.gif",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "Found 1 attachment(s) in issue_body 200",
     );
   });
@@ -457,7 +461,7 @@ describe("downloadCommentAttachments", () => {
     expect(result.get(imageUrl)).toBe(
       "/tmp/github-attachments/images-pr-body.-1704067200000-0.tiff",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "Found 1 attachment(s) in pr_body 300",
     );
   });
@@ -511,7 +515,7 @@ describe("downloadCommentAttachments", () => {
     expect(result.get(fileUrl)).toBe(
       "/tmp/github-attachments/documents-markdown-1704067200000-1.md",
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       "Found 2 attachment(s) in issue_comment 999",
     );
   });
@@ -595,7 +599,7 @@ describe("downloadCommentAttachments", () => {
     );
 
     expect(result.size).toBe(0);
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
+    expect(coreWarningSpy).toHaveBeenCalledWith(
       "No HTML body found for issue_comment 333",
     );
   });
@@ -627,8 +631,6 @@ describe("downloadCommentAttachments", () => {
       },
     ];
 
-    // consoleErrorSpy.mockRestore(,
-
     const result = await downloadCommentAttachments(
       mockOctokit.rest,
       "owner",
@@ -640,7 +642,7 @@ describe("downloadCommentAttachments", () => {
     );
 
     expect(result.size).toBe(0);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect(coreErrorSpy).toHaveBeenCalledWith(
       `✗ Failed to download ${imageUrl}: HTTP 404: Not Found`,
     );
   });
@@ -673,7 +675,7 @@ describe("downloadCommentAttachments", () => {
     );
 
     expect(result.size).toBe(0);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect(coreErrorSpy).toHaveBeenCalledWith(
       "Failed to process attachments for issue_comment 555: API rate limit exceeded",
     );
   });
@@ -765,7 +767,7 @@ describe("downloadCommentAttachments", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(0);
     expect(result.size).toBe(0);
-    expect(consoleLogSpy).toHaveBeenCalledWith(
+    expect(coreInfoSpy).toHaveBeenCalledWith(
       `Skipping ${fileUrl} - extension .bin unsupported`,
     );
   });
@@ -811,7 +813,7 @@ describe("downloadCommentAttachments", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(result.size).toBe(0);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
+    expect(coreErrorSpy).toHaveBeenCalledWith(
       `✗ Failed to download ${fileUrl}: File too large: 8 bytes (max: 0 bytes)`,
     );
   });
