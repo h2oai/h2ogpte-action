@@ -139,7 +139,6 @@ export async function fetchWithRetryStreaming(
           }
 
           const chunk = decoder.decode(value, { stream: true });
-          core.info(`Streaming chunk: ${chunk}`);
           result += chunk;
         }
       } finally {
