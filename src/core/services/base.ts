@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import * as types from "./h2ogpte/types";
 
 /**
@@ -17,7 +18,7 @@ export async function fetchWithRetry(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-    console.warn(`Request timed out after ${timeoutMs} ms`);
+    core.warning(`Request timed out after ${timeoutMs} ms`);
   }, timeoutMs);
 
   // Merge the abort signal with existing options
@@ -30,7 +31,7 @@ export async function fetchWithRetry(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Attempt ${attempt}/${maxRetries} for ${url}`);
+      core.info(`Attempt ${attempt}/${maxRetries} for ${url}`);
 
       const response = await fetch(url, fetchOptions);
       clearTimeout(timeoutId);
@@ -49,20 +50,20 @@ export async function fetchWithRetry(
       clearTimeout(timeoutId);
 
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(
+      core.warning(
         `Attempt ${attempt}/${maxRetries} failed: ${lastError.message}`,
       );
 
       if (attempt < maxRetries) {
         // Exponential backoff
         const delay = retryDelay * Math.pow(2, attempt - 1);
-        console.log(`Retrying after ${delay}ms`);
+        core.info(`Retrying after ${delay}ms`);
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Reset timeout for next attempt
         setTimeout(() => {
           controller.abort();
-          console.warn(`Request timed out after ${timeoutMs} ms`);
+          core.warning(`Request timed out after ${timeoutMs} ms`);
         }, timeoutMs);
         if (timeoutId) clearTimeout(timeoutId);
       }
@@ -92,7 +93,7 @@ export async function fetchWithRetryStreaming(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-    console.warn(`Streaming request timed out after ${timeoutMs} ms`);
+    core.warning(`Streaming request timed out after ${timeoutMs} ms`);
   }, timeoutMs);
 
   // Merge the abort signal with existing options
@@ -106,7 +107,7 @@ export async function fetchWithRetryStreaming(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`Streaming attempt ${attempt}/${maxRetries} for ${url}`);
+      core.info(`Streaming attempt ${attempt}/${maxRetries} for ${url}`);
 
       const response = await fetch(url, fetchOptions);
       clearTimeout(timeoutId);
@@ -138,6 +139,7 @@ export async function fetchWithRetryStreaming(
           }
 
           const chunk = decoder.decode(value, { stream: true });
+          core.info(`Streaming chunk: ${chunk}`);
           result += chunk;
         }
       } finally {
@@ -149,20 +151,20 @@ export async function fetchWithRetryStreaming(
       clearTimeout(timeoutId);
 
       lastError = error instanceof Error ? error : new Error(String(error));
-      console.warn(
+      core.warning(
         `Streaming attempt ${attempt}/${maxRetries} failed: ${lastError.message}`,
       );
 
       if (attempt < maxRetries) {
         // Exponential backoff
         const delay = retryDelay * Math.pow(2, attempt - 1);
-        console.log(`Retrying streaming request after ${delay}ms`);
+        core.info(`Retrying streaming request after ${delay}ms`);
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         // Reset timeout for next attempt
         setTimeout(() => {
           controller.abort();
-          console.warn(`Streaming request timed out after ${timeoutMs} ms`);
+          core.warning(`Streaming request timed out after ${timeoutMs} ms`);
         }, timeoutMs);
         if (timeoutId) clearTimeout(timeoutId);
       }

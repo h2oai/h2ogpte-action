@@ -13,10 +13,11 @@
  *  See: https://github.com/orgs/community/discussions/162417#discussioncomment-13428503
  */
 
+import * as core from "@actions/core";
+import type { Octokit } from "@octokit/rest";
 import fs from "fs/promises";
 import path from "path";
 import tmp from "tmp";
-import type { Octokit } from "@octokit/rest";
 
 /**
  * Gets the GitHub server URL from environment variable
@@ -188,7 +189,7 @@ export async function downloadCommentAttachments(
       urls: string[];
     }> = [];
 
-    console.log(`Processing ${comments.length} comments for attachments...`);
+    core.info(`Processing ${comments.length} comments for attachments...`);
 
     // First pass: find all attachments using single regex
     for (const comment of comments) {
@@ -202,13 +203,13 @@ export async function downloadCommentAttachments(
       if (urls.length > 0) {
         commentsWithAttachments.push({ comment, urls });
         const id = getCommentId(comment);
-        console.log(
+        core.info(
           `Found ${urls.length} attachment(s) in ${comment.type} ${id}`,
         );
       }
     }
 
-    console.log(
+    core.info(
       `Total comments with attachments: ${commentsWithAttachments.length}`,
     );
 
@@ -219,11 +220,11 @@ export async function downloadCommentAttachments(
 
         if (!bodyHtml) {
           const id = getCommentId(comment);
-          console.warn(`No HTML body found for ${comment.type} ${id}`);
+          core.warning(`No HTML body found for ${comment.type} ${id}`);
           continue;
         }
 
-        console.log(
+        core.info(
           `Processing ${urls.length} attachment(s) for ${comment.type}`,
         );
 
@@ -241,11 +242,11 @@ export async function downloadCommentAttachments(
           ...new Map(allSignedUrls.map((url) => [url, url])).values(),
         ];
 
-        console.log(
+        core.info(
           `Found ${allSignedUrls.length} signed URLs, only ${signedUrls.length} after deduplicating`,
         );
-        console.log(`All Signed urls: ${JSON.stringify(allSignedUrls)}`);
-        console.log(`Final Signed urls: ${JSON.stringify(signedUrls)}`);
+        core.info(`All Signed urls: ${JSON.stringify(allSignedUrls)}`);
+        core.info(`Final Signed urls: ${JSON.stringify(signedUrls)}`);
 
         // Download each attachment - assume signed URLs match original URLs in order
         for (let i = 0; i < Math.min(signedUrls.length, urls.length); i++) {
@@ -258,7 +259,7 @@ export async function downloadCommentAttachments(
 
           // Check if we've already downloaded this URL
           if (urlToPathMap.has(originalUrl)) {
-            console.log(`Already downloaded: ${originalUrl}`);
+            core.info(`Already downloaded: ${originalUrl}`);
             continue;
           }
 
@@ -269,13 +270,13 @@ export async function downloadCommentAttachments(
           const extension = getFileExtension(originalUrl, signedUrl, isImage);
           const fileType = categoriseFile(extension);
 
-          console.log(
+          core.info(
             `Detected ${isImage ? "image" : "file"}: ${originalUrl} -> extension: ${extension}, type: ${fileType}`,
           );
 
           // Ignore file if it is categorised as other
           if (fileType == "other") {
-            console.log(
+            core.info(
               `Skipping ${originalUrl} - extension ${extension} unsupported`,
             );
             continue;
@@ -290,7 +291,7 @@ export async function downloadCommentAttachments(
           const localPath = path.join(downloadsDir, filename);
 
           try {
-            console.log(
+            core.info(
               `Downloading ${isImage ? "image" : "file"} (${fileType}): ${originalUrl}...`,
             );
 
@@ -322,38 +323,36 @@ export async function downloadCommentAttachments(
             const buffer = Buffer.from(arrayBuffer);
             await fs.writeFile(localPath, buffer);
 
-            console.log(
+            core.info(
               `✓ Saved: ${localPath} (${arrayBuffer.byteLength} bytes)`,
             );
 
             urlToPathMap.set(originalUrl, localPath);
 
-            console.log(
+            core.info(
               `✓ Downloaded ${isImage ? "image" : "file"} (${fileType}): ${filename}`,
             );
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : String(error);
-            console.error(
-              `✗ Failed to download ${originalUrl}: ${errorMessage}`,
-            );
+            core.error(`✗ Failed to download ${originalUrl}: ${errorMessage}`);
           }
         }
       } catch (error) {
         const id = getCommentId(comment);
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        console.error(
+        core.error(
           `Failed to process attachments for ${comment.type} ${id}: ${errorMessage}`,
         );
       }
     }
 
-    console.log(`Final URL to path map size: ${urlToPathMap.size}`);
+    core.info(`Final URL to path map size: ${urlToPathMap.size}`);
 
     return urlToPathMap;
   } catch (error) {
-    console.error("Error in downloadCommentAttachments:", error);
+    core.error("Error in downloadCommentAttachments:", error as Error);
     return urlToPathMap;
   }
 }
@@ -445,7 +444,7 @@ function getFileExtension(
       const pathMatch = signedUrlPath?.match(/\/([^/]+)\.([a-zA-Z0-9]+)$/);
       if (pathMatch && pathMatch[2]) {
         const ext = `.${pathMatch[2].toLowerCase()}`;
-        console.log(`Extracted extension from signed URL: ${ext}`);
+        core.info(`Extracted extension from signed URL: ${ext}`);
         return ext;
       }
 
@@ -455,7 +454,7 @@ function getFileExtension(
         // Take the last extension found (most likely to be the file extension)
         const lastExtension = extensionMatch[extensionMatch.length - 1];
         const ext = lastExtension!.toLowerCase();
-        console.log(`Found extension in signed URL path: ${ext}`);
+        core.info(`Found extension in signed URL path: ${ext}`);
         return ext;
       }
     }
@@ -477,7 +476,7 @@ function getFileExtension(
     // If no extension found, use defaults based on type
     return isImage ? ".png" : IGNORE_FILE_EXT;
   } catch (error) {
-    console.warn(`Error getting extension for ${originalUrl}:`, error);
+    core.warning(`Error getting extension for ${originalUrl}: ${error}`);
     return isImage ? ".png" : IGNORE_FILE_EXT;
   }
 }

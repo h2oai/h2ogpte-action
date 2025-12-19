@@ -1,8 +1,9 @@
+import * as core from "@actions/core";
 import { readFileSync } from "fs";
 import { basename } from "path";
-import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
+import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
 
 /**
  * Creates agent keys with retry mechanism
@@ -38,7 +39,7 @@ export async function createAgentKey(
   );
 
   const data = (await response.json()) as types.AgentKey;
-  console.debug(`Successfully created agent keys with id: ${data.id}`);
+  core.debug(`Successfully created agent keys with id: ${data.id}`);
 
   return data.id;
 }
@@ -74,7 +75,7 @@ export async function createToolAssociation(
   );
 
   const data = (await response.json()) as types.ToolAssociations;
-  console.debug(`Successfully created tool association`);
+  core.debug(`Successfully created tool association`);
 
   return data;
 }
@@ -106,7 +107,7 @@ export async function createChatSession(
   );
 
   const data = (await response.json()) as types.ChatSession;
-  console.debug(`Successfully created chat session with id: ${data.id}`);
+  core.debug(`Successfully created chat session with id: ${data.id}`);
 
   return data;
 }
@@ -140,7 +141,7 @@ export async function requestAgentCompletion(
     ...(systemPrompt && { system_prompt: systemPrompt }),
   };
 
-  console.debug(
+  core.debug(
     `Agent completion config: ${JSON.stringify(agentCompletionConfig)}`,
   );
 
@@ -160,22 +161,27 @@ export async function requestAgentCompletion(
       { maxRetries, retryDelay, timeoutMs: timeoutMinutes * 60 * 1000 },
     );
 
-    console.log(`Received streaming response: ${rawResponse}`);
+    core.debug(`Received streaming response: ${rawResponse}`);
 
     try {
       const lastChunk = parseStreamingAgentResponse(rawResponse);
       if (lastChunk) {
-        console.log("Returning last complete chunk from streaming response");
-        console.log(lastChunk);
+        core.debug(
+          `Returning last complete chunk from streaming response ${lastChunk}`,
+        );
         return { success: true, body: lastChunk.body };
       }
-      console.log("No valid chunks found");
+      core.error("No valid chunks found in streaming response");
       return {
         success: false,
         body: "The agent did not return a complete response. Please check h2oGPTe.",
       };
     } catch (parseError) {
-      console.error("Failed to parse streaming response:", parseError);
+      core.error(
+        `Failed to parse streaming response: ${
+          parseError instanceof Error ? parseError.message : String(parseError)
+        }`,
+      );
       return {
         success: false,
         body: "Failed to parse the agent response. Please check h2oGPTe.",
@@ -184,7 +190,7 @@ export async function requestAgentCompletion(
   } catch (error) {
     if (error instanceof Error) {
       const errorMsg = `Failed to receive completion from h2oGPTe with error: ${error.message}`;
-      console.error(errorMsg);
+      core.error(errorMsg);
       return { success: false, body: errorMsg };
     }
 
@@ -217,7 +223,7 @@ export async function deleteAgentKey(
     retryDelay,
   });
 
-  console.debug(`Successfully deleted agent key: ${keyId}`);
+  core.debug(`Successfully deleted agent key: ${keyId}`);
 }
 
 export function getChatSessionUrl(chatSessionId: string) {
@@ -259,7 +265,7 @@ export async function createCollection(
 
   const data = (await response.json()) as types.Collection;
 
-  console.debug(`Successfully created collection with id: ${data.id}`);
+  core.debug(`Successfully created collection with id: ${data.id}`);
 
   return data.id;
 }
@@ -406,7 +412,7 @@ export async function deleteCollection(
       `Failed to delete collection: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  console.debug(
+  core.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
 }
