@@ -167,7 +167,7 @@ export async function requestAgentCompletion(
       const lastChunk = parseStreamingAgentResponse(rawResponse);
       if (lastChunk) {
         core.debug(
-          `Returning last complete chunk from streaming response ${lastChunk}`,
+          `Returning last complete chunk from streaming response ${JSON.stringify(lastChunk)}`,
         );
         return { success: true, body: lastChunk.body };
       }
