@@ -1,6 +1,6 @@
 {
   "name": "@h2o-ai/h2ogpte-action",
-  "version": "0.2.1-beta",
+  "version": "0.2.2-beta",
   "private": true,
   "scripts": {
     "lint": "eslint . --ext .ts,.js",
