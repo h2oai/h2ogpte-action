@@ -28,20 +28,38 @@ The action runs directly from the source code using Bun.
 - **Linting**: `bun run lint` - Check code style, `bun run lint:fix` - Auto-fix issues
 - **Formatting**: `bun run format` - Auto-format code with Prettier
 
-### Running Tests
+### Testing
 
-- **All tests**: `bun run test` - Runs the complete test suite
-- **Individual tests**: `bun test tests/fetcher.test.ts` - Run specific test files
-- **Test location**: All tests are in the `tests/` directory
+**Unit Tests:**
 
-### Local Testing
+```bash
+bun run test                    # All tests
+bun test tests/fetcher.test.ts  # Specific test file
+```
 
-Since this is a GitHub Action, you can test changes by:
+**Local Workflow Testing:**
 
-1. Making your changes
-2. Running the test suite to ensure nothing breaks
-3. Creating a test branch and pushing to your fork
-4. Setting up a test workflow in your fork's repository
+Test the GitHub Action workflow locally using test event payloads in `.github/test-events/`:
+
+**GitHub Local Actions (Extension):**
+
+1. Open GitHub Local Actions sidebar
+2. Configure secrets: `GITHUB_TOKEN`, `H2OGPTE_API_KEY`, `H2OGPTE_API_BASE`
+3. Set actor to your GitHub username (Settings > Options > actor)
+4. Select event: `issues`, `issue_comment`, or `pull_request`
+
+**act CLI:**
+
+```bash
+export GITHUB_ACTOR=YOUR_USERNAME
+export GITHUB_TOKEN=your_token
+export H2OGPTE_API_KEY=your_key
+export H2OGPTE_API_BASE=your_base_url
+
+act issues -W .github/workflows/h2ogpte.yml -e .github/test-events/issue.json
+```
+
+**Note:** If you see "nektos/act is not a user", set `GITHUB_ACTOR` or use `-a YOUR_USERNAME` flag.
 
 ## Pre-commit Hooks (Optional but Recommended)
 
@@ -79,8 +97,8 @@ bun run test        # Run tests
 
 ### 2. Make Changes
 
-- **Test your changes locally first** - Run `bun run test` to ensure nothing breaks
-- Follow the existing code style and patterns
+- Test locally: `bun run test` and test workflow with act
+- Follow existing code style and patterns
 - Add tests for new functionality
 
 ### 3. Commit and Push
@@ -93,23 +111,6 @@ bun run test        # Run tests
 - Create a PR from your feature branch to **main**
 - Maintainers will help review and merge correctly into the appropriate branch
 
-## Testing
+### Adding Tests
 
-### Unit Tests
-
-- **Location**: All tests are in the `tests/` directory
-- **Framework**: Uses Bun's built-in test runner
-- **Structure**: Tests mirror the `src/` directory structure
-
-### Adding New Tests
-
-1. Create test files with `.test.ts` extension
-2. Place them in the appropriate `tests/` subdirectory
-3. Follow existing test patterns and naming conventions
-4. Run `bun run test` to verify your tests work
-
-### Test Categories
-
-- **Core functionality** - Data fetching, response building
-- **Service integrations** - GitHub API, h2oGPTe API
-- **Utility functions** - File handling, formatting, etc.
+Create test files with `.test.ts` extension in `tests/` (mirrors `src/` structure). Follow existing patterns.
