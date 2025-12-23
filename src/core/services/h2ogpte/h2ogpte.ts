@@ -487,3 +487,39 @@ export async function getCustomTools(
 
   return data;
 }
+
+/**
+ * Deletes custom agent tools with retry mechanism
+ */
+export async function deleteCustomTools(
+  toolIds: string[],
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.Count> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  const toolIdsPath = toolIds.join(",");
+
+  const options = {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/custom_tools/${toolIdsPath}`,
+    options,
+    { maxRetries, retryDelay },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to delete custom tools: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as types.Count;
+  return data;
+}

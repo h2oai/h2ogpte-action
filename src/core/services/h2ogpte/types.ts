@@ -126,3 +126,7 @@ export interface CustomTool {
   tool_args: Record<string, unknown>;
   owner_email: string;
 }
+
+export interface Count {
+  count: number;
+}

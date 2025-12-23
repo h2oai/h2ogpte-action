@@ -27,6 +27,7 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
+  let toolId: string | null = null;
   let collectionId: string | null = null;
 
   try {
@@ -70,8 +71,11 @@ export async function run(): Promise<void> {
 
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
-      // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createGithubMcpAndSecret(githubToken);
+      // 1. Setup the GitHub MCP and secret in h2oGPTe
+      const { keyUuid: createdKeyUuid, toolId: createdToolId } =
+        await createGithubMcpAndSecret(githubToken);
+      keyUuid = createdKeyUuid;
+      toolId = createdToolId;
 
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
@@ -132,7 +136,10 @@ export async function run(): Promise<void> {
       );
     } else {
       // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createGithubMcpAndSecret(githubToken);
+      const { keyUuid: createdKeyUuid, toolId: createdToolId } =
+        await createGithubMcpAndSecret(githubToken);
+      keyUuid = createdKeyUuid;
+      toolId = createdToolId;
 
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
@@ -164,7 +171,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    await cleanup(keyUuid);
+    await cleanup(keyUuid, toolId);
   }
 }
 

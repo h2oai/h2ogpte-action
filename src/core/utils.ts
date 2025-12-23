@@ -7,6 +7,7 @@ import {
   createCustomTools,
   createToolAssociation,
   deleteAgentKey,
+  deleteCustomTools,
   getCustomTools,
 } from "./services/h2ogpte/h2ogpte";
 import type { CustomToolInput } from "./services/h2ogpte/types";
@@ -85,27 +86,23 @@ async function createAgentGitHubSecret(githubToken: string): Promise<string> {
 
 export async function createGithubMcpAndSecret(
   githubToken: string,
-): Promise<string> {
+): Promise<{ keyUuid: string; toolId: string }> {
   const keyUuid = await createAgentGitHubSecret(githubToken);
   const toolId = await createGithubRemoteMcpCustomTool();
 
   const customTools = await getCustomTools();
-  core.debug(`Custom tools: ${JSON.stringify(customTools)}`);
   const createdTool = customTools.find((tool) => tool.id === toolId);
 
   if (!createdTool) {
     throw new Error(`Failed to find created custom tool with ID: ${toolId}`);
   }
-  core.debug(
-    `Creating tool assocaition with args ${createdTool.tool_name}, ${keyUuid}, ${AGENT_GITHUB_ENV_VAR}`,
-  );
   await createToolAssociation(
     createdTool.tool_name,
     keyUuid,
     AGENT_GITHUB_ENV_VAR,
   );
 
-  return keyUuid;
+  return { keyUuid, toolId };
 }
 
 /**
@@ -146,7 +143,10 @@ export async function createGithubRemoteMcpCustomTool(
   return toolIds[0]!;
 }
 
-export async function cleanup(keyUuid: string | null): Promise<void> {
+export async function cleanup(
+  keyUuid: string | null,
+  toolId: string | null,
+): Promise<void> {
   if (keyUuid) {
     try {
       await deleteAgentKey(keyUuid);
@@ -157,5 +157,17 @@ export async function cleanup(keyUuid: string | null): Promise<void> {
     }
   } else {
     core.warning(`No agent key to clean up`);
+  }
+
+  if (toolId) {
+    try {
+      await deleteCustomTools([toolId]);
+    } catch (error) {
+      core.warning(
+        `Failed to clean up custom tool: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  } else {
+    core.warning(`No custom tool to clean up`);
   }
 }
