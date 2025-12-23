@@ -3,7 +3,11 @@ import { readFileSync } from "fs";
 import { basename } from "path";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
-import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
+import {
+  buildCustomToolFormData,
+  getH2ogpteConfig,
+  parseStreamingAgentResponse,
+} from "./utils";
 
 /**
  * Creates agent keys with retry mechanism
@@ -415,4 +419,38 @@ export async function deleteCollection(
   core.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
+}
+
+export async function createCustomTools(
+  tool: types.CustomToolInput,
+  options: {
+    maxRetries?: number;
+    retryDelay?: number;
+    timeoutMs?: number;
+  } = {},
+): Promise<string[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const { maxRetries = 3, retryDelay = 1000, timeoutMs = 5000 } = options;
+
+  const formData = buildCustomToolFormData(tool);
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/custom_tools`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: formData,
+    },
+    { maxRetries, retryDelay, timeoutMs },
+  );
+
+  const data = (await response.json()) as types.AgentCustomToolResponse[];
+  const toolIds = data.map((item) => item.agent_custom_tool_id);
+  core.debug(
+    `Created custom agent tool(s) for type ${tool.toolType}: ${toolIds.join(",")}`,
+  );
+
+  return toolIds;
 }

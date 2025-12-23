@@ -16,7 +16,7 @@ import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
 import {
   checkWritePermissions,
   cleanup,
-  createSecretAndToolAssociation,
+  createGitHubMCPAndSecret,
   getGithubToken,
 } from "./core/utils";
 
@@ -71,7 +71,7 @@ export async function run(): Promise<void> {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
       // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createSecretAndToolAssociation(githubToken);
+      keyUuid = await createGitHubMCPAndSecret(githubToken);
 
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
@@ -132,7 +132,7 @@ export async function run(): Promise<void> {
       );
     } else {
       // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createSecretAndToolAssociation(githubToken);
+      keyUuid = await createGitHubMCPAndSecret(githubToken);
 
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);

@@ -80,7 +80,7 @@ async function createAgentGitHubSecret(githubToken: string): Promise<string> {
   return await createAgentKey(tokenName, githubToken);
 }
 
-export async function createSecretAndToolAssociation(
+export async function createGitHubMCPAndSecret(
   githubToken: string,
 ): Promise<string> {
   const keyUuid = await createAgentGitHubSecret(githubToken);

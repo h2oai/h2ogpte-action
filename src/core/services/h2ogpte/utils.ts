@@ -1,4 +1,6 @@
-import type { StreamingChunk, H2ogpteConfig } from "./types";
+import { readFileSync } from "fs";
+import { basename } from "path";
+import type { CustomToolInput, H2ogpteConfig, StreamingChunk } from "./types";
 
 /**
  * Gets H2OGPTE configuration from environment variables
@@ -80,4 +82,32 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
     agent_accuracy: agent_accuracy || "standard",
     agent_total_timeout: agent_total_timeout,
   };
+}
+
+export function buildCustomToolFormData(input: CustomToolInput): FormData {
+  const formData = new FormData();
+  const toolArgsString =
+    typeof input.toolArgs === "string"
+      ? input.toolArgs
+      : JSON.stringify(input.toolArgs);
+
+  formData.append("tool_type", input.toolType);
+  formData.append("tool_args", toolArgsString);
+
+  if (input.customToolPath) {
+    formData.append("custom_tool_path", input.customToolPath);
+  }
+
+  if (input.filePath) {
+    const buffer = readFileSync(input.filePath);
+    const name = input.filename || basename(input.filePath);
+    const file = new File([buffer], name);
+    formData.append("file", file);
+  }
+
+  if (input.filename) {
+    formData.append("filename", input.filename);
+  }
+
+  return formData;
 }
