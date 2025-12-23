@@ -79,8 +79,6 @@ export async function createToolAssociation(
   );
 
   const data = (await response.json()) as types.ToolAssociations;
-  core.debug(`Successfully created tool association`);
-
   return data;
 }
 
@@ -453,4 +451,39 @@ export async function createCustomTools(
   );
 
   return toolIds;
+}
+
+/**
+ * Gets custom tools with retry mechanism
+ */
+export async function getCustomTools(
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.CustomTool[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/custom_tools`,
+    options,
+    { maxRetries, retryDelay },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get custom tools: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as types.CustomTool[];
+  core.debug(`Successfully retrieved ${data.length} custom tool(s)`);
+
+  return data;
 }

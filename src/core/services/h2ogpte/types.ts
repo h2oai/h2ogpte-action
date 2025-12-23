@@ -118,3 +118,11 @@ export type CustomToolInput = {
   customToolPath?: string;
   filename?: string;
 };
+
+export interface CustomTool {
+  id: string;
+  tool_name: string;
+  tool_type: string;
+  tool_args: Record<string, unknown>;
+  owner_email: string;
+}
