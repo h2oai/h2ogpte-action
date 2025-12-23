@@ -19,6 +19,8 @@ import {
   createGithubMcpAndSecret,
   getGithubToken,
 } from "./core/utils";
+import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
+import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 
 /**
  * The main function for the action.
@@ -83,18 +85,9 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const gifDataUrl = `https://h2ogpte-github-action.cdn.h2o.ai/h2o_loading.gif`;
-      const workingMessages = [
-        "h2oGPTe is working on it",
-        "h2oGPTe is working",
-        "h2oGPTe is thinking",
-        "h2oGPTe is connecting the dots",
-        "h2oGPTe is putting it all together",
-        "h2oGPTe is processing your request",
-      ];
-      const randomMessage =
-        workingMessages[Math.floor(Math.random() * workingMessages.length)];
-      const initialCommentBody = `### ${randomMessage} &nbsp;<img src="${gifDataUrl}" width="40px"/>\n\nFollow progress in the [GitHub Action run](${url})`;
+      const { commands: usedCommands, error: slashCommandError } =
+        getSlashCommandsUsed(instruction);
+      const initialCommentBody = createInitialWorkingComment(url, usedCommands);
       const h2ogpteComment = await createReply(
         octokits.rest,
         initialCommentBody,
@@ -124,8 +117,12 @@ export async function run(): Promise<void> {
         instruction,
         url,
         chatSessionUrl,
+        usedCommands,
+        slashCommandError,
       );
       core.debug(`Extracted response: ${updatedCommentBody}`);
+
+      core.debug(`Commands used: ${JSON.stringify(usedCommands, null, 2)}`);
 
       // 8. Update initial comment
       await updateComment(

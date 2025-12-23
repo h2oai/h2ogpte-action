@@ -69,6 +69,77 @@ Ensures your code changes never ship without proper test coverage. The agent rev
 
 See [examples](../examples/custom_workflows) of more custom workflow configurations.
 
+## 🔧 Slash Commands
+
+Slash commands allow you to predefine specific behaviors for the agent. When a user includes a slash command in their instruction, the agent will use the corresponding prompt to guide its response.
+
+### ⌨️ Using Slash Commands
+
+Simply include the slash command in your comment along with your request:
+
+```text
+@h2ogpte /review this code and check for security issues
+```
+
+```text
+@h2ogpte /explain how this authentication flow works
+```
+
+```text
+@h2ogpte /plan a feature to add user authentication
+```
+
+You can use multiple slash commands in a single instruction:
+
+```text
+@h2ogpte /review and /explain this code
+```
+
+### 📦 Default Slash Commands
+
+The action comes with three default slash commands:
+
+- **`/explain`** - Provides clear and accurate code explanations
+- **`/review`** - Performs comprehensive code reviews
+- **`/plan`** - Creates implementation plans without writing code
+
+### 🎨 Custom Slash Commands
+
+You can define your own slash commands in your workflow configuration. Each command requires:
+
+- **`name`**: The command identifier (must start with `/`)
+- **`prompt`**: The system prompt that guides the agent's behavior when this command is used
+
+#### 💡 Example workflow configuration
+
+```yaml
+slash_commands: |
+  [
+    {
+      "name": "/refactor",
+      "prompt": "You are an expert at refactoring code. Focus on improving code quality, readability, and maintainability while preserving functionality. Provide specific refactoring suggestions with examples."
+    },
+    {
+      "name": "/debug",
+      "prompt": "You are a debugging expert. Analyze the code for bugs, identify root causes, and suggest fixes. Be methodical and explain your reasoning step by step."
+    },
+    {
+      "name": "/optimize",
+      "prompt": "You are a performance optimization specialist. Analyze code for performance bottlenecks, suggest optimizations, and explain the trade-offs involved."
+    }
+  ]
+```
+
+See the [Basic Usage example](../examples/h2ogpte.yaml) for a complete workflow configuration with slash commands.
+
+### 📌 Usage Behaviour
+
+- Command matching is case-insensitive (e.g., `/review` matches `/Review` or `/REVIEW`)
+- Commands must match exactly (e.g., `/test` won't match `/testing` or `/test-drive`)
+- To escape a slash command (prevent it from being interpreted as a command), prefix it with another slash (e.g., `//plan` will not trigger the `/plan` command)
+- If no matching commands are found in the instruction, the agent uses its default behavior
+- Slash commands work alongside regular instructions - you can combine them naturally
+
 ## 🎯 Custom Prompting
 
 The action also supports custom prompting for specialized workflows.
