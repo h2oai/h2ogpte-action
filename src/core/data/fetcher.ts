@@ -4,8 +4,10 @@
  * License: MIT
  */
 
+import * as core from "@actions/core";
 import { graphql } from "@octokit/graphql";
 import { execSync } from "child_process";
+import type { Octokits } from "../services/github/octokits";
 import { ISSUE_QUERY, PR_QUERY, USER_QUERY } from "./queries/github";
 import type {
   GitHubComment,
@@ -16,7 +18,6 @@ import type {
   IssueQueryResponse,
   PullRequestQueryResponse,
 } from "./queries/types";
-import type { Octokits } from "../services/github/octokits";
 import {
   downloadCommentAttachments,
   type CommentWithAttachments,
@@ -91,7 +92,7 @@ export async function fetchGitHubData({
           baseBranch: pullRequest.baseRefName,
         };
 
-        console.log(`Successfully fetched PR #${prNumber} data`);
+        core.info(`Successfully fetched PR #${prNumber} data`);
       } else {
         throw new Error(`PR #${prNumber} not found`);
       }
@@ -128,26 +129,26 @@ export async function fetchGitHubData({
                 headBranch: pullRequest.headRefName,
                 baseBranch: pullRequest.baseRefName,
               };
-              console.log(
+              core.info(
                 `Successfully fetched branch info for PR #${prNumber} from issue comment`,
               );
             }
           } catch (prError) {
-            console.warn(
-              `Failed to fetch PR branch info for issue comment:`,
-              prError,
+            core.warning(
+              `Failed to fetch PR branch info for issue comment: ${prError}`,
             );
           }
         }
 
-        console.log(`Successfully fetched issue #${prNumber} data`);
+        core.info(`Successfully fetched issue #${prNumber} data`);
       } else {
         throw new Error(`Issue #${prNumber} not found`);
       }
     }
   } catch (error) {
-    console.error(`Failed to fetch ${isPR ? "PR" : "issue"} data:`, error);
-    throw new Error(`Failed to fetch ${isPR ? "PR" : "issue"} data`);
+    const baseMessage = `Failed to fetch ${isPR ? "PR" : "issue"} data`;
+    const details = error instanceof Error ? error.message : String(error);
+    throw new Error(`${baseMessage}: ${details}`, { cause: error });
   }
 
   // Compute SHAs for changed files
@@ -172,7 +173,7 @@ export async function fetchGitHubData({
           sha,
         };
       } catch (error) {
-        console.warn(`Failed to compute SHA for ${file.path}:`, error);
+        core.warning(`Failed to compute SHA for ${file.path}: ${error}`);
         // Return original file without SHA if computation fails
         return {
           ...file,
@@ -281,7 +282,7 @@ export async function fetchUserDisplayName(
     });
     return result.user.name;
   } catch (error) {
-    console.warn(`Failed to fetch user display name for ${login}:`, error);
+    core.warning(`Failed to fetch user display name for ${login}: ${error}`);
     return null;
   }
 }

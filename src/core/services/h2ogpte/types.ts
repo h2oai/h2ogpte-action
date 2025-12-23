@@ -106,3 +106,27 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
+
+export interface AgentCustomToolResponse {
+  agent_custom_tool_id: string;
+}
+
+export type CustomToolInput = {
+  toolType: "local_mcp" | "remote_mcp" | "browser_action" | "general_code";
+  toolArgs: Record<string, unknown> | string;
+  filePath?: string;
+  customToolPath?: string;
+  filename?: string;
+};
+
+export interface CustomTool {
+  id: string;
+  tool_name: string;
+  tool_type: string;
+  tool_args: Record<string, unknown>;
+  owner_email: string;
+}
+
+export interface Count {
+  count: number;
+}

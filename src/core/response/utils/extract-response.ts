@@ -1,3 +1,5 @@
+import * as core from "@actions/core";
+
 /**
  * Pattern to match the TL;DR header that indicates the final response section
  * Matches any markdown header level (1-6 #) with TL;DR
@@ -19,7 +21,7 @@ export function extractFinalAgentResponse(input: string): string {
 
   // Check for max turns reached first
   if (input.includes(MAX_TURNS_SUBSTRING)) {
-    console.debug("Max turns reached detected in response");
+    core.debug("Max turns reached detected in response");
     return "**⚠️ Warning: Maximum Turns Reached.**\n\n💡 Hint: If this is a recurring issue, try increasing the `agent_max_turns` or `agent_accuracy` in your config file.";
   }
 
@@ -38,7 +40,7 @@ export function extractFinalAgentResponse(input: string): string {
 
   if (!finalSection) {
     // Fallback: return raw agent response
-    console.log(`Could not find TL;DR section, returning raw agent response`);
+    core.info(`Could not find TL;DR section, returning raw agent response`);
     return input;
   }
 

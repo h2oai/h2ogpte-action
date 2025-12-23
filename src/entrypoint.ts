@@ -1,24 +1,24 @@
 import * as core from "@actions/core";
 import {
-  checkWritePermissions,
-  cleanup,
-  createSecretAndToolAssociation,
-  getGithubToken,
-} from "./core/utils";
-import {
+  isIssueCommentEvent,
   isPRIssueEvent,
   parseGitHubContext,
-  isIssueCommentEvent,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
+import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
+import { buildH2ogpteResponse } from "./core/response/response_builder";
+import { extractInstruction } from "./core/response/utils/instruction";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
-import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { buildH2ogpteResponse } from "./core/response/response_builder";
-import { extractInstruction } from "./core/response/utils/instruction";
+import {
+  checkWritePermissions,
+  cleanup,
+  createGithubMcpAndSecret,
+  getGithubToken,
+} from "./core/utils";
 import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 
@@ -29,6 +29,7 @@ import { createInitialWorkingComment } from "./core/response/utils/comment-forma
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
+  let toolId: string | null = null;
   let collectionId: string | null = null;
 
   try {
@@ -72,8 +73,11 @@ export async function run(): Promise<void> {
 
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
-      // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createSecretAndToolAssociation(githubToken);
+      // 1. Setup the GitHub MCP and secret in h2oGPTe
+      const { keyUuid: createdKeyUuid, toolId: createdToolId } =
+        await createGithubMcpAndSecret(githubToken);
+      keyUuid = createdKeyUuid;
+      toolId = createdToolId;
 
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
@@ -129,7 +133,10 @@ export async function run(): Promise<void> {
       );
     } else {
       // 1. Setup the GitHub secret in h2oGPTe
-      keyUuid = await createSecretAndToolAssociation(githubToken);
+      const { keyUuid: createdKeyUuid, toolId: createdToolId } =
+        await createGithubMcpAndSecret(githubToken);
+      keyUuid = createdKeyUuid;
+      toolId = createdToolId;
 
       // 2. Create a Chat Session in h2oGPTe
       const chatSessionId = await h2ogpte.createChatSession(collectionId);
@@ -153,7 +160,7 @@ export async function run(): Promise<void> {
         h2ogpteConfig,
       );
 
-      console.debug(
+      core.debug(
         `Chat completion:\n ${JSON.stringify(chatCompletion, null, 2)}`,
       );
     }
@@ -161,7 +168,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    await cleanup(keyUuid);
+    await cleanup(keyUuid, toolId);
   }
 }
 

@@ -1,11 +1,16 @@
+import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { AGENT_GITHUB_ENV_VAR } from "../constants";
 import type { ParsedGitHubContext } from "./services/github/types";
 import {
   createAgentKey,
+  createCustomTools,
   createToolAssociation,
   deleteAgentKey,
+  deleteCustomTools,
+  getCustomTools,
 } from "./services/h2ogpte/h2ogpte";
+import type { CustomToolInput } from "./services/h2ogpte/types";
 
 /**
  * Gets Github key from environment variable
@@ -49,7 +54,7 @@ export async function checkWritePermissions(
   const { repository, actor } = context;
 
   try {
-    console.log(`Checking permissions for actor: ${actor}`);
+    core.debug(`Checking permissions for actor: ${actor}`);
 
     // Check permissions directly using the permission endpoint
     const response = await octokit.repos.getCollaboratorPermissionLevel({
@@ -59,17 +64,17 @@ export async function checkWritePermissions(
     });
 
     const permissionLevel = response.data.permission;
-    console.log(`Permission level retrieved: ${permissionLevel}`);
+    core.debug(`Permission level retrieved: ${permissionLevel}`);
 
     if (permissionLevel === "admin" || permissionLevel === "write") {
-      console.log(`Actor has write access: ${permissionLevel}`);
+      core.debug(`Actor has write access: ${permissionLevel}`);
       return true;
     } else {
-      console.warn(`Actor has insufficient permissions: ${permissionLevel}`);
+      core.warning(`Actor has insufficient permissions: ${permissionLevel}`);
       return false;
     }
   } catch (error) {
-    console.error(`Failed to check permissions: ${error}`);
+    core.error(`Failed to check permissions: ${error}`);
     throw new Error(`Failed to check permissions for ${actor}: ${error}`);
   }
 }
@@ -79,29 +84,90 @@ async function createAgentGitHubSecret(githubToken: string): Promise<string> {
   return await createAgentKey(tokenName, githubToken);
 }
 
-export async function createSecretAndToolAssociation(
+export async function createGithubMcpAndSecret(
   githubToken: string,
-): Promise<string> {
+): Promise<{ keyUuid: string; toolId: string }> {
   const keyUuid = await createAgentGitHubSecret(githubToken);
+  const toolId = await createGithubRemoteMcpCustomTool();
 
-  await Promise.all([
-    createToolAssociation("python", keyUuid, AGENT_GITHUB_ENV_VAR),
-    createToolAssociation("shell", keyUuid, AGENT_GITHUB_ENV_VAR),
-  ]);
+  const customTools = await getCustomTools();
+  const createdTool = customTools.find((tool) => tool.id === toolId);
 
-  return keyUuid;
+  if (!createdTool) {
+    throw new Error(`Failed to find created custom tool with ID: ${toolId}`);
+  }
+  await createToolAssociation(
+    createdTool.tool_name,
+    keyUuid,
+    AGENT_GITHUB_ENV_VAR,
+  );
+
+  return { keyUuid, toolId };
 }
 
-export async function cleanup(keyUuid: string | null): Promise<void> {
+/**
+ * Creates the GitHub remote MCP custom tool.
+ * Requires the GITHUB_TOKEN environment variable to be set and associated in h2oGPTe.
+ */
+export async function createGithubRemoteMcpCustomTool(
+  options: {
+    maxRetries?: number;
+    retryDelay?: number;
+    timeoutMs?: number;
+  } = {},
+): Promise<string> {
+  const remoteMcpTool: CustomToolInput = {
+    toolType: "remote_mcp",
+    toolArgs: {
+      mcp_config_json: JSON.stringify({
+        github: {
+          url: "https://api.githubcopilot.com/mcp/",
+          transport: "http",
+          type: "remote",
+          tool_usage_mode: ["runner"],
+          description: "GitHub MCP: issues, PRs, Actions, security, repos",
+          headers: {
+            Authorization: `Bearer os.environ/${AGENT_GITHUB_ENV_VAR}`,
+          },
+        },
+      }),
+    },
+  };
+
+  const toolIds = await createCustomTools(remoteMcpTool, options);
+  if (toolIds.length === 0) {
+    throw new Error(
+      "Failed to create GitHub MCP custom tool: no tool ID returned",
+    );
+  }
+  return toolIds[0]!;
+}
+
+export async function cleanup(
+  keyUuid: string | null,
+  toolId: string | null,
+): Promise<void> {
   if (keyUuid) {
     try {
       await deleteAgentKey(keyUuid);
     } catch (error) {
-      console.warn(
+      core.warning(
         `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   } else {
-    console.log(`No agent key to clean up`);
+    core.warning(`No agent key to clean up`);
+  }
+
+  if (toolId) {
+    try {
+      await deleteCustomTools([toolId]);
+    } catch (error) {
+      core.warning(
+        `Failed to clean up custom tool: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  } else {
+    core.warning(`No custom tool to clean up`);
   }
 }
