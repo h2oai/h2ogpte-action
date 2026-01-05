@@ -122,8 +122,7 @@ export async function createGithubRemoteMcpCustomTool(
       mcp_config_json: JSON.stringify({
         github: {
           url: "https://api.githubcopilot.com/mcp/",
-          transport: "http",
-          type: "remote",
+          type: "http",
           tool_usage_mode: ["runner"],
           description: "GitHub MCP: issues, PRs, Actions, security, repos",
           headers: {
