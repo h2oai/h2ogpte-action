@@ -115,6 +115,7 @@ async function processFileWithJobMonitoring(
  */
 export async function uploadAttachmentsToH2oGPTe(
   attachmentUrlMap: Map<string, string>,
+  piiProfile: any,
 ): Promise<string | null> {
   if (attachmentUrlMap.size === 0) {
     core.debug("No attachments found, skipping collection creation");
@@ -123,7 +124,7 @@ export async function uploadAttachmentsToH2oGPTe(
 
   let collectionId: string | null = null;
   try {
-    collectionId = await createCollection();
+    collectionId = await createCollection(piiProfile);
     await Promise.all(
       Array.from(attachmentUrlMap.values()).map(async (localPath) => {
         const uploadResult = await processFileWithJobMonitoring(

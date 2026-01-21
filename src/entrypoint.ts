@@ -51,6 +51,8 @@ export async function run(): Promise<void> {
     const url = `https://github.com/${repo}/actions/runs/${runId}`;
     core.debug(`This run url is ${url}`);
 
+    
+
     const instruction = extractInstruction(context);
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
@@ -64,8 +66,12 @@ export async function run(): Promise<void> {
       });
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
+    const piiProfile = JSON.parse(process.env.PPI_PROFILE || '{"presidio_labels":[], "modernBERT_labels":[], "parse_action": "Redact", "input_action": "Redact", "output_action": "Redact"}')
+    console.log(`This is pii profile ${piiProfile}`)
+
       collectionId = await uploadAttachmentsToH2oGPTe(
         githubData.attachmentUrlMap,
+        piiProfile,
       );
 
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);

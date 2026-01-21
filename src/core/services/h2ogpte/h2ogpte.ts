@@ -232,6 +232,7 @@ export function getChatSessionUrl(chatSessionId: string) {
 }
 
 export async function createCollection(
+  piiProfile: any,
   collectionName?: string,
   description?: string,
   maxRetries: number = 3,
@@ -242,12 +243,23 @@ export async function createCollection(
   collectionName = collectionName || `h2oGPTe-action-collection-${Date.now()}`;
   description = description || "Collection created by h2oGPTe GitHub action";
 
+
   const options = {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ name: collectionName, description }),
+    body: JSON.stringify({ name: collectionName, description: description, 
+                          collection_settings: {
+                            guardrails_settings: {
+                              presidio_labels_to_flag: piiProfile.presidio_labels,
+                              pii_labels_to_flag: piiProfile.modernBERT_labels,
+                              pii_detection_parse_action: piiProfile.parse_action,
+                              pii_detection_llm_input_action: piiProfile.input_action,
+                              pii_detection_llm_output_action: piiProfile.output_action,
+                            }
+                          } 
+                      }),
   };
 
   const response = await fetchWithRetry(
