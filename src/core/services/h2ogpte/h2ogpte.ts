@@ -251,11 +251,13 @@ export async function createCollection(
     },
     body: JSON.stringify({ name: collectionName, description: description, 
                           collection_settings: {
-                            presidio_labels_to_flag: piiProfile.presidio_labels,
-                            pii_labels_to_flag: piiProfile.modernBERT_labels,
-                            pii_detection_parse_action: piiProfile.parse_action,
-                            pii_detection_llm_input_action: piiProfile.input_action,
-                            pii_detection_llm_output_action: piiProfile.output_action,
+                            guardrails_settings: {
+                              presidio_labels_to_flag: piiProfile.presidio_labels,
+                              pii_labels_to_flag: piiProfile.modernBERT_labels,
+                              pii_detection_parse_action: piiProfile.parse_action,
+                              pii_detection_llm_input_action: piiProfile.input_action,
+                              pii_detection_llm_output_action: piiProfile.output_action,
+                            }
                           } 
                       }),
   };
