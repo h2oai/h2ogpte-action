@@ -30,13 +30,12 @@ export async function run(): Promise<void> {
   let collectionId: string | null = null;
 
   try {
+    const githubAccessToken = await getGithubAccessToken();
+    return;
+
     // Fetch context
     const octokits = createOctokits();
     const context = parseGitHubContext();
-
-    const githubAccessToken = await getGithubAccessToken();
-
-    return;
 
     // Check if actor has correct permissions, otherwise exit immeditely
     const hasWritePermissions = await checkWritePermissions(
