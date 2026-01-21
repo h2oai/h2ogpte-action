@@ -48,7 +48,7 @@ inputs:
   pii_profile:
     description: Personally identifiable information profile selection 
     required: false
-    default: '{"presidio_labels":[], "modernBERT_labels":[], "parse_action": "", "input_action": "", "output_action": ""}'
+    default: '{"presidio_labels":[], "modernBERT_labels":[], "parse_action": "Redact", "input_action": "Redact", "output_action": "Redact"}'
 
 runs:
   using: composite

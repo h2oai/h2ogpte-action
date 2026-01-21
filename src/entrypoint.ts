@@ -66,7 +66,7 @@ export async function run(): Promise<void> {
       });
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
-    const piiProfile = JSON.parse(process.env.PPI_PROFILE || '{"presidio_labels":[], "modernBERT_labels":[], "parse_action": "", "input_action": "", "output_action": ""}')
+    const piiProfile = JSON.parse(process.env.PPI_PROFILE || '{"presidio_labels":[], "modernBERT_labels":[], "parse_action": "Redact", "input_action": "Redact", "output_action": "Redact"}')
     core.debug(`This is pii profile ${piiProfile}`)
 
       collectionId = await uploadAttachmentsToH2oGPTe(
