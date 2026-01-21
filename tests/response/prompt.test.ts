@@ -1,22 +1,14 @@
 import {
-  describe,
-  test,
-  expect,
-  beforeEach,
   afterEach,
+  beforeEach,
+  describe,
+  expect,
   jest,
   mock,
+  test,
 } from "bun:test";
 
 // Mock the dependencies first, before any imports
-const mockConstants = {
-  AGENT_GITHUB_ENV_VAR: "GITHUB_PAT_TMP",
-};
-
-const mockUtils = {
-  getGithubApiUrl: () => "https://api.github.com",
-};
-
 import { isInstructionEmpty as realIsInstructionEmpty } from "../../src/core/response/utils/instruction";
 
 const mockInstruction = {
@@ -34,18 +26,16 @@ const mockContext = {
 };
 
 // Mock the modules before importing the actual module
-mock.module("../../src/constants", () => mockConstants);
-mock.module("../../src/core/utils", () => mockUtils);
 // Note: We don't mock formatter - use real implementation to avoid test isolation issues
 // Note: We don't mock url-replace globally to avoid interfering with other tests
 mock.module("../../src/core/response/utils/instruction", () => mockInstruction);
 mock.module("../../src/core/data/context", () => mockContext);
 
 // Now import the module under test
+import type { PullRequestEvent } from "@octokit/webhooks-types";
+import type { FetchDataResult } from "../../src/core/data/fetcher";
 import { createAgentInstructionPrompt } from "../../src/core/response/prompt";
 import type { ParsedGitHubContext } from "../../src/core/services/github/types";
-import type { FetchDataResult } from "../../src/core/data/fetcher";
-import type { PullRequestEvent } from "@octokit/webhooks-types";
 
 describe("createAgentInstructionPrompt", () => {
   let originalEnv: Record<string, string | undefined>;
@@ -78,8 +68,6 @@ describe("createAgentInstructionPrompt", () => {
       const result = createAgentInstructionPrompt(context, undefined);
 
       expect(result).toContain("You're h2oGPTe an AI Agent");
-      expect(result).toContain("GITHUB_PAT_TMP");
-      expect(result).toContain("https://api.github.com");
       expect(result).toContain("test-owner/test-repo");
     });
 
@@ -97,8 +85,6 @@ describe("createAgentInstructionPrompt", () => {
       const result = createAgentInstructionPrompt(context, githubData);
 
       // Check that the basic replacements are applied
-      expect(result).toContain("GITHUB_PAT_TMP");
-      expect(result).toContain("https://api.github.com");
       expect(result).toContain("test-owner/test-repo");
     });
 
@@ -113,8 +99,6 @@ describe("createAgentInstructionPrompt", () => {
       const result = createAgentInstructionPrompt(context, undefined);
 
       // The basic replacements should still work
-      expect(result).toContain("GITHUB_PAT_TMP");
-      expect(result).toContain("https://api.github.com");
       expect(result).toContain("test-owner/test-repo");
     });
   });
@@ -370,7 +354,6 @@ describe("createAgentInstructionPrompt", () => {
 
       // Check that the basic placeholders are replaced
       expect(result).toContain("test-owner/test-repo");
-      expect(result).toContain("https://api.github.com");
     });
   });
 

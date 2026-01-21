@@ -1,40 +1,100 @@
 import dedent from "ts-dedent";
-import { AGENT_GITHUB_ENV_VAR } from "../../constants";
-import { getGithubApiUrl } from "../utils";
-import type { ParsedGitHubContext } from "../services/github/types";
-import type { FetchDataResult } from "../data/fetcher";
-import { buildEventsText } from "./utils/formatter";
-import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
-import {
-  extractInstruction,
-  extractIdNumber,
-  extractPRReviewCommentDetails,
-  extractHeadBranch,
-  extractBaseBranch,
-  isInstructionEmpty,
-} from "./utils/instruction";
 import {
   isPRIssueEvent,
   isPullRequestReviewCommentEvent,
 } from "../data/context";
+import type { FetchDataResult } from "../data/fetcher";
+import type { ParsedGitHubContext } from "../services/github/types";
+import { buildEventsText } from "./utils/formatter";
+import {
+  extractBaseBranch,
+  extractHeadBranch,
+  extractIdNumber,
+  extractInstruction,
+  extractPRReviewCommentDetails,
+  isInstructionEmpty,
+} from "./utils/instruction";
 import { getSlashCommandsPrompt } from "./utils/slash-commands";
+import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
 
 const USER_PROMPT = process.env.PROMPT || "";
-const PROMPT_WRAPPER = dedent`
+
+function getMcpInstructions(): string {
+  return dedent`
+    You have access to the GitHub Model Context Protocol (MCP) server through h2oGPTe's tool runner. The GitHub MCP custom tool is already configured and available for you to use. It provides standardized tools for interacting with GitHub repositories, issues, pull requests, Actions, security features, and more. The MCP server handles authentication automatically and provides a reliable and secure way to perform GitHub operations.
+
+    To discover all available tools, use the litellm_tool_runner to list available MCP tools:
+    \`\`\`python
+    from api_server.agent_tools.litellm_tool_runner import litellm_tool_runner
+    tools_dict = litellm_tool_runner(action="list")
+    \`\`\`
+    This will help you find the GitHub MCP tools and understand what's available.
+
+    Some commonly used GitHub MCP tools include:
+    - get_file_contents: Retrieve the contents of files from repositories
+    - search_code: Search for code snippets across repositories
+    - create_pull_request: Create new pull requests
+    - create_or_update_file: Create or update files in repositories
+
+    IMPORTANT:
+    - You must use the GitHub MCP custom tool through h2oGPTe's tool runner for all GitHub operations. The tool is already configured and ready to use.
+    - The litellm_tool_runner is a sub-agent that executes specific GitHub MCP operations. You should provide it with very specific, granular tasks rather than broad or vague instructions.
+    - To launch MCP tools, use the litellm_tool_runner from api_server.agent_tools.litellm_tool_runner. This is the designated way to execute GitHub MCP tools - do NOT attempt to create your own MCP client or wrapper code.
+    - Example usage - provide specific, granular tasks:
+    \`\`\`python
+    from api_server.agent_tools.litellm_tool_runner import litellm_tool_runner
+
+    # Example 1: Pull a specific file from a specific branch
+    litellm_tool_runner(
+        query="Get the contents of src/utils/helper.ts from the main branch in the repository",
+        tools=["github"]
+    )
+
+    # Example 2: Commit specific code to a specific file on a specific branch
+    litellm_tool_runner(
+        query="Update the file src/config/settings.json on branch feature/add-logging with the following content: {'debug': true, 'logLevel': 'info'}",
+        tools=["github"]
+    )
+
+    # Example 3: Search for specific code patterns
+    litellm_tool_runner(
+        query="Search for all occurrences of 'useState' in TypeScript files (.ts, .tsx) in the src directory",
+        tools=["github"]
+    )
+
+    # Example 4: Create a pull request with specific details
+    litellm_tool_runner(
+        query="Create a pull request from branch feature/fix-bug-123 to main branch with title 'Fix authentication bug' and description 'Resolves issue #123 by updating token validation logic'",
+        tools=["github"]
+    )
+
+    # Example 5: Get multiple specific files
+    litellm_tool_runner(
+        query="Get the contents of package.json and tsconfig.json from the main branch",
+        tools=["github"]
+    )
+    \`\`\`
+    - Break down complex operations into multiple specific sub-agent calls. Each call should target a single, well-defined task.
+    - Do NOT attempt to create your own MCP client in Python or any other language.
+    - Do NOT make direct API calls or use Python/shell scripts to interact with GitHub (except for using litellm_tool_runner to execute MCP tools).
+    - If the MCP server encounters a fatal error, exit with an appropriate error message. For errors related to incorrect parameters or tool usage, handle them gracefully and provide helpful feedback.
+  `;
+}
+
+function getPromptWrapper(): string {
+  return dedent`
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
-You'll be provided a github api key that you can access in python by using os.getenv("{{AGENT_GITHUB_ENV_VAR}}").
-You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
-You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
+${getMcpInstructions()}
 
 You must only work in the user's repository, {{repoName}}.
-Under no circumstances should you print the github api key in your response or any output stream.
 
 {{userPrompt}}
 
 Respond and execute actions according to the user's instruction.
 `;
+}
 
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
@@ -49,7 +109,7 @@ export function createAgentInstructionPrompt(
   ) {
     prompt = createAgentInstructionPromptForComment(context, githubData);
   } else {
-    prompt = PROMPT_WRAPPER;
+    prompt = getPromptWrapper();
   }
   return applyReplacements(prompt, context, githubData);
 }
@@ -86,8 +146,6 @@ function applyReplacements(
     : "Then read the code in the repository and understand the context of the code.";
 
   const replacements = {
-    "{{AGENT_GITHUB_ENV_VAR}}": AGENT_GITHUB_ENV_VAR,
-    "{{githubApiBase}}": getGithubApiUrl(),
     "{{repoName}}": context.repository.full_name,
     "{{instruction}}": instruction,
     "{{idNumber}}": (extractIdNumber(context) || "undefined").toString(),
@@ -118,10 +176,8 @@ function createAgentInstructionPromptForComment(
 
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
-    You'll be provided a github api key that you can access in python by using os.getenv("{{AGENT_GITHUB_ENV_VAR}}").
-    You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
-    You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
-    Ensure you use the GitHub API token for authentication.
+
+    ${getMcpInstructions()}
 
     What you CANNOT do under any circumstances:
     - Post comments on the pull request or issue
@@ -136,19 +192,19 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_pr_review = dedent`
-    Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to pull any necessary files.
+    Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to retrieve any necessary files using the GitHub MCP server's get_file_contents tool.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
   `;
 
   const prompt_pr = dedent`
     You must only work on pull request number {{idNumber}}. The head branch is "{{headBranch}}" and the base branch is "{{baseBranch}}".
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
-    Ensure you search for the relevant files in the head branch as they may not exist in the base branch if files were added in the PR.
+    Ensure you search for the relevant files in the head branch using the GitHub MCP server's search_code or get_file_contents tools, as they may not exist in the base branch if files were added in the PR.
     ${isPRReviewComment ? prompt_pr_review : ""}
   `;
 
   const prompt_issue = dedent`
-    If code changes are required, you must create a new branch and pull request in the user's repository and name it appropriately.
+    If code changes are required, you must create a new branch and pull request in the user's repository using the GitHub MCP server's create_pull_request tool and name it appropriately.
     You must link the pull request to the issue.
   `;
 
@@ -174,7 +230,7 @@ function createAgentInstructionPromptForComment(
     First read the previous events and understand the context of the conversation.
     Then read the user's instruction (within the <user_instruction> tags) and understand the task they want to complete.
     {{codeAnalysisGuidance}}
-    Once you have a good understanding of the context, you can begin to respond to the user's instruction.
+    Once you have a good understanding of the context, use the GitHub MCP server tools to interact with the repository and begin responding to the user's instruction.
 
     If necessary, reference GitHub issues or PRs using the # symbol followed by their number (e.g., #42, #123). Don't respond with the literal link.
 
