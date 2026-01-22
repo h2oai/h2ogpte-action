@@ -117,7 +117,7 @@ export async function uploadAttachmentsToH2oGPTe(
   attachmentUrlMap: Map<string, string>,
 ): Promise<void> {
   if (attachmentUrlMap.size === 0) {
-    core.debug("No attachments found, skipping collection creation");
+    core.debug("No attachments found");
     return;
   }
   try {
