@@ -50,6 +50,6 @@ jobs:
             pii_labels_to_flag:
               - ACCOUNTNUMBER
               - CREDITCARDNUMBER
-            pii_detection_parse_action: "Redact"
-            pii_detection_llm_input_action: "Redact"
-            pii_detection_llm_output_action: "Redact"
+            pii_detection_parse_action: redact
+            pii_detection_llm_input_action: redact
+            pii_detection_llm_output_action: redact
