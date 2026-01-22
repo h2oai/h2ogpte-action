@@ -1,3 +1,5 @@
+import z from "zod";
+
 export interface FetchWithRetryOptions {
   maxRetries?: number;
   retryDelay?: number;
@@ -107,11 +109,19 @@ export interface JobDetails {
   start_time?: number;
 }
 
-export interface GuardRailSettings {
-  disallowed_regex_patterns?: string[];
-  presidio_labels_to_flag?: string[];
-  pii_labels_to_flag?: string[];
-  pii_detection_parse_action?: "allow" | "redact" | "fail";
-  pii_detection_llm_input_action?: "allow" | "redact" | "fail";
-  pii_detection_llm_output_action?: "allow" | "redact" | "fail";
-}
+export const GuardRailsSchema = z
+  .object({
+    disallowed_regex_patterns: z.array(z.string()).optional(),
+    presidio_labels_to_flag: z.array(z.string()).optional(),
+    pii_labels_to_flag: z.array(z.string()).optional(),
+    pii_detection_parse_action: z.enum(["redact", "allow", "fail"]).optional(),
+    pii_detection_llm_input_action: z
+      .enum(["redact", "allow", "fail"])
+      .optional(),
+    pii_detection_llm_output_action: z
+      .enum(["redact", "allow", "fail"])
+      .optional(),
+  })
+  .strict();
+
+export type GuardRailSettings = z.infer<typeof GuardRailsSchema>;
