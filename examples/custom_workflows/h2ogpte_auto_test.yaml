@@ -48,13 +48,11 @@ jobs:
 
             If you create new tests, ensure they follow the repository's testing conventions and frameworks and provide a comment on the changes you make.
             Do NOT modify any existing functionality - only add test files or enhance existing test files.
-          guardrails_settings: | 
-            presidio_labels_to_flag:
-              - CREDIT_CARD
-              - IBAN_CODE
-            pii_labels_to_flag:
-              - ACCOUNTNUMBER
-              - CREDITCARDNUMBER
-            pii_detection_parse_action: redact
-            pii_detection_llm_input_action: redact
-            pii_detection_llm_output_action: redact
+          guardrails_settings: |
+            {
+              "presidio_labels_to_flag": ["CREDIT_CARD", "IBAN_CODE"],
+              "pii_labels_to_flag": ["ACCOUNTNUMBER", "CREDITCARDNUMBER"],
+              "pii_detection_parse_action": "redact",
+              "pii_detection_llm_input_action": "redact",
+              "pii_detection_llm_output_action": "redact"
+            }

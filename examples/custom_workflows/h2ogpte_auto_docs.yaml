@@ -53,13 +53,11 @@ jobs:
             6. Document all changes made in a summary comment at the end
 
             Only generate documentation that adds meaningful clarity. If changes are trivial or self-explanatory, you may skip documentation but explain why in a comment.
-          guardrails_settings: | 
-            presidio_labels_to_flag:
-              - CREDIT_CARD
-              - IBAN_CODE
-            pii_labels_to_flag:
-              - ACCOUNTNUMBER
-              - CREDITCARDNUMBER
-            pii_detection_parse_action: redact
-            pii_detection_llm_input_action: redact
-            pii_detection_llm_output_action: redact
+          guardrails_settings: |
+            {
+              "presidio_labels_to_flag": ["CREDIT_CARD", "IBAN_CODE"],
+              "pii_labels_to_flag": ["ACCOUNTNUMBER", "CREDITCARDNUMBER"],
+              "pii_detection_parse_action": "redact",
+              "pii_detection_llm_input_action": "redact",
+              "pii_detection_llm_output_action": "redact"
+            }
