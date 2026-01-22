@@ -48,7 +48,7 @@ jobs:
 
             If you create new tests, ensure they follow the repository's testing conventions and frameworks and provide a comment on the changes you make.
             Do NOT modify any existing functionality - only add test files or enhance existing test files.
-          guardrails_settings:
+          guardrails_settings: | 
             presidio_labels_to_flag:
               - CREDIT_CARD
               - IBAN_CODE

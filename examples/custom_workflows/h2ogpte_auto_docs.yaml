@@ -53,7 +53,7 @@ jobs:
             6. Document all changes made in a summary comment at the end
 
             Only generate documentation that adds meaningful clarity. If changes are trivial or self-explanatory, you may skip documentation but explain why in a comment.
-          guardrails_settings:
+          guardrails_settings: | 
             presidio_labels_to_flag:
               - CREDIT_CARD
               - IBAN_CODE

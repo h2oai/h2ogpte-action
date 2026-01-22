@@ -55,7 +55,7 @@ jobs:
             6. If the code is well-written and no changes are needed, explain why the implementation is acceptable as-is
 
             Your review should help the contributor improve the pull request while maintaining a constructive and professional tone.
-          guardrails_settings:
+          guardrails_settings: | 
             presidio_labels_to_flag:
               - CREDIT_CARD
               - IBAN_CODE
