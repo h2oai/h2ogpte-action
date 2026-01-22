@@ -45,7 +45,7 @@ inputs:
   prompt:
     description: Prompt for custom workflow. String injection options are {{repoName}}, {{idNumber}} and {{eventsText}}, see README.md for more details.
     required: false
-  pii_profile:
+  guardrails_settings:
     description: Personally identifiable information profile selection
     required: false
 
