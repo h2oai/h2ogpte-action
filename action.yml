@@ -41,14 +41,14 @@ inputs:
   agent_total_timeout:
     description: Total timeout in seconds for all agent processing.
     required: false
-    default: 3600
+    default: 3400
   prompt:
     description: Prompt for custom workflow. String injection options are {{repoName}}, {{idNumber}} and {{eventsText}}, see README.md for more details.
     required: false
   guardrails_settings:
     description: Personally identifiable information profile selection
     required: false
-    default: "{}"
+    default: '{"presidio_labels_to_flag":["CREDIT_CARD","IBAN_CODE"],"pii_labels_to_flag":["ACCOUNTNUMBER","CREDITCARDNUMBER"],"pii_detection_parse_action":"redact","pii_detection_llm_input_action":"redact","pii_detection_llm_output_action":"redact"}'
 
 runs:
   using: composite
