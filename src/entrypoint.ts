@@ -30,7 +30,7 @@ import { createGuardRailsSettings } from "./core/services/h2ogpte/h2ogpte";
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
-  const collectionId: string | null = null;
+  let collectionId: string | null = null;
 
   try {
     // Fetch context
