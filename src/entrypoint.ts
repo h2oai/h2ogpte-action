@@ -68,7 +68,7 @@ export async function run(): Promise<void> {
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
       // Create Collection
-      const collectionId = await createCollection();
+      collectionId = await createCollection();
 
       // Set Guardrail settings
       core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
