@@ -445,7 +445,7 @@ export async function createGuardRailsSettings(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(guardrailsSettingsPayload),
+    body: JSON.stringify({guardrails_settings: guardrailsSettingsPayload}),
   };
   const response = await fetchWithRetry(
     `${apiBase}/api/v1/collections/${collectionId}/settings`,
