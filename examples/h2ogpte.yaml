@@ -43,14 +43,13 @@ jobs:
           agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
           agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
-          pii_profile:
-            presidio_labels:
+          guardrails_settings:
+            presidio_labels_to_flag:
               - CREDIT_CARD
               - IBAN_CODE
-            modernBERT_labels:
+            pii_labels_to_flag:
               - ACCOUNTNUMBER
               - CREDITCARDNUMBER
-            parse_action: "Redact"
-            input_action: "Redact"
-            output_action: "Redact"
-
+            pii_detection_parse_action: "Redact"
+            pii_detection_llm_input_action: "Redact"
+            pii_detection_llm_output_action: "Redact"

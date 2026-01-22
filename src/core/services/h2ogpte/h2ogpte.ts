@@ -232,7 +232,6 @@ export function getChatSessionUrl(chatSessionId: string) {
 }
 
 export async function createCollection(
-  piiProfile: any,
   collectionName?: string,
   description?: string,
   maxRetries: number = 3,
@@ -243,23 +242,12 @@ export async function createCollection(
   collectionName = collectionName || `h2oGPTe-action-collection-${Date.now()}`;
   description = description || "Collection created by h2oGPTe GitHub action";
 
-
   const options = {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ name: collectionName, description: description, 
-                          collection_settings: {
-                            guardrails_settings: {
-                              presidio_labels_to_flag: piiProfile.presidio_labels,
-                              pii_labels_to_flag: piiProfile.modernBERT_labels,
-                              pii_detection_parse_action: piiProfile.parse_action,
-                              pii_detection_llm_input_action: piiProfile.input_action,
-                              pii_detection_llm_output_action: piiProfile.output_action,
-                            }
-                          } 
-                      }),
+    body: JSON.stringify({ name: collectionName, description: description }),
   };
 
   const response = await fetchWithRetry(
@@ -427,4 +415,49 @@ export async function deleteCollection(
   core.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
+}
+
+/**
+ * Create guardrail settings
+ */
+
+export async function createGuardRailsSettings(
+  collectionId: string,
+  guardrailsSettings?: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  if (!guardrailsSettings) {
+    core.debug("No guardrails settings found");
+    return;
+  }
+
+  const guardrailsSettingsPayload: types.GuardRailSettings =
+    JSON.parse(guardrailsSettings);
+
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(guardrailsSettingsPayload),
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/settings`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to set guardrails settings in collection: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(`${response.status} - Successfully set guardrails settings`);
 }

@@ -106,3 +106,12 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
+
+export interface GuardRailSettings {
+  disallowed_regex_patterns?: string[];
+  presidio_labels_to_flag?: string[];
+  pii_labels_to_flag?: string[];
+  pii_detection_parse_action?: "allow" | "redact" | "fail";
+  pii_detection_llm_input_action?: "allow" | "redact" | "fail";
+  pii_detection_llm_output_action?: "allow" | "redact" | "fail";
+}
