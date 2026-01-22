@@ -47,11 +47,16 @@ jobs:
           agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
           agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
-          
-          guardrails_settings: |
-            {"disallowed_regex_patterns": ["secret_disallowed_word","(?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}"],
-            "presidio_labels_to_flag":["CREDIT_CARD","IBAN_CODE"],
-            "pii_labels_to_flag":["ACCOUNTNUMBER","CREDITCARDNUMBER"],
-            "pii_detection_parse_action":"redact",
-            "pii_detection_llm_input_action":"redact",
-            "pii_detection_llm_output_action":"redact"}
+          guardrails_settings:
+            disallowed_regex_patterns:
+              - secret_disallowed_word
+              - (?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}
+            presidio_labels_to_flag:
+             - CREDIT_CARD
+             - IBAN_CODE
+            pii_labels_to_flag:
+             - ACCOUNTNUMBER
+             - CREDITCARDNUMBER
+            pii_detection_parse_action: "redact"
+            pii_detection_llm_input_action: "redact"
+            pii_detection_llm_output_action: "redact"
