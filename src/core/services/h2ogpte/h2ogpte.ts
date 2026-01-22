@@ -432,9 +432,12 @@ export async function createGuardRailsSettings(
     return;
   }
 
+  core.debug(`Guardrails settings: ${guardrailsSettings}`);
+
   const guardrailsSettingsPayload: types.GuardRailSettings =
     JSON.parse(guardrailsSettings);
 
+  core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
     method: "PUT",
