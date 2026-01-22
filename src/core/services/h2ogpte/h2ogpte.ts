@@ -4,7 +4,7 @@ import { basename } from "path";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
-
+import yaml from "js-yaml";
 /**
  * Creates agent keys with retry mechanism
  */
@@ -433,8 +433,12 @@ export async function createGuardRailsSettings(
   }
 
   core.debug(`Guardrails settings: ${guardrailsSettings}`);
-
+  /*
   const guardrailsSettingsPayload = JSON.parse(
+    guardrailsSettings,
+  ) as types.GuardRailSettings;
+  */
+  const guardrailsSettingsPayload = yaml.load(
     guardrailsSettings,
   ) as types.GuardRailSettings;
 
