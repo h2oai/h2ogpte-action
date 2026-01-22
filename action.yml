@@ -48,6 +48,7 @@ inputs:
   guardrails_settings:
     description: Personally identifiable information profile selection
     required: false
+    default: "{}"
 
 runs:
   using: composite

@@ -71,10 +71,12 @@ export async function run(): Promise<void> {
       const collectionId = await createCollection();
 
       // Set Guardrail settings
+      core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
       await createGuardRailsSettings(
         collectionId,
         process.env.GUARDRAILS_SETTINGS,
       );
+
 
       // Upload attachments
       await uploadAttachmentsToH2oGPTe(
