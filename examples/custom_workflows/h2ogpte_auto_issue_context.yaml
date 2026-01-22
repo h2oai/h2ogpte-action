@@ -45,11 +45,4 @@ jobs:
 
             Do NOT attempt to solve the issue directly - just provide helpful context to make it easier for developers to understand and address the issue.
             Your comment should be informative, concise, and focused on helping developers quickly get oriented to work on the issue.
-          guardrails_settings: |
-            {
-              "presidio_labels_to_flag": ["CREDIT_CARD", "IBAN_CODE"],
-              "pii_labels_to_flag": ["ACCOUNTNUMBER", "CREDITCARDNUMBER"],
-              "pii_detection_parse_action": "redact",
-              "pii_detection_llm_input_action": "redact",
-              "pii_detection_llm_output_action": "redact"
-            }
+          guardrails_settings: '{"presidio_labels_to_flag":["CREDIT_CARD","IBAN_CODE"],"pii_labels_to_flag":["ACCOUNTNUMBER","CREDITCARDNUMBER"],"pii_detection_parse_action":"redact","pii_detection_llm_input_action":"redact","pii_detection_llm_output_action":"redact"}'
