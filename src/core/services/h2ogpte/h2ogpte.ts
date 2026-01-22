@@ -434,7 +434,9 @@ export async function createGuardRailsSettings(
 
   core.debug(`Guardrails settings: ${guardrailsSettings}`);
 
-  const guardrailsSettingsPayload = JSON.parse(guardrailsSettings) as types.GuardRailSettings
+  const guardrailsSettingsPayload = JSON.parse(
+    guardrailsSettings,
+  ) as types.GuardRailSettings;
 
   core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
   const { apiKey, apiBase } = getH2ogpteConfig();
@@ -444,7 +446,7 @@ export async function createGuardRailsSettings(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({guardrails_settings: guardrailsSettingsPayload}),
+    body: JSON.stringify({ guardrails_settings: guardrailsSettingsPayload }),
   };
   const response = await fetchWithRetry(
     `${apiBase}/api/v1/collections/${collectionId}/settings`,

@@ -77,7 +77,6 @@ export async function run(): Promise<void> {
         process.env.GUARDRAILS_SETTINGS,
       );
 
-
       // Upload attachments
       await uploadAttachmentsToH2oGPTe(
         collectionId,

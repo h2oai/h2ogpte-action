@@ -52,11 +52,11 @@ jobs:
               - secret_disallowed_word
               - (?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}
             presidio_labels_to_flag:
-             - CREDIT_CARD
-             - IBAN_CODE
+              - CREDIT_CARD
+              - IBAN_CODE
             pii_labels_to_flag:
-             - ACCOUNTNUMBER
-             - CREDITCARDNUMBER
+              - ACCOUNTNUMBER
+              - CREDITCARDNUMBER
             pii_detection_parse_action: "redact"
             pii_detection_llm_input_action: "redact"
             pii_detection_llm_output_action: "redact"
