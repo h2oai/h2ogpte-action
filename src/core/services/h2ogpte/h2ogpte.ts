@@ -434,8 +434,7 @@ export async function createGuardRailsSettings(
 
   core.debug(`Guardrails settings: ${guardrailsSettings}`);
 
-  const guardrailsSettingsPayload: types.GuardRailSettings =
-    JSON.parse(guardrailsSettings);
+  const guardrailsSettingsPayload = JSON.parse(guardrailsSettings) as types.GuardRailSettings
 
   core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
   const { apiKey, apiBase } = getH2ogpteConfig();
