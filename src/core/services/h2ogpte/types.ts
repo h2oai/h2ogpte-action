@@ -121,6 +121,11 @@ export const GuardRailsSchema = z
     pii_detection_llm_output_action: z
       .enum(["redact", "allow", "fail"])
       .optional(),
+    exception_message: z.string().optional(),
+    prompt_guard_llm: z.string().optional(),
+    prompt_guard_safe_category: z.string().optional(),
+    guardrails_labels_to_flag: z.array(z.string()).optional(),
+    guardrails_entities: z.record(z.string(), z.string()).optional(),
   })
   .strict();
 
