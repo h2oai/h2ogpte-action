@@ -24,7 +24,7 @@ export async function getGithubAccessToken(): Promise<string> {
   }
 
   const tokenResponse = await fetch(
-    "https://8iys2kexcg.execute-api.us-east-1.amazonaws.com/dev/token",
+    "https://shbhq8cdh0.execute-api.us-east-1.amazonaws.com/dev/token",
     {
       method: "POST",
       headers: {
