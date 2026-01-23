@@ -126,8 +126,7 @@ export const GuardRailsSchema = z
     guardrails_labels_to_flag: z.array(z.string()).optional(),
     guardrails_llm: z.string().optional(),
     guardrails_safe_category: z.string().optional(),
-    guardrails_entities: z.record(z.string(), z.string()).optional()
-
+    guardrails_entities: z.record(z.string(), z.string()).optional(),
   })
   .strict();
 
