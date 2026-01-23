@@ -41,12 +41,12 @@ inputs:
   agent_total_timeout:
     description: Total timeout in seconds for all agent processing.
     required: false
-    default: 3400
+    default: 3600
   prompt:
     description: Prompt for custom workflow. String injection options are {{repoName}}, {{idNumber}} and {{eventsText}}, see README.md for more details.
     required: false
   guardrails_settings:
-    description: Personally identifiable information profile selection
+    description: Configuration for input/output control of Personal Identifiable Information (PII) and harmful content generation. For more information https://docs.h2o.ai/enterprise-h2ogpte/guide/collections/pii-sanitization
     required: false
 
 runs:

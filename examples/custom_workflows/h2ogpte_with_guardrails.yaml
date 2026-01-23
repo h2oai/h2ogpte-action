@@ -1,4 +1,4 @@
-name: h2oGPTe Agent Assistant
+name: h2oGPTe Guardrails Agent
 
 on:
   issues:
@@ -18,8 +18,8 @@ permissions:
   issues: write
 
 jobs:
-  h2ogpte-agent-assistant:
-    name: h2oGPTe Agent Assistant
+  test-guardrail-action:
+    name: h2oGPTe Guardrails test
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'issues' && contains(github.event.issue.body, '@h2ogpte')) ||
@@ -29,20 +29,17 @@ jobs:
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@h2ogpte'))
 
     steps:
-      - name: h2oGPTe Agent Assistant
-        id: h2ogpte-agent-assistant
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: h2oGPTe Auto Review Agent
+        id: h2ogpte-agent-guardrails
         uses: h2oai/h2ogpte-action@v0.2.2-beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
           h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
-          github_api_url: https://api.github.com
-          github_server_url: https://github.com
-          # h2oGPTe Configuration (optional)
-          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
-          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
-          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
-          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
           guardrails_settings: |
             disallowed_regex_patterns:
               - secret_disallowed_word

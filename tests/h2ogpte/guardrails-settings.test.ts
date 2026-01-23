@@ -87,14 +87,6 @@ describe("createGuardRailsSettings", () => {
     expect(fetchWithRetrySpy).not.toHaveBeenCalled();
   });
 
-  test("should throw error when guardrails settings contains invalid JSON", async () => {
-    const invalidJson = '{"invalid": json}';
-
-    await expect(
-      createGuardRailsSettings(testCollectionId, invalidJson),
-    ).rejects.toThrow("Invalid guardrails settings");
-  });
-
   test("should throw error when API request fails", async () => {
     fetchWithRetrySpy.mockResolvedValueOnce({
       ok: false,

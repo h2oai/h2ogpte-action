@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: h2oGPTe Auto Issue Context
         id: h2ogpte-agent-assistant
-        uses: ./
+        uses: h2oai/h2ogpte-action@v0.2.2-beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
@@ -45,4 +45,3 @@ jobs:
 
             Do NOT attempt to solve the issue directly - just provide helpful context to make it easier for developers to understand and address the issue.
             Your comment should be informative, concise, and focused on helping developers quickly get oriented to work on the issue.
-          guardrails_settings: '{"presidio_labels_to_flag":["CREDIT_CARD","IBAN_CODE"],"pii_labels_to_flag":["ACCOUNTNUMBER","CREDITCARDNUMBER"],"pii_detection_parse_action":"redact","pii_detection_llm_input_action":"redact","pii_detection_llm_output_action":"redact"}'

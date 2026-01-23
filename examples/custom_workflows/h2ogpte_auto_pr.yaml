@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: h2oGPTe Auto Review Agent
         id: h2ogpte-agent-assistant
-        uses: ./
+        uses: h2oai/h2ogpte-action@v0.2.2-beta
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
@@ -55,4 +55,3 @@ jobs:
             6. If the code is well-written and no changes are needed, explain why the implementation is acceptable as-is
 
             Your review should help the contributor improve the pull request while maintaining a constructive and professional tone.
-          guardrails_settings: '{"presidio_labels_to_flag":["CREDIT_CARD","IBAN_CODE"],"pii_labels_to_flag":["ACCOUNTNUMBER","CREDITCARDNUMBER"],"pii_detection_parse_action":"redact","pii_detection_llm_input_action":"redact","pii_detection_llm_output_action":"redact"}'
