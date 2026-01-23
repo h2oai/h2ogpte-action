@@ -1,5 +1,3 @@
-import z from "zod";
-
 export interface FetchWithRetryOptions {
   maxRetries?: number;
   retryDelay?: number;
@@ -108,27 +106,6 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
-
-export const GuardRailsSchema = z
-  .object({
-    disallowed_regex_patterns: z.array(z.string()).optional(),
-    presidio_labels_to_flag: z.array(z.string()).optional(),
-    pii_labels_to_flag: z.array(z.string()).optional(),
-    pii_detection_parse_action: z.enum(["redact", "allow", "fail"]).optional(),
-    pii_detection_llm_input_action: z
-      .enum(["redact", "allow", "fail"])
-      .optional(),
-    pii_detection_llm_output_action: z
-      .enum(["redact", "allow", "fail"])
-      .optional(),
-    exception_message: z.string().optional(),
-    prompt_guard_labels_to_flag: z.array(z.string()).optional(),
-    guardrails_labels_to_flag: z.array(z.string()).optional(),
-    guardrails_llm: z.string().optional(),
-    guardrails_safe_category: z.string().optional(),
-    guardrails_entities: z.record(z.string(), z.string()).optional(),
-  })
-  .strict();
 
 export type PiiDetectionAction = "redact" | "allow" | "fail";
 
