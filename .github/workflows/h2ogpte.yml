@@ -40,3 +40,41 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
           h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
+          github_api_url: https://api.github.com
+          github_server_url: https://github.com
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          guardrails_settings: |
+            disallowed_regex_patterns:
+              - secret_disallowed_word
+              - (?!0{3})(?!6{3})[0-8]\\d{2}-(?!0{2})\\d{2}-(?!0{4})\\d{4}
+            presidio_labels_to_flag:
+              - CREDIT_CARD
+              - IBAN_CODE
+            pii_labels_to_flag:
+              - ACCOUNTNUMBER
+              - CREDITCARDNUMBER
+            pii_detection_parse_action: "redact"
+            pii_detection_llm_input_action: "redact"
+            pii_detection_llm_output_action: "redact"
+            exception_message: "Test"
+            prompt_guard_labels_to_flag:
+              - JAILBREAK
+            guardrails_labels_to_flag: 
+              - Violent Crimes
+              - Non-Violent Crimes
+              - Intellectual Property
+              - Code Interpreter Abuse
+            guardrails_llm: "h2oai/h2o-danube3-4b-chat"
+            guardrails_safe_category: "Safe"
+            guardrails_entities: 
+              Safe: "Messages that do not contain any of the following unsafe content"
+              Violent Crimes: "Messages that enable, encourage, or endorse the commission of violent crimes, including: (1) unlawful violence toward people (ex: terrorism, genocide, murder, hate-motivated violent crimes, child abuse, assault, battery, kidnapping) and (2) unlawful violence toward animals (ex: animal abuse)"
+              Non-Violent Crimes: "Messages that enable, encourage, or endorse the commission of non-violent crimes, including: (1) personal crimes (ex: labor trafficking, threats, intimidation, hate-motivated non-violent crimes), (2) financial crimes (ex: fraud, scams, money laundering), (3) property crimes (ex: theft, arson, vandalism), (4) drug crimes (ex: creating or using regulated substances), (5) weapons crimes (ex: producing unlicensed firearms), and (6) cyber crimes (ex: hacking)"
+              Defamation: "Messages that are both verifiably false and likely to injure a living person’s reputation"
+              Specialized Advice: "Messages that contain specialized financial, medical, or legal advice, or that indicate dangerous activities or objects are safe" 
+              Intellectual Property: "Messages that may violate the intellectual property rights of any third party"
+              Code Interpreter Abuse: "Messages that seek to abuse code interpreters, including those that enable denial of service attacks, container escapes or privilege escalation exploits"
