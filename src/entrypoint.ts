@@ -9,16 +9,16 @@ import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload"
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { extractInstruction } from "./core/response/utils/instruction";
-import { createReply, updateComment } from "./core/services/github/api";
+import {
+  checkWritePermissions,
+  createReply,
+  updateComment,
+} from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
-import {
-  checkWritePermissions,
-  cleanup,
-  createSecretAndToolAssociation,
-  getGithubToken,
-} from "./core/utils";
+import { cleanup, createSecretAndToolAssociation } from "./core/utils";
+import { getGithubAccessToken } from "./core/services/github/auth";
 
 /**
  * The main function for the action.
@@ -30,10 +30,12 @@ export async function run(): Promise<void> {
   let collectionId: string | null = null;
 
   try {
+    const githubAccessToken = await getGithubAccessToken();
+    return;
+
     // Fetch context
     const octokits = createOctokits();
     const context = parseGitHubContext();
-    const githubToken = getGithubToken();
 
     // Check if actor has correct permissions, otherwise exit immeditely
     const hasWritePermissions = await checkWritePermissions(

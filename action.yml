@@ -9,7 +9,7 @@ branding:
 inputs:
   github_token:
     description: GitHub Access Token. Should be defined via a repository secret.
-    required: true
+    required: false
   h2ogpte_api_key:
     description: h2oGPTe API Key from https://h2ogpte.genai.h2o.ai/api. Should be defined via a repository secret.
     required: true
