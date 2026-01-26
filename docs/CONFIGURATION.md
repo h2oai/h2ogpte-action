@@ -10,8 +10,7 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
 | **Agent Max Turns (`agent_max_turns`)**         | `"auto"`     | `"auto"`, `5`, `10`, `15`, `20`                                                                                              | Control the maximum number of reasoning steps. `"auto"` automatically selects optimal turns. Higher values allow for more complex reasoning but may take longer. Lower values provide faster responses but potentially less thorough analysis. |
 | **Agent Accuracy (`agent_accuracy`)**           | `"standard"` | `"quick"`, `"basic"`, `"standard"`, `"maximum"`                                                                              | Configure the accuracy level. `"quick"` for fastest responses, `"basic"` for good balance, `"standard"` recommended for code reviews, `"maximum"` for highest accuracy but slower.                                                             |
 | **Agent Total Timeout (`agent_total_timeout`)** | `3600`       | Any positive integer (in seconds)                                                                                            | Set the maximum time (in seconds) the agent can run before timing out. Default is 3600 seconds (1 hour). Invalid or negative values will use the default.                                                                                      |
-| **Guardrails Settings (`guardrails_settings`)** | — | YAML string | Advanced content safety and compliance configuration using YAML. Enables regex filtering, PII detection actions, moderation labels, and custom category definitions. |
-
+| **Guardrails Settings (`guardrails_settings`)** | —            | YAML string                                                                                                                  | Advanced content safety and compliance configuration using YAML. Enables regex filtering, PII detection actions, moderation labels, and custom category definitions.                                                                           |
 
 ## Guardrails Configuration (Advanced)
 
@@ -26,20 +25,20 @@ This option is intended for advanced users who need fine-grained control over:
 
 ### Supported Guardrails Options
 
-| Field | Type | Description |
-|--------|------|------------|
-| `disallowed_regex_patterns` | `string[]` | A list of regular expressions that match custom PII. |
-| `presidio_labels_to_flag` | `string[]` | A list of entities to be flagged as PII by the built-in Presidio model. |
-| `pii_labels_to_flag` | `string[]` | A list of entities to be flagged as PII by the built-in PII model. |
-| `pii_detection_parse_action` | `"redact" \| "allow" \| "fail"` | What to do when PII is detected during parsing of documents. The 'redact' option will replace disallowed content in the ingested documents with redaction bars. |
-| `pii_detection_llm_input_action` | `"redact" \| "allow" \| "fail"` | What to do when PII is detected in the input to the LLM (document content and user prompts). The 'redact' option will replace disallowed content with placeholders. |
-| `pii_detection_llm_output_action` | `"redact" \| "allow" \| "fail"` | What to do when PII is detected in the output of the LLM. The 'redact' option will replace disallowed content with placeholders. |
-| `exception_message` | `string` | A message that will be returned in case some guardrails settings are violated. |
-| `prompt_guard_labels_to_flag` | `string[]` | A list of entities to be flagged as safety violations in user prompts by the built-in prompt guard model. |
-| `guardrails_labels_to_flag` | `string[]` | A list of entities to be flagged as safety violations in user prompts. Must be a subset of guardrails_entities, if provided. |
-| `guardrails_llm` | `string` | LLM to use for Guardrails and PII detection |
-| `guardrails_safe_category` | `string` | Name of the safe category for guardrails. Must be a key in guardrails_entities, if provided. Otherwise uses system defaults. |
-| `guardrails_entities` | `Record<string, string>` | Dictionary of entities and their descriptions for the guardrails model to classify. The first entry is the "safe" class, the rest are "unsafe" classes. |
+| Field                             | Type                            | Description                                                                                                                                                         |
+| --------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `disallowed_regex_patterns`       | `string[]`                      | A list of regular expressions that match custom PII.                                                                                                                |
+| `presidio_labels_to_flag`         | `string[]`                      | A list of entities to be flagged as PII by the built-in Presidio model.                                                                                             |
+| `pii_labels_to_flag`              | `string[]`                      | A list of entities to be flagged as PII by the built-in PII model.                                                                                                  |
+| `pii_detection_parse_action`      | `"redact" \| "allow" \| "fail"` | What to do when PII is detected during parsing of documents. The 'redact' option will replace disallowed content in the ingested documents with redaction bars.     |
+| `pii_detection_llm_input_action`  | `"redact" \| "allow" \| "fail"` | What to do when PII is detected in the input to the LLM (document content and user prompts). The 'redact' option will replace disallowed content with placeholders. |
+| `pii_detection_llm_output_action` | `"redact" \| "allow" \| "fail"` | What to do when PII is detected in the output of the LLM. The 'redact' option will replace disallowed content with placeholders.                                    |
+| `exception_message`               | `string`                        | A message that will be returned in case some guardrails settings are violated.                                                                                      |
+| `prompt_guard_labels_to_flag`     | `string[]`                      | A list of entities to be flagged as safety violations in user prompts by the built-in prompt guard model.                                                           |
+| `guardrails_labels_to_flag`       | `string[]`                      | A list of entities to be flagged as safety violations in user prompts. Must be a subset of guardrails_entities, if provided.                                        |
+| `guardrails_llm`                  | `string`                        | LLM to use for Guardrails and PII detection                                                                                                                         |
+| `guardrails_safe_category`        | `string`                        | Name of the safe category for guardrails. Must be a key in guardrails_entities, if provided. Otherwise uses system defaults.                                        |
+| `guardrails_entities`             | `Record<string, string>`        | Dictionary of entities and their descriptions for the guardrails model to classify. The first entry is the "safe" class, the rest are "unsafe" classes.             |
 
 ---
 
