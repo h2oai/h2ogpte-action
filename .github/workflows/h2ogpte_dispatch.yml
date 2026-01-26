@@ -1,0 +1,24 @@
+name: h2oGPTe Agent Assistant (Manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+
+jobs:
+  test-action:
+    name: GitHub Actions Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Test Local Action
+        id: test-action
+        uses: ./
+        with:
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
