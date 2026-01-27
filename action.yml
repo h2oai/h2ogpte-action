@@ -65,7 +65,7 @@ runs:
       run: |
         bun run ${GITHUB_ACTION_PATH}/src/entrypoint.ts
       env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+        OVERRIDE_GITHUB_TOKEN: ${{ inputs.github_token }}
         GITHUB_API_URL: ${{ inputs.github_api_url }}
         GITHUB_SERVER_URL: ${{ inputs.github_server_url }}
         H2OGPTE_API_KEY: ${{ inputs.h2ogpte_api_key }}

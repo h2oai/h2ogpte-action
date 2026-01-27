@@ -5,32 +5,27 @@ import {
   createToolAssociation,
   deleteAgentKey,
 } from "./services/h2ogpte/h2ogpte";
+import { getGithubAccessToken } from "./services/github/auth";
 
-/**
- * Gets Github key from environment variable
- */
 export function getGithubTokenFromEnv(): string | undefined {
-  const githubToken = process.env.GITHUB_TOKEN;
+  const githubToken = process.env.OVERRIDE_GITHUB_TOKEN;
 
   return githubToken;
 }
 
-/**
- * Gets Github key from environment variable
- */
-export function getGithubToken(): string {
-  const githubToken = getGithubTokenFromEnv();
+export async function getGithubToken(): Promise<string> {
+  const githubTokenFromEnv = getGithubTokenFromEnv();
 
-  if (!githubToken) {
-    throw new Error("GitHub token is required");
+  if (githubTokenFromEnv) {
+    console.log("Using GitHub token from user input");
+    return githubTokenFromEnv;
   }
 
-  return githubToken;
+  const githubAccessToken = await getGithubAccessToken();
+
+  return githubAccessToken;
 }
 
-/**
- * Gets the GitHub API url from environment variable
- */
 export function getGithubApiUrl(): string {
   const githubApiBase = process.env.GITHUB_API_URL;
 
