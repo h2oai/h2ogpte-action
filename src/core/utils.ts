@@ -17,7 +17,7 @@ export async function getGithubToken(): Promise<string> {
   const githubTokenFromEnv = getGithubTokenFromEnv();
 
   if (githubTokenFromEnv) {
-    console.log("Using GitHub token from user input");
+    core.info("Using GitHub token from user input");
     return githubTokenFromEnv;
   }
 
