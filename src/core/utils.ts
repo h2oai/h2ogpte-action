@@ -1,29 +1,31 @@
 import * as core from "@actions/core";
-import { Octokit } from "@octokit/rest";
 import { AGENT_GITHUB_ENV_VAR } from "../constants";
-import type { ParsedGitHubContext } from "./services/github/types";
 import {
   createAgentKey,
   createToolAssociation,
   deleteAgentKey,
 } from "./services/h2ogpte/h2ogpte";
+import { getGithubAccessToken } from "./services/github/auth";
 
-/**
- * Gets Github key from environment variable
- */
-export function getGithubToken(): string {
-  const githubToken = process.env.GITHUB_TOKEN;
-
-  if (!githubToken) {
-    throw new Error("GitHub token is required");
-  }
+export function getGithubTokenFromEnv(): string | undefined {
+  const githubToken = process.env.OVERRIDE_GITHUB_TOKEN;
 
   return githubToken;
 }
 
-/**
- * Gets the GitHub API url from environment variable
- */
+export async function getGithubToken(): Promise<string> {
+  const githubTokenFromEnv = getGithubTokenFromEnv();
+
+  if (githubTokenFromEnv) {
+    core.info("Using GitHub token from user input");
+    return githubTokenFromEnv;
+  }
+
+  const githubAccessToken = await getGithubAccessToken();
+
+  return githubAccessToken;
+}
+
 export function getGithubApiUrl(): string {
   const githubApiBase = process.env.GITHUB_API_URL;
 
@@ -32,47 +34,6 @@ export function getGithubApiUrl(): string {
   }
 
   return githubApiBase;
-}
-
-/**
- * Check if the actor has write permissions to the repository
- * Adapted from: https://github.com/anthropics/claude-code-action/blob/main/src/github/validation/permissions.ts
- * Original author: Anthropic
- * License: MIT
- * @param octokit - The Octokit REST client
- * @param context - The GitHub context
- * @returns true if the actor has write permissions, false otherwise
- */
-export async function checkWritePermissions(
-  octokit: Octokit,
-  context: ParsedGitHubContext,
-): Promise<boolean> {
-  const { repository, actor } = context;
-
-  try {
-    core.debug(`Checking permissions for actor: ${actor}`);
-
-    // Check permissions directly using the permission endpoint
-    const response = await octokit.repos.getCollaboratorPermissionLevel({
-      owner: repository.owner,
-      repo: repository.repo,
-      username: actor,
-    });
-
-    const permissionLevel = response.data.permission;
-    core.debug(`Permission level retrieved: ${permissionLevel}`);
-
-    if (permissionLevel === "admin" || permissionLevel === "write") {
-      core.debug(`Actor has write access: ${permissionLevel}`);
-      return true;
-    } else {
-      core.warning(`Actor has insufficient permissions: ${permissionLevel}`);
-      return false;
-    }
-  } catch (error) {
-    core.error(`Failed to check permissions: ${error}`);
-    throw new Error(`Failed to check permissions for ${actor}: ${error}`);
-  }
 }
 
 async function createAgentGitHubSecret(githubToken: string): Promise<string> {

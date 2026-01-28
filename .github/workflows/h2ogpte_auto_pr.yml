@@ -6,9 +6,7 @@ on:
     types: [opened]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  id-token: write
 
 jobs:
   h2ogpte-auto-review:
@@ -24,7 +22,6 @@ jobs:
         id: h2ogpte-auto-review
         uses: ./
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
           h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
           prompt: |
