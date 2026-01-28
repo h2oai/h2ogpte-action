@@ -466,6 +466,12 @@ export async function createGuardRailsSettings(
   core.debug(`${response.status} - Successfully set guardrails settings`);
 }
 
+/**
+ * Validates if a collection exists and is accessible
+ * @param collectionId - The ID of the collection to validate
+ * @returns Promise<boolean> - True if collection is valid and accessible
+ * @throws Error if the API request fails
+ */
 export async function isValidCollection(
   collectionId: string,
 ): Promise<boolean> {
@@ -498,6 +504,12 @@ export async function isValidCollection(
   }
 }
 
+/**
+ * Retrieves collection settings for a specific collection
+ * @param collectionId - The ID of the collection
+ * @returns Promise<CollectionSettings> - The collection settings configuration
+ * @throws Error if the API request fails
+ */
 export async function getCollectionSettings(
   collectionId: string,
 ): Promise<types.CollectionSettings> {
@@ -528,6 +540,12 @@ export async function getCollectionSettings(
   return data;
 }
 
+/**
+ * Retrieves chat settings for a specific collection
+ * @param collectionId - The ID of the collection
+ * @returns Promise<ChatSettings> - The chat settings configuration
+ * @throws Error if the API request fails
+ */
 export async function getChatSettings(
   collectionId: string,
   maxRetries: number = 3,
@@ -560,6 +578,13 @@ export async function getChatSettings(
   return data;
 }
 
+/**
+ * Updates collection settings for a specific collection
+ * @param collectionId - The ID of the collection
+ * @param settings - The collection settings to apply
+ * @returns Promise<void>
+ * @throws Error if the update fails
+ */
 export async function updateCollectionSettings(
   collectionId: string,
   settingsPayload: types.CollectionSettings,
@@ -593,6 +618,13 @@ export async function updateCollectionSettings(
   core.debug(`${response.status} - Successfully updated collection settings`);
 }
 
+/**
+ * Updates chat settings for a specific collection
+ * @param collectionId - The ID of the collection
+ * @param settings - The chat settings to apply
+ * @returns Promise<void>
+ * @throws Error if the update fails
+ */
 export async function updateChatSettings(
   collectionId: string,
   chatSettingsPayload: types.ChatSettings,
@@ -665,7 +697,7 @@ export async function addDocumentsToCollection(
 ): Promise<void> {
   const { apiKey, apiBase } = getH2ogpteConfig();
 
-  Promise.all(
+  await Promise.all(
     documentIds.map(async (documentId: string) => {
       const res = await fetchWithRetry(
         `${apiBase}/api/v1/collections/${collectionId}/documents/insert_job?ingest_mode=agent_only`,
@@ -697,6 +729,13 @@ export async function addDocumentsToCollection(
   );
 }
 
+/**
+ * Duplicates a collection by copying settings, chat configuration, and documents
+ * @param sourceCollectionId - The ID of the collection to duplicate from
+ * @param targetCollectionId - The ID of the collection to duplicate to
+ * @returns Promise<void>
+ * @throws Error if duplication fails at any step
+ */
 export async function duplicateCollection(
   sourceCollectionId: string,
   targetCollectionId: string,
