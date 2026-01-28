@@ -435,7 +435,7 @@ export async function createGuardRailsSettings(
   core.debug(`Guardrails settings: ${guardrailsSettings}`);
 
   const guardrailsSettingsPayload = yaml.load(
-    guardrailsSettings,
+    guardrailsSettings, { schema: yaml.JSON_SCHEMA }
   ) as types.GuardRailsSettings;
 
   core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
