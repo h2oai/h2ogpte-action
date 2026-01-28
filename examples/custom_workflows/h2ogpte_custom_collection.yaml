@@ -40,4 +40,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
           h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
-          collection_id: 8abda8f3-7591-4a9c-856d-4a0e4cf30a58
+          collection_id: YOUR_COLLECTION_ID_HERE

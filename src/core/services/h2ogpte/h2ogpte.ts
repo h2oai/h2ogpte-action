@@ -530,6 +530,8 @@ export async function getCollectionSettings(
 
 export async function getChatSettings(
   collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
 ): Promise<types.ChatSettings> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
@@ -542,6 +544,10 @@ export async function getChatSettings(
   const response = await fetchWithRetry(
     `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
     options,
+    {
+      maxRetries,
+      retryDelay,
+    },
   );
 
   if (!response.ok) {
@@ -696,17 +702,17 @@ export async function duplicateCollection(
   targetCollectionId: string,
 ): Promise<void> {
   // Get source collection settings
-  const collectionSettings = await getCollectionSettings(sourceCollectionId);
+  const collectionSettings = await getCollectionSettings(sourceCollectionId) as types.CollectionSettings;
   // Update target collection settings
   await updateCollectionSettings(targetCollectionId, collectionSettings);
 
   // Get source chat settings
-  const chatSettings = await getChatSettings(sourceCollectionId);
+  const chatSettings = await getChatSettings(sourceCollectionId) as types.ChatSettings;
   // Update target chat settings
   await updateChatSettings(targetCollectionId, chatSettings);
 
   // Get source collection documents
-  const documents = await getCollectionDocumentsData(sourceCollectionId);
+  const documents = await getCollectionDocumentsData(sourceCollectionId) as types.Document[];
   // Add documents to target collection
   await addDocumentsToCollection(
     targetCollectionId,

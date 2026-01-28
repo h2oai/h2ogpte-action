@@ -20,8 +20,6 @@ import {
   getGithubToken,
 } from "./core/utils";
 
-import { createCollection } from "./core/services/h2ogpte/h2ogpte";
-import { createGuardRailsSettings } from "./core/services/h2ogpte/h2ogpte";
 
 /**
  * The main function for the action.
@@ -68,17 +66,17 @@ export async function run(): Promise<void> {
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
       // Create Collection
-      const new_collectionId = await createCollection();
+      const new_collectionId = await h2ogpte.createCollection();
 
       // Duplicate collection if collectionId is provided
-      if (collectionId) {
+      if (collectionId && await h2ogpte.isValidCollection(collectionId)) {
         h2ogpte.duplicateCollection(collectionId, new_collectionId);
       }
       collectionId = new_collectionId;
 
       // Set Guardrail settings
       core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
-      await createGuardRailsSettings(
+      await h2ogpte.createGuardRailsSettings(
         collectionId,
         process.env.GUARDRAILS_SETTINGS,
       );
