@@ -434,9 +434,9 @@ export async function createGuardRailsSettings(
 
   core.debug(`Guardrails settings: ${guardrailsSettings}`);
 
-  const guardrailsSettingsPayload = yaml.load(
-    guardrailsSettings, { schema: yaml.JSON_SCHEMA }
-  ) as types.GuardRailsSettings;
+  const guardrailsSettingsPayload = yaml.load(guardrailsSettings, {
+    schema: yaml.JSON_SCHEMA,
+  }) as types.GuardRailsSettings;
 
   core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
   const { apiKey, apiBase } = getH2ogpteConfig();
