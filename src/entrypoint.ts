@@ -17,8 +17,11 @@ import {
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
-import { cleanup, createSecretAndToolAssociation } from "./core/utils";
-import { getGithubAccessToken } from "./core/services/github/auth";
+import {
+  cleanup,
+  createSecretAndToolAssociation,
+  getGithubToken,
+} from "./core/utils";
 
 /**
  * The main function for the action.
@@ -30,11 +33,8 @@ export async function run(): Promise<void> {
   let collectionId: string | null = null;
 
   try {
-    const githubAccessToken = await getGithubAccessToken();
-    return;
-
-    // Fetch context
-    const octokits = createOctokits();
+    const githubToken = await getGithubToken();
+    const octokits = createOctokits(githubToken);
     const context = parseGitHubContext();
 
     // Check if actor has correct permissions, otherwise exit immeditely
