@@ -30,7 +30,7 @@ import { createGuardRailsSettings } from "./core/services/h2ogpte/h2ogpte";
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
-  let collectionId: string | null = null;
+  let collectionId: string | null = process.env.COLLECTION_ID || null;
 
   try {
     // Fetch context
@@ -68,7 +68,13 @@ export async function run(): Promise<void> {
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
       // Create Collection
-      collectionId = await createCollection();
+      const new_collectionId = await createCollection();
+
+      // Duplicate collection if collectionId is provided
+      if (collectionId) {
+        h2ogpte.duplicateCollection(collectionId, new_collectionId);
+      }
+      collectionId = new_collectionId;
 
       // Set Guardrail settings
       core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);

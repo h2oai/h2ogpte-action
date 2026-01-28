@@ -465,3 +465,255 @@ export async function createGuardRailsSettings(
   }
   core.debug(`${response.status} - Successfully set guardrails settings`);
 }
+
+export async function isValidCollection(
+  collectionId: string,
+): Promise<boolean> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}`,
+    options,
+    {
+      maxRetries: 3,
+      retryDelay: 1000,
+    },
+  );
+
+  if (response.ok) {
+    core.debug(`Collection ${collectionId} is valid.`);
+    return true;
+  } else {
+    const errorText = await response.text();
+    core.debug(
+      `Failed to validate collection ${collectionId}: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+    return false;
+  }
+}
+
+export async function getCollectionSettings(
+  collectionId: string,
+): Promise<types.CollectionSettings> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/settings`,
+    options,
+    {
+      maxRetries: 3,
+      retryDelay: 1000,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get collection settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  const data = (await response.json()) as types.CollectionSettings;
+  return data;
+}
+
+export async function getChatSettings(
+  collectionId: string,
+): Promise<types.ChatSettings> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
+    options,
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get chat settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  const data = (await response.json()) as types.ChatSettings;
+  return data;
+}
+
+export async function updateCollectionSettings(
+  collectionId: string,
+  settingsPayload: types.CollectionSettings,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(settingsPayload),
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/settings`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to update collection settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(`${response.status} - Successfully updated collection settings`);
+}
+
+export async function updateChatSettings(
+  collectionId: string,
+  chatSettingsPayload: types.ChatSettings,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(chatSettingsPayload),
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to update chat settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(`${response.status} - Successfully updated chat settings`);
+}
+
+export async function getCollectionDocumentsData(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.Document[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/documents`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get collection documents: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  const data = (await response.json()) as types.Document[];
+  return data;
+}
+
+export async function addDocumentsToCollection(
+  collectionId: string,
+  documentIds: string[],
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  Promise.all(
+    documentIds.map(async (documentId: string) => {
+      const res = await fetchWithRetry(
+        `${apiBase}/api/v1/collections/${collectionId}/documents/insert_job?ingest_mode=agent_only`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            document_id: documentId,
+          }),
+        },
+        {
+          maxRetries,
+          retryDelay,
+        },
+      );
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(
+          `Failed to add document ${documentId} to collection: ${res.status} ${res.statusText} - ${errorText}`,
+        );
+      }
+      core.debug(
+        `${res.status} - Successfully added document ${documentId} to collection`,
+      );
+    }),
+  );
+}
+
+export async function duplicateCollection(
+  sourceCollectionId: string,
+  targetCollectionId: string,
+): Promise<void> {
+  // Get source collection settings
+  const collectionSettings = await getCollectionSettings(sourceCollectionId);
+  // Update target collection settings
+  await updateCollectionSettings(targetCollectionId, collectionSettings);
+
+  // Get source chat settings
+  const chatSettings = await getChatSettings(sourceCollectionId);
+  // Update target chat settings
+  await updateChatSettings(targetCollectionId, chatSettings);
+
+  // Get source collection documents
+  const documents = await getCollectionDocumentsData(sourceCollectionId);
+  // Add documents to target collection
+  await addDocumentsToCollection(
+    targetCollectionId,
+    documents.map((doc) => doc.id),
+  );
+
+  core.debug(
+    `Successfully duplicated collection from ${sourceCollectionId} to ${targetCollectionId}`,
+  );
+}

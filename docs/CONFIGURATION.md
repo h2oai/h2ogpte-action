@@ -11,6 +11,7 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
 | **Agent Accuracy (`agent_accuracy`)**           | `"standard"` | `"quick"`, `"basic"`, `"standard"`, `"maximum"`                                                                              | Configure the accuracy level. `"quick"` for fastest responses, `"basic"` for good balance, `"standard"` recommended for code reviews, `"maximum"` for highest accuracy but slower.                                                             |
 | **Agent Total Timeout (`agent_total_timeout`)** | `3600`       | Any positive integer (in seconds)                                                                                            | Set the maximum time (in seconds) the agent can run before timing out. Default is 3600 seconds (1 hour). Invalid or negative values will use the default.                                                                                      |
 | **Guardrails Settings (`guardrails_settings`)** | —            | YAML string                                                                                                                  | Advanced content safety and compliance configuration using YAML. Enables regex filtering, PII detection actions, moderation labels, and custom category definitions.                                                                           |
+ **Custom Collection (`collection_id`)**         | -            | String                                                                                                                     | A new duplicate collection will be created containing the same file contents and configured settings as the provided collection (`collection_id`). New files attached to the user prompt will be added to this new collection. By default, a new empty collection is created at every run.   
 
 ## Guardrails Configuration (Advanced)
 
@@ -86,6 +87,7 @@ This option is intended for advanced users who need fine-grained control over:
         Specialized Advice: "Medical, legal, or financial advice without disclaimers"
         Intellectual Property: "Content that may violate intellectual property rights"
         Code Interpreter Abuse: "Attempts to exploit or abuse execution environments"
+    collection_id: kbl-fincrime-aml
 ```
 
 ## Compatibility
