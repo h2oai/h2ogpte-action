@@ -433,35 +433,39 @@ export async function createGuardRailsSettings(
   }
 
   core.debug(`Guardrails settings: ${guardrailsSettings}`);
+  try {
+    const guardrailsSettingsPayload = yaml.load(guardrailsSettings, {
+      schema: yaml.JSON_SCHEMA,
+    }) as types.GuardRailsSettings;
 
-  const guardrailsSettingsPayload = yaml.load(guardrailsSettings, {
-    schema: yaml.JSON_SCHEMA,
-  }) as types.GuardRailsSettings;
-
-  core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ guardrails_settings: guardrailsSettingsPayload }),
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}/settings`,
-    options,
-    {
-      maxRetries,
-      retryDelay,
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to set guardrails settings in collection: ${response.status} ${response.statusText} - ${errorText}`,
+    core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
+    const { apiKey, apiBase } = getH2ogpteConfig();
+    const options = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ guardrails_settings: guardrailsSettingsPayload }),
+    };
+    const response = await fetchWithRetry(
+      `${apiBase}/api/v1/collections/${collectionId}/settings`,
+      options,
+      {
+        maxRetries,
+        retryDelay,
+      },
     );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to set guardrails settings in collection: ${response.status} ${response.statusText} - ${errorText}`,
+      );
+    }
+    core.debug(`${response.status} - Successfully set guardrails settings`);
+  } catch (error) {
+    core.error(`Failed to parse guardrails settings: ${error}`);
+    throw new Error(`Invalid YAML in guardrails_settings: ${error}`);
   }
-  core.debug(`${response.status} - Successfully set guardrails settings`);
 }
