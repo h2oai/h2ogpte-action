@@ -128,3 +128,16 @@ export interface GuardRailsSettings {
 
   guardrails_entities?: Record<string, string>;
 }
+
+export interface Document {
+  id: string;
+  name: string;
+}
+
+export interface CollectionSettings {
+  guardrails_settings: GuardRailsSettings;
+}
+
+export interface ChatSettings {
+  llm: string;
+}
