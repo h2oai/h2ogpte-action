@@ -1,0 +1,43 @@
+name: h2oGPTe Custom Collection Agent
+
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, edited]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  test-action:
+    name: GitHub Actions Test
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@h2ogpte')) ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@h2ogpte')) ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.body, '@h2ogpte')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@h2ogpte')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@h2ogpte'))
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Test Local Action
+        id: test-action
+        uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
+          collection_id: 8abda8f3-7591-4a9c-856d-4a0e4cf30a58

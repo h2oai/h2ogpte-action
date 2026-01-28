@@ -20,6 +20,9 @@ import {
   getGithubToken,
 } from "./core/utils";
 
+import { createCollection } from "./core/services/h2ogpte/h2ogpte";
+import { createGuardRailsSettings } from "./core/services/h2ogpte/h2ogpte";
+
 /**
  * The main function for the action.
  *
@@ -27,7 +30,7 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
-  let collectionId: string | null = null;
+  let collectionId: string | null = process.env.COLLECTION_ID || null;
 
   try {
     // Fetch context
@@ -64,7 +67,25 @@ export async function run(): Promise<void> {
       });
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
-      collectionId = await uploadAttachmentsToH2oGPTe(
+      // Create Collection
+      const new_collectionId = await createCollection();
+
+      // Duplicate collection if collectionId is provided
+      if (collectionId) {
+        h2ogpte.duplicateCollection(collectionId, new_collectionId);
+      }
+      collectionId = new_collectionId;
+
+      // Set Guardrail settings
+      core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
+      await createGuardRailsSettings(
+        collectionId,
+        process.env.GUARDRAILS_SETTINGS,
+      );
+
+      // Upload attachments
+      await uploadAttachmentsToH2oGPTe(
+        collectionId,
         githubData.attachmentUrlMap,
       );
 
