@@ -108,23 +108,3 @@ export interface JobDetails {
 }
 
 export type PiiDetectionAction = "redact" | "allow" | "fail";
-
-export interface GuardRailsSettings {
-  disallowed_regex_patterns?: string[];
-  presidio_labels_to_flag?: string[];
-  pii_labels_to_flag?: string[];
-
-  pii_detection_parse_action?: PiiDetectionAction;
-  pii_detection_llm_input_action?: PiiDetectionAction;
-  pii_detection_llm_output_action?: PiiDetectionAction;
-
-  exception_message?: string;
-
-  prompt_guard_labels_to_flag?: string[];
-
-  guardrails_labels_to_flag?: string[];
-  guardrails_llm?: string;
-  guardrails_safe_category?: string;
-
-  guardrails_entities?: Record<string, string>;
-}
