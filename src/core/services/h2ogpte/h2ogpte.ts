@@ -702,17 +702,23 @@ export async function duplicateCollection(
   targetCollectionId: string,
 ): Promise<void> {
   // Get source collection settings
-  const collectionSettings = await getCollectionSettings(sourceCollectionId) as types.CollectionSettings;
+  const collectionSettings = (await getCollectionSettings(
+    sourceCollectionId,
+  )) as types.CollectionSettings;
   // Update target collection settings
   await updateCollectionSettings(targetCollectionId, collectionSettings);
 
   // Get source chat settings
-  const chatSettings = await getChatSettings(sourceCollectionId) as types.ChatSettings;
+  const chatSettings = (await getChatSettings(
+    sourceCollectionId,
+  )) as types.ChatSettings;
   // Update target chat settings
   await updateChatSettings(targetCollectionId, chatSettings);
 
   // Get source collection documents
-  const documents = await getCollectionDocumentsData(sourceCollectionId) as types.Document[];
+  const documents = (await getCollectionDocumentsData(
+    sourceCollectionId,
+  )) as types.Document[];
   // Add documents to target collection
   await addDocumentsToCollection(
     targetCollectionId,
