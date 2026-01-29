@@ -75,7 +75,7 @@ function applyReplacements(
       IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction. In this case, you should:
       - Leave a polite comment explaining that you're ready to help but need more information
       - Ask the user what they would like you to do
-      - DO NOT make any code changes, create branches, or open PRs
+      - DO NOT make any code changes, create branches, or open PRs in the repository
       - DO NOT analyze code from the repository
     `
     : "";
@@ -127,7 +127,6 @@ function createAgentInstructionPromptForComment(
     - Edit any issue/pr headers
     - Submit formal GitHub PR reviews
     - Approve pull requests
-    - Execute commands outside the repository context
     - Modify files in the .github/workflows directory
 
     CRITICAL: DO NOT make any changes to the repository (including creating branches, PRs, or modifying files) unless the user's instruction explicitly requests it using action words like 'add', 'create', 'make changes', 'open pr', 'fix', 'update', 'implement', 'refactor', 'modify', 'change', etc. If the user's instruction is empty or only contains the @h2ogpte tag without any specific task, you should politely inform them that there is nothing to do and ask how you can help.
