@@ -69,7 +69,7 @@ export async function run(): Promise<void> {
 
       // Duplicate collection if collectionId is provided
       if (collectionId && (await h2ogpte.isValidCollection(collectionId))) {
-        h2ogpte.duplicateCollection(collectionId, new_collectionId);
+        await h2ogpte.duplicateCollection(collectionId, new_collectionId);
       }
       collectionId = new_collectionId;
 
