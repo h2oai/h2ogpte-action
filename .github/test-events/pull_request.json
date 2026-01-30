@@ -1,0 +1,36 @@
+{
+  "action": "opened",
+  "pull_request": {
+    "id": 1,
+    "number": 1,
+    "title": "Test Pull Request",
+    "body": "@h2ogpte Please review this pull request and provide feedback.",
+    "state": "open",
+    "user": {
+      "login": "test-user",
+      "id": 12345
+    },
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z",
+    "head": {
+      "ref": "feature-branch",
+      "sha": "abc123"
+    },
+    "base": {
+      "ref": "main",
+      "sha": "def456"
+    }
+  },
+  "repository": {
+    "name": "h2ogpte-action",
+    "full_name": "test-user/h2ogpte-action",
+    "owner": {
+      "login": "test-user",
+      "id": 12345
+    }
+  },
+  "sender": {
+    "login": "test-user",
+    "id": 12345
+  }
+}

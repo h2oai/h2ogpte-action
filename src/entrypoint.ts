@@ -1,16 +1,14 @@
 import * as core from "@actions/core";
 import {
-  checkWritePermissions,
-  cleanup,
-  createSecretAndToolAssociation,
-  getGithubToken,
-} from "./core/utils";
-import {
+  isIssueCommentEvent,
   isPRIssueEvent,
   parseGitHubContext,
-  isIssueCommentEvent,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
+import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
+import { buildH2ogpteResponse } from "./core/response/response_builder";
+import { extractInstruction } from "./core/response/utils/instruction";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
@@ -21,6 +19,12 @@ import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { extractInstruction } from "./core/response/utils/instruction";
 import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
+import {
+  checkWritePermissions,
+  cleanup,
+  createSecretAndToolAssociation,
+  getGithubToken,
+} from "./core/utils";
 
 /**
  * The main function for the action.
@@ -153,7 +157,7 @@ export async function run(): Promise<void> {
         h2ogpteConfig,
       );
 
-      console.debug(
+      core.debug(
         `Chat completion:\n ${JSON.stringify(chatCompletion, null, 2)}`,
       );
     }
