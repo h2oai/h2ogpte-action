@@ -106,3 +106,8 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
+
+export interface CollectionSettings {
+  guardrails_settings?: object;
+  [key: string]: unknown;
+}

@@ -437,8 +437,9 @@ export async function createGuardRailsSettings(
     const guardrailsSettingsPayload = yaml.load(guardrailsSettings, {
       schema: yaml.JSON_SCHEMA,
     });
-
     core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
+    const oldSettings = await getCollectionSettings(collectionId);
+
     const { apiKey, apiBase } = getH2ogpteConfig();
     const options = {
       method: "PUT",
@@ -446,7 +447,10 @@ export async function createGuardRailsSettings(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ guardrails_settings: guardrailsSettingsPayload }),
+      body: JSON.stringify({
+        ...oldSettings,
+        guardrails_settings: guardrailsSettingsPayload,
+      }),
     };
     const response = await fetchWithRetry(
       `${apiBase}/api/v1/collections/${collectionId}/settings`,
@@ -542,233 +546,4 @@ export async function getCollectionSettings(
   }
   const data = (await response.json()) as types.CollectionSettings;
   return data;
-}
-
-/**
- * Retrieves chat settings for a specific collection
- * @param collectionId - The ID of the collection
- * @returns Promise<ChatSettings> - The chat settings configuration
- * @throws Error if the API request fails
- */
-export async function getChatSettings(
-  collectionId: string,
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<types.ChatSettings> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
-    options,
-    {
-      maxRetries,
-      retryDelay,
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to get chat settings: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-  }
-  const data = (await response.json()) as types.ChatSettings;
-  return data;
-}
-
-/**
- * Updates collection settings for a specific collection
- * @param collectionId - The ID of the collection
- * @param settings - The collection settings to apply
- * @returns Promise<void>
- * @throws Error if the update fails
- */
-export async function updateCollectionSettings(
-  collectionId: string,
-  settingsPayload: types.CollectionSettings,
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<void> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(settingsPayload),
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}/settings`,
-    options,
-    {
-      maxRetries,
-      retryDelay,
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to update collection settings: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-  }
-  core.debug(`${response.status} - Successfully updated collection settings`);
-}
-
-/**
- * Updates chat settings for a specific collection
- * @param collectionId - The ID of the collection
- * @param settings - The chat settings to apply
- * @returns Promise<void>
- * @throws Error if the update fails
- */
-export async function updateChatSettings(
-  collectionId: string,
-  chatSettingsPayload: types.ChatSettings,
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<void> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(chatSettingsPayload),
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
-    options,
-    {
-      maxRetries,
-      retryDelay,
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to update chat settings: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-  }
-  core.debug(`${response.status} - Successfully updated chat settings`);
-}
-
-export async function getCollectionDocumentsData(
-  collectionId: string,
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<types.Document[]> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}/documents`,
-    options,
-    {
-      maxRetries,
-      retryDelay,
-    },
-  );
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to get collection documents: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-  }
-  const data = (await response.json()) as types.Document[];
-  return data;
-}
-
-export async function addDocumentsToCollection(
-  collectionId: string,
-  documentIds: string[],
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<void> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-
-  await Promise.all(
-    documentIds.map(async (documentId: string) => {
-      const res = await fetchWithRetry(
-        `${apiBase}/api/v1/collections/${collectionId}/documents/insert_job?ingest_mode=agent_only`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            document_id: documentId,
-          }),
-        },
-        {
-          maxRetries,
-          retryDelay,
-        },
-      );
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(
-          `Failed to add document ${documentId} to collection: ${res.status} ${res.statusText} - ${errorText}`,
-        );
-      }
-      core.debug(
-        `${res.status} - Successfully added document ${documentId} to collection`,
-      );
-    }),
-  );
-}
-
-/**
- * Duplicates a collection by copying settings, chat configuration, and documents
- * @param sourceCollectionId - The ID of the collection to duplicate from
- * @param targetCollectionId - The ID of the collection to duplicate to
- * @returns Promise<void>
- * @throws Error if duplication fails at any step
- */
-export async function duplicateCollection(
-  sourceCollectionId: string,
-  targetCollectionId: string,
-): Promise<void> {
-  // Get source collection settings
-  const collectionSettings = (await getCollectionSettings(
-    sourceCollectionId,
-  )) as types.CollectionSettings;
-  // Update target collection settings
-  await updateCollectionSettings(targetCollectionId, collectionSettings);
-
-  // Get source chat settings
-  const chatSettings = (await getChatSettings(
-    sourceCollectionId,
-  )) as types.ChatSettings;
-  // Update target chat settings
-  await updateChatSettings(targetCollectionId, chatSettings);
-
-  // Get source collection documents
-  const documents = (await getCollectionDocumentsData(
-    sourceCollectionId,
-  )) as types.Document[];
-  // Add documents to target collection
-  await addDocumentsToCollection(
-    targetCollectionId,
-    documents.map((doc) => doc.id),
-  );
-
-  core.debug(
-    `Successfully duplicated collection from ${sourceCollectionId} to ${targetCollectionId}`,
-  );
 }

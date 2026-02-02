@@ -29,7 +29,7 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
-  let collectionId: string | null = process.env.COLLECTION_ID || null;
+  let collectionId: string | null = null;
 
   try {
     // Fetch context
@@ -67,13 +67,7 @@ export async function run(): Promise<void> {
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
       // Create Collection
-      const new_collectionId = await h2ogpte.createCollection();
-
-      // Duplicate collection if collectionId is provided
-      if (collectionId && (await h2ogpte.isValidCollection(collectionId))) {
-        h2ogpte.duplicateCollection(collectionId, new_collectionId);
-      }
-      collectionId = new_collectionId;
+      collectionId = await h2ogpte.createCollection();
 
       // Set Guardrail settings
       core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
