@@ -73,13 +73,6 @@ export async function run(): Promise<void> {
       }
       collectionId = new_collectionId;
 
-      // Set Guardrail settings
-      core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
-      await h2ogpte.createGuardRailsSettings(
-        collectionId,
-        process.env.GUARDRAILS_SETTINGS,
-      );
-
       // Upload attachments
       await uploadAttachmentsToH2oGPTe(
         collectionId,

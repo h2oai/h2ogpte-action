@@ -4,7 +4,6 @@ import { basename } from "path";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
-import yaml from "js-yaml";
 /**
  * Creates agent keys with retry mechanism
  */
@@ -415,55 +414,6 @@ export async function deleteCollection(
   core.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
-}
-
-/**
- * Create guardrail settings
- */
-
-export async function createGuardRailsSettings(
-  collectionId: string,
-  guardrailsSettings?: string,
-  maxRetries: number = 3,
-  retryDelay: number = 1000,
-): Promise<void> {
-  if (!guardrailsSettings) {
-    core.debug("No guardrails settings found");
-    return;
-  }
-
-  core.debug(`Guardrails settings: ${guardrailsSettings}`);
-
-  const guardrailsSettingsPayload = yaml.load(
-    guardrailsSettings,
-  ) as types.GuardRailsSettings;
-
-  core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ guardrails_settings: guardrailsSettingsPayload }),
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}/settings`,
-    options,
-    {
-      maxRetries,
-      retryDelay,
-    },
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to set guardrails settings in collection: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-  }
-  core.debug(`${response.status} - Successfully set guardrails settings`);
 }
 
 /**

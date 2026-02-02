@@ -67,10 +67,6 @@ Maintains comprehensive documentation standards across your repository. This wor
 
 Ensures your code changes never ship without proper test coverage. The agent reviews each pull request, identifies untested code paths, and automatically creates comprehensive test files that cover edge cases and follow your project's testing conventions. It only adds tests - never modifies existing code.
 
-### 🦺 Automatic Guardrails & PII Protection ([h2ogpte_guardrails.yaml](../examples/custom_workflows/h2ogpte_guardrails.yaml))
-
-Redacts configured personally identifiable information (PII) during the document ingestion, input and output from the user prompt (issues, pull requests, comments, reviews). Further, given a list of safe and unsafe labels, the agent will flag safety violations in the user prompt and respond with the configured exception message.
-
 ### 📂 Custom Collections ([h2ogpte_custom_collection.yaml](../examples/custom_workflows/h2ogpte_custom_collection.yaml))
 
 Creates a new collection containing the settings and file contents of the provided collection. The agent now has an exact and standardised knowledge base, improving reproducibility.
