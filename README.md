@@ -30,19 +30,20 @@ The agent will automatically analyze your code and provide intelligent feedback.
 
 ## ⚙️ Inputs
 
-| Input             | Description                                                                           | Required | Default Value                            |
-| ----------------- | ------------------------------------------------------------------------------------- | -------- | ---------------------------------------- |
-| github_token      | Github access token.                                                                  | Yes      | Assigned automatically by GitHub Actions |
-| h2ogpte_api_key   | h2oGPTe API Key from your h2oGPTe instance (e.g., <https://h2ogpte.genai.h2o.ai/api>) | Yes      | –                                        |
-| h2ogpte_api_base  | h2oGPTe API base url address (no trailing slash)                                      | No       | <https://h2ogpte.genai.h2o.ai>           |
-| github_api_url    | GitHub API base url (no trailing slash)                                               | No       | <https://api.github.com>                 |
-| github_server_url | GitHub server base url (no trailing slash)                                            | No       | <https://github.com>                     |
+| Input             | Description                                                                                | Required | Default Value                                               |
+| ----------------- | ------------------------------------------------------------------------------------------ | -------- | ----------------------------------------------------------- |
+| github_token      | Github access token.                                                                       | Yes      | Assigned automatically by GitHub Actions                    |
+| h2ogpte_api_key   | h2oGPTe API Key from your h2oGPTe instance (e.g., <https://h2ogpte.genai.h2o.ai/api>)      | Yes      | –                                                           |
+| h2ogpte_api_base  | h2oGPTe API base url address (no trailing slash)                                           | No       | <https://h2ogpte.genai.h2o.ai>                              |
+| github_api_url    | GitHub API base url (no trailing slash)                                                    | No       | <https://api.github.com>                                    |
+| github_server_url | GitHub server base url (no trailing slash)                                                 | No       | <https://github.com>                                        |
+| slash_commands    | JSON string defining slash commands. Each command should have a `name` and `prompt` field. | No       | See [Slash Commands](docs/USAGE.md#-slash-commands) section |
 
 ## 📚 Examples
 
 The repository includes several example workflows:
 
-- **[Basic Usage](examples/h2ogpte.yaml)** - Standard workflow for manual `@h2ogpte` mentions
+- **[Basic Usage](examples/h2ogpte.yaml)** - Standard workflow for manual `@h2ogpte` mentions with slash commands
 - **[Auto PR Review](examples/custom_workflows/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
 - **[Auto Documentation](examples/custom_workflows/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 

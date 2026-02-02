@@ -5,14 +5,16 @@ import {
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
-import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
-import { buildH2ogpteResponse } from "./core/response/response_builder";
-import { extractInstruction } from "./core/response/utils/instruction";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
+import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
+import { buildH2ogpteResponse } from "./core/response/response_builder";
+import { extractInstruction } from "./core/response/utils/instruction";
+import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
+import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 import {
   checkWritePermissions,
   cleanup,
@@ -97,18 +99,9 @@ export async function run(): Promise<void> {
       core.debug(`This chat session url is ${chatSessionUrl}`);
 
       // 3. Create the initial comment
-      const gifDataUrl = `https://h2ogpte-github-action.cdn.h2o.ai/h2o_loading.gif`;
-      const workingMessages = [
-        "h2oGPTe is working on it",
-        "h2oGPTe is working",
-        "h2oGPTe is thinking",
-        "h2oGPTe is connecting the dots",
-        "h2oGPTe is putting it all together",
-        "h2oGPTe is processing your request",
-      ];
-      const randomMessage =
-        workingMessages[Math.floor(Math.random() * workingMessages.length)];
-      const initialCommentBody = `### ${randomMessage} &nbsp;<img src="${gifDataUrl}" width="40px"/>\n\nFollow progress in the [GitHub Action run](${url})`;
+      const { commands: usedCommands, error: slashCommandError } =
+        getSlashCommandsUsed(instruction);
+      const initialCommentBody = createInitialWorkingComment(url, usedCommands);
       const h2ogpteComment = await createReply(
         octokits.rest,
         initialCommentBody,
@@ -138,8 +131,12 @@ export async function run(): Promise<void> {
         instruction,
         url,
         chatSessionUrl,
+        usedCommands,
+        slashCommandError,
       );
       core.debug(`Extracted response: ${updatedCommentBody}`);
+
+      core.debug(`Commands used: ${JSON.stringify(usedCommands, null, 2)}`);
 
       // 8. Update initial comment
       await updateComment(

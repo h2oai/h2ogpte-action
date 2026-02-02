@@ -17,6 +17,7 @@ import {
   isPRIssueEvent,
   isPullRequestReviewCommentEvent,
 } from "../data/context";
+import { getSlashCommandsPrompt } from "./utils/slash-commands";
 
 const USER_PROMPT = process.env.PROMPT || "";
 const PROMPT_WRAPPER = dedent`
@@ -95,6 +96,7 @@ function applyReplacements(
     "{{eventsText}}": buildEventsText(githubData, context.isPR),
     "{{emptyInstructionGuidance}}": emptyInstructionGuidance,
     "{{codeAnalysisGuidance}}": codeAnalysisGuidance,
+    "{{slashCommands}}": getSlashCommandsPrompt(instruction),
   };
 
   for (const [placeholder, value] of Object.entries(replacements)) {
@@ -153,6 +155,8 @@ function createAgentInstructionPromptForComment(
     <user_instruction>
     {{instruction}}
     </user_instruction>
+
+    {{slashCommands}}
 
     {{emptyInstructionGuidance}}
 
