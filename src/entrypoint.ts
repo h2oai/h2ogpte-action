@@ -8,7 +8,11 @@ import { fetchGitHubData } from "./core/data/fetcher";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
-import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
+import {
+  parseH2ogpteConfig,
+  duplicateCollection,
+  isValidCollection,
+} from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
@@ -70,8 +74,8 @@ export async function run(): Promise<void> {
       const new_collectionId = await h2ogpte.createCollection();
 
       // Duplicate collection if collectionId is provided
-      if (collectionId && (await h2ogpte.isValidCollection(collectionId))) {
-        await h2ogpte.duplicateCollection(collectionId, new_collectionId);
+      if (collectionId && (await isValidCollection(collectionId))) {
+        await duplicateCollection(collectionId, new_collectionId);
       }
       collectionId = new_collectionId;
 

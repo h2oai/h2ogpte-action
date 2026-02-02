@@ -45,6 +45,9 @@ inputs:
   prompt:
     description: Prompt for custom workflow. String injection options are {{repoName}}, {{idNumber}} and {{eventsText}}, see README.md for more details.
     required: false
+  slash_commands:
+    description: JSON string defining slash commands. Each command should have a name and prompt field.
+    required: false
   collection_id:
     description: Collection to use for the agent (by default, a new collection will be created for each run)
 
@@ -78,4 +81,5 @@ runs:
         AGENT_ACCURACY: ${{ inputs.agent_accuracy }}
         AGENT_TOTAL_TIMEOUT: ${{ inputs.agent_total_timeout }}
         PROMPT: ${{ inputs.prompt }}
+        SLASH_COMMANDS: ${{ inputs.slash_commands }}
         COLLECTION_ID: ${{ inputs.collection_id }}

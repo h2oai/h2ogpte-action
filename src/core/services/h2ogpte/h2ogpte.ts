@@ -422,9 +422,9 @@ export async function deleteCollection(
  * @returns Promise<boolean> - True if collection is valid and accessible
  * @throws Error if the API request fails
  */
-export async function isValidCollection(
+export async function getCollection(
   collectionId: string,
-): Promise<boolean> {
+): Promise<object | null> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
     method: "GET",
@@ -444,13 +444,13 @@ export async function isValidCollection(
 
   if (response.ok) {
     core.debug(`Collection ${collectionId} is valid.`);
-    return true;
+    return response.json;
   } else {
     const errorText = await response.text();
     core.debug(
       `Failed to validate collection ${collectionId}: ${response.status} ${response.statusText} - ${errorText}`,
     );
-    return false;
+    return null;
   }
 }
 
@@ -676,45 +676,5 @@ export async function addDocumentsToCollection(
         `${res.status} - Successfully added document ${documentId} to collection`,
       );
     }),
-  );
-}
-
-/**
- * Duplicates a collection by copying settings, chat configuration, and documents
- * @param sourceCollectionId - The ID of the collection to duplicate from
- * @param targetCollectionId - The ID of the collection to duplicate to
- * @returns Promise<void>
- * @throws Error if duplication fails at any step
- */
-export async function duplicateCollection(
-  sourceCollectionId: string,
-  targetCollectionId: string,
-): Promise<void> {
-  // Get source collection settings
-  const collectionSettings = (await getCollectionSettings(
-    sourceCollectionId,
-  )) as types.CollectionSettings;
-  // Update target collection settings
-  await updateCollectionSettings(targetCollectionId, collectionSettings);
-
-  // Get source chat settings
-  const chatSettings = (await getChatSettings(
-    sourceCollectionId,
-  )) as types.ChatSettings;
-  // Update target chat settings
-  await updateChatSettings(targetCollectionId, chatSettings);
-
-  // Get source collection documents
-  const documents = (await getCollectionDocumentsData(
-    sourceCollectionId,
-  )) as types.Document[];
-  // Add documents to target collection
-  await addDocumentsToCollection(
-    targetCollectionId,
-    documents.map((doc) => doc.id),
-  );
-
-  core.debug(
-    `Successfully duplicated collection from ${sourceCollectionId} to ${targetCollectionId}`,
   );
 }
