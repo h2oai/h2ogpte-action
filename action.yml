@@ -80,4 +80,3 @@ runs:
         AGENT_TOTAL_TIMEOUT: ${{ inputs.agent_total_timeout }}
         PROMPT: ${{ inputs.prompt }}
         GUARDRAILS_SETTINGS: ${{ inputs.guardrails_settings }}
-
