@@ -475,44 +475,6 @@ export async function createGuardRailsSettings(
 }
 
 /**
- * Validates if a collection exists and is accessible
- * @param collectionId - The ID of the collection to validate
- * @returns Promise<boolean> - True if collection is valid and accessible
- * @throws Error if the API request fails
- */
-export async function isValidCollection(
-  collectionId: string,
-): Promise<boolean> {
-  const { apiKey, apiBase } = getH2ogpteConfig();
-  const options = {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-  };
-  const response = await fetchWithRetry(
-    `${apiBase}/api/v1/collections/${collectionId}`,
-    options,
-    {
-      maxRetries: 3,
-      retryDelay: 1000,
-    },
-  );
-
-  if (response.ok) {
-    core.debug(`Collection ${collectionId} is valid.`);
-    return true;
-  } else {
-    const errorText = await response.text();
-    core.debug(
-      `Failed to validate collection ${collectionId}: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-    return false;
-  }
-}
-
-/**
  * Retrieves collection settings for a specific collection
  * @param collectionId - The ID of the collection
  * @returns Promise<CollectionSettings> - The collection settings configuration
