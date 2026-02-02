@@ -106,5 +106,3 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
-
-export type PiiDetectionAction = "redact" | "allow" | "fail";
