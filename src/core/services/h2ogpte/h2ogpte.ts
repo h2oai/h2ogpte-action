@@ -514,9 +514,9 @@ export async function getChatSettings(
   return data;
 }
 
-export async function updateCollectionSettings(
+export async function setCollectionSettings(
   collectionId: string,
-  settingsPayload: types.CollectionSettings,
+  collectionSettings: types.CollectionSettings,
   maxRetries: number = 3,
   retryDelay: number = 1000,
 ): Promise<void> {
@@ -527,7 +527,7 @@ export async function updateCollectionSettings(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(settingsPayload),
+    body: JSON.stringify(collectionSettings),
   };
   const response = await fetchWithRetry(
     `${apiBase}/api/v1/collections/${collectionId}/settings`,

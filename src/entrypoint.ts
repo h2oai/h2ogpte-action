@@ -12,6 +12,7 @@ import {
   parseH2ogpteConfig,
   copyCollection,
   isValidCollection,
+  updateGuardRailsSettings,
 } from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
@@ -78,6 +79,13 @@ export async function run(): Promise<void> {
         await copyCollection(collectionId, new_collectionId);
       }
       collectionId = new_collectionId;
+
+      // Set Guardrail settings
+      core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
+      await updateGuardRailsSettings(
+        collectionId,
+        process.env.GUARDRAILS_SETTINGS,
+      );
 
       // Upload attachments
       await uploadAttachmentsToH2oGPTe(

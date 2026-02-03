@@ -13,8 +13,10 @@ import {
   getCollectionDocumentsData,
   addDocumentToCollection,
   getCollection,
+  setCollectionSettings
 } from "./h2ogpte";
 import * as core from "@actions/core";
+import yaml from "js-yaml";
 /**
  * Gets H2OGPTE configuration from environment variables
  */
@@ -148,4 +150,25 @@ export async function isValidCollection(
   collectionId: string,
 ): Promise<boolean> {
   return (await getCollection(collectionId)) !== null;
+export async function updateGuardRailsSettings(
+  collectionId: string,
+  guardrailsSettings?: string,
+): Promise<void> {
+  if (!guardrailsSettings) {
+    core.debug("No guardrails settings found");
+    return;
+  }
+
+  core.debug(`Guardrails settings: ${guardrailsSettings}`);
+  const guardrailsSettingsPayload =
+    yaml.load(guardrailsSettings, {
+      schema: yaml.JSON_SCHEMA,
+    }) || undefined;
+  core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
+  const oldSettings = await getCollectionSettings(collectionId);
+  const updatedSettings: CollectionSettings = {
+    ...oldSettings,
+    guardrails_settings: guardrailsSettingsPayload,
+  };
+  await setCollectionSettings(collectionId, updatedSettings);
 }

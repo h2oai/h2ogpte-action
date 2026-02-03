@@ -112,10 +112,11 @@ export interface Document {
   name: string;
 }
 
-export interface CollectionSettings {
-  guardrails_settings: object;
-}
 
 export interface ChatSettings {
   llm: string;
+}
+export interface CollectionSettings {
+  guardrails_settings?: object;
+  [key: string]: unknown;
 }
