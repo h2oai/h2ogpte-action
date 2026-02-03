@@ -50,6 +50,7 @@ inputs:
     required: false
   collection_id:
     description: Collection to use for the agent (by default, a new collection will be created for each run)
+    required: false
   guardrails_settings:
     description: Configuration for input/output control of Personal Identifiable Information (PII) and harmful content generation. For more information https://docs.h2o.ai/enterprise-h2ogpte/guide/collections/pii-sanitization
     required: false
