@@ -1,11 +1,21 @@
 import type {
   StreamingChunk,
   H2ogpteConfig,
+  ChatSettings,
   CollectionSettings,
+  Document,
 } from "./types";
+import {
+  getCollectionSettings,
+  getChatSettings,
+  setChatSettings,
+  getCollectionDocumentsData,
+  addDocumentToCollection,
+  getCollection,
+  setCollectionSettings,
+} from "./h2ogpte";
 import * as core from "@actions/core";
 import yaml from "js-yaml";
-import { getCollectionSettings, setCollectionSettings } from "./h2ogpte";
 /**
  * Gets H2OGPTE configuration from environment variables
  */
@@ -88,6 +98,58 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
   };
 }
 
+/**
+ * Copies a collection by copying settings, chat configuration, and documents
+ * @param sourceCollectionId - The ID of the collection to copy from
+ * @param targetCollectionId - The ID of the collection to copy to
+ * @returns Promise<void>
+ * @throws Error if copy fails at any step
+ */
+export async function copyCollection(
+  sourceCollectionId: string,
+  targetCollectionId: string,
+): Promise<void> {
+  // Get source collection settings
+  const collectionSettings = (await getCollectionSettings(
+    sourceCollectionId,
+  )) as CollectionSettings;
+  // Update target collection settings
+  await setCollectionSettings(targetCollectionId, collectionSettings);
+
+  // Get source chat settings
+  const chatSettings = (await getChatSettings(
+    sourceCollectionId,
+  )) as ChatSettings;
+  // Update target chat settings
+  await setChatSettings(targetCollectionId, chatSettings);
+
+  // Get source collection documents
+  const documents = (await getCollectionDocumentsData(
+    sourceCollectionId,
+  )) as Document[];
+  // Add documents to target collection
+  await Promise.all(
+    documents.map(async (doc) => {
+      await addDocumentToCollection(targetCollectionId, doc.id);
+    }),
+  );
+
+  core.debug(
+    `Successfully duplicated collection from ${sourceCollectionId} to ${targetCollectionId}`,
+  );
+}
+
+/**
+ * Validates if a collection exists and is accessible
+ * @param collectionId - The ID of the collection to validate
+ * @returns Promise<boolean> - True if collection is valid and accessible
+ * @throws Error if the API request fails
+ */
+export async function isValidCollection(
+  collectionId: string,
+): Promise<boolean> {
+  return (await getCollection(collectionId)) !== null;
+}
 export async function updateGuardRailsSettings(
   collectionId: string,
   guardrailsSettings?: string,

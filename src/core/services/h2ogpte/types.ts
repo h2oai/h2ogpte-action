@@ -107,6 +107,14 @@ export interface JobDetails {
   start_time?: number;
 }
 
+export interface Document {
+  id: string;
+  name: string;
+}
+
+export interface ChatSettings {
+  llm: string;
+}
 export interface CollectionSettings {
   guardrails_settings?: object;
   [key: string]: unknown;

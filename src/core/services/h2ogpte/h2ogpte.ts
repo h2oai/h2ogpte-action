@@ -4,7 +4,6 @@ import { basename } from "path";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
 import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
-
 /**
  * Creates agent keys with retry mechanism
  */
@@ -417,6 +416,40 @@ export async function deleteCollection(
   );
 }
 
+export async function getCollection(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<object | null> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}`,
+    options,
+    {
+      maxRetries: maxRetries,
+      retryDelay: retryDelay,
+    },
+  );
+
+  if (response.ok) {
+    core.debug(`Collection ${collectionId} is valid.`);
+    return response.json;
+  } else {
+    const errorText = await response.text();
+    core.debug(
+      `Failed to validate collection ${collectionId}: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+    return null;
+  }
+}
+
 export async function getCollectionSettings(
   collectionId: string,
   maxRetries: number = 3,
@@ -434,8 +467,8 @@ export async function getCollectionSettings(
     `${apiBase}/api/v1/collections/${collectionId}/settings`,
     options,
     {
-      maxRetries: maxRetries,
-      retryDelay: retryDelay,
+      maxRetries,
+      retryDelay,
     },
   );
 
@@ -446,6 +479,38 @@ export async function getCollectionSettings(
     );
   }
   const data = (await response.json()) as types.CollectionSettings;
+  return data;
+}
+
+export async function getChatSettings(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.ChatSettings> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get chat settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  const data = (await response.json()) as types.ChatSettings;
   return data;
 }
 
@@ -468,16 +533,115 @@ export async function setCollectionSettings(
     `${apiBase}/api/v1/collections/${collectionId}/settings`,
     options,
     {
-      maxRetries: maxRetries,
-      retryDelay: retryDelay,
+      maxRetries,
+      retryDelay,
     },
   );
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Failed to set collection settings: ${response.status} ${response.statusText} - ${errorText}`,
+      `Failed to update collection settings: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
-  core.debug(`${response.status} - Successfully set collection settings`);
+  core.debug(`${response.status} - Successfully updated collection settings`);
+}
+
+export async function setChatSettings(
+  collectionId: string,
+  chatSettingsPayload: types.ChatSettings,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(chatSettingsPayload),
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/chat_settings`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to update chat settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(`${response.status} - Successfully updated chat settings`);
+}
+
+export async function getCollectionDocumentsData(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.Document[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/documents`,
+    options,
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get collection documents: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  const data = (await response.json()) as types.Document[];
+  return data;
+}
+
+export async function addDocumentToCollection(
+  collectionId: string,
+  documentId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const res = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/documents/insert_job?ingest_mode=agent_only`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        document_id: documentId,
+      }),
+    },
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(
+      `Failed to add document ${documentId} to collection: ${res.status} ${res.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(
+    `${res.status} - Successfully added document ${documentId} to collection`,
+  );
 }

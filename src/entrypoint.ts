@@ -10,6 +10,8 @@ import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   parseH2ogpteConfig,
+  copyCollection,
+  isValidCollection,
   updateGuardRailsSettings,
 } from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
@@ -32,7 +34,8 @@ import {
  */
 export async function run(): Promise<void> {
   let keyUuid: string | null = null;
-  let collectionId: string | null = null;
+  const userProvidedCollectionId: string | null =
+    process.env.COLLECTION_ID || null;
 
   try {
     // Fetch context
@@ -57,6 +60,25 @@ export async function run(): Promise<void> {
     core.debug(`This run url is ${url}`);
 
     const instruction = extractInstruction(context);
+
+    // Create Collection
+    const collectionId = await h2ogpte.createCollection();
+
+    // Copy collection if userProvidedCollectionId exists
+    if (
+      userProvidedCollectionId &&
+      (await isValidCollection(userProvidedCollectionId))
+    ) {
+      await copyCollection(userProvidedCollectionId, collectionId);
+    }
+
+    // Set Guardrail settings
+    core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
+    await updateGuardRailsSettings(
+      collectionId,
+      process.env.GUARDRAILS_SETTINGS,
+    );
+
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
@@ -68,16 +90,6 @@ export async function run(): Promise<void> {
         isIssueCommentPR: isIssueCommentEvent(context) && context.isPR,
       });
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
-
-      // Create Collection
-      collectionId = await h2ogpte.createCollection();
-
-      // Set Guardrail settings
-      core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
-      await updateGuardRailsSettings(
-        collectionId,
-        process.env.GUARDRAILS_SETTINGS,
-      );
 
       // Upload attachments
       await uploadAttachmentsToH2oGPTe(
