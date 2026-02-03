@@ -416,14 +416,10 @@ export async function deleteCollection(
   );
 }
 
-/**
- * Validates if a collection exists and is accessible
- * @param collectionId - The ID of the collection to validate
- * @returns Promise<boolean> - True if collection is valid and accessible
- * @throws Error if the API request fails
- */
 export async function getCollection(
   collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
 ): Promise<object | null> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
@@ -437,8 +433,8 @@ export async function getCollection(
     `${apiBase}/api/v1/collections/${collectionId}`,
     options,
     {
-      maxRetries: 3,
-      retryDelay: 1000,
+      maxRetries: maxRetries,
+      retryDelay: retryDelay,
     },
   );
 
@@ -454,14 +450,10 @@ export async function getCollection(
   }
 }
 
-/**
- * Retrieves collection settings for a specific collection
- * @param collectionId - The ID of the collection
- * @returns Promise<CollectionSettings> - The collection settings configuration
- * @throws Error if the API request fails
- */
 export async function getCollectionSettings(
   collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
 ): Promise<types.CollectionSettings> {
   const { apiKey, apiBase } = getH2ogpteConfig();
   const options = {
@@ -475,8 +467,8 @@ export async function getCollectionSettings(
     `${apiBase}/api/v1/collections/${collectionId}/settings`,
     options,
     {
-      maxRetries: 3,
-      retryDelay: 1000,
+      maxRetries,
+      retryDelay,
     },
   );
 
@@ -490,12 +482,6 @@ export async function getCollectionSettings(
   return data;
 }
 
-/**
- * Retrieves chat settings for a specific collection
- * @param collectionId - The ID of the collection
- * @returns Promise<ChatSettings> - The chat settings configuration
- * @throws Error if the API request fails
- */
 export async function getChatSettings(
   collectionId: string,
   maxRetries: number = 3,
@@ -528,13 +514,6 @@ export async function getChatSettings(
   return data;
 }
 
-/**
- * Updates collection settings for a specific collection
- * @param collectionId - The ID of the collection
- * @param settings - The collection settings to apply
- * @returns Promise<void>
- * @throws Error if the update fails
- */
 export async function updateCollectionSettings(
   collectionId: string,
   settingsPayload: types.CollectionSettings,
@@ -568,13 +547,6 @@ export async function updateCollectionSettings(
   core.debug(`${response.status} - Successfully updated collection settings`);
 }
 
-/**
- * Updates chat settings for a specific collection
- * @param collectionId - The ID of the collection
- * @param settings - The chat settings to apply
- * @returns Promise<void>
- * @throws Error if the update fails
- */
 export async function updateChatSettings(
   collectionId: string,
   chatSettingsPayload: types.ChatSettings,
@@ -639,42 +611,37 @@ export async function getCollectionDocumentsData(
   return data;
 }
 
-export async function addDocumentsToCollection(
+export async function addDocumentToCollection(
   collectionId: string,
-  documentIds: string[],
+  documentId: string,
   maxRetries: number = 3,
   retryDelay: number = 1000,
 ): Promise<void> {
   const { apiKey, apiBase } = getH2ogpteConfig();
-
-  await Promise.all(
-    documentIds.map(async (documentId: string) => {
-      const res = await fetchWithRetry(
-        `${apiBase}/api/v1/collections/${collectionId}/documents/insert_job?ingest_mode=agent_only`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            document_id: documentId,
-          }),
-        },
-        {
-          maxRetries,
-          retryDelay,
-        },
-      );
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(
-          `Failed to add document ${documentId} to collection: ${res.status} ${res.statusText} - ${errorText}`,
-        );
-      }
-      core.debug(
-        `${res.status} - Successfully added document ${documentId} to collection`,
-      );
-    }),
+  const res = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/documents/insert_job?ingest_mode=agent_only`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        document_id: documentId,
+      }),
+    },
+    {
+      maxRetries,
+      retryDelay,
+    },
+  );
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(
+      `Failed to add document ${documentId} to collection: ${res.status} ${res.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(
+    `${res.status} - Successfully added document ${documentId} to collection`,
   );
 }

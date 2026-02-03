@@ -11,7 +11,7 @@ import {
   getChatSettings,
   updateChatSettings,
   getCollectionDocumentsData,
-  addDocumentsToCollection,
+  addDocumentToCollection,
   getCollection,
 } from "./h2ogpte";
 import * as core from "@actions/core";
@@ -98,13 +98,13 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
 }
 
 /**
- * Duplicates a collection by copying settings, chat configuration, and documents
- * @param sourceCollectionId - The ID of the collection to duplicate from
- * @param targetCollectionId - The ID of the collection to duplicate to
+ * Copies a collection by copying settings, chat configuration, and documents
+ * @param sourceCollectionId - The ID of the collection to copy from
+ * @param targetCollectionId - The ID of the collection to copy to
  * @returns Promise<void>
- * @throws Error if duplication fails at any step
+ * @throws Error if copy fails at any step
  */
-export async function duplicateCollection(
+export async function copyCollection(
   sourceCollectionId: string,
   targetCollectionId: string,
 ): Promise<void> {
@@ -127,9 +127,10 @@ export async function duplicateCollection(
     sourceCollectionId,
   )) as Document[];
   // Add documents to target collection
-  await addDocumentsToCollection(
-    targetCollectionId,
-    documents.map((doc) => doc.id),
+  await Promise.all(
+    documents.map(async (doc) => {
+      await addDocumentToCollection(targetCollectionId, doc.id);
+    }),
   );
 
   core.debug(

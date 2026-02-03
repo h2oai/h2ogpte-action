@@ -10,7 +10,7 @@ import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   parseH2ogpteConfig,
-  duplicateCollection,
+  copyCollection,
   isValidCollection,
 } from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
@@ -75,7 +75,7 @@ export async function run(): Promise<void> {
 
       // Duplicate collection if collectionId is provided
       if (collectionId && (await isValidCollection(collectionId))) {
-        await duplicateCollection(collectionId, new_collectionId);
+        await copyCollection(collectionId, new_collectionId);
       }
       collectionId = new_collectionId;
 
