@@ -417,12 +417,6 @@ export async function deleteCollection(
   );
 }
 
-/**
- * Retrieves collection settings for a specific collection
- * @param collectionId - The ID of the collection
- * @returns Promise<CollectionSettings> - The collection settings configuration
- * @throws Error if the API request fails
- */
 export async function getCollectionSettings(
   collectionId: string,
   maxRetries: number = 3,
