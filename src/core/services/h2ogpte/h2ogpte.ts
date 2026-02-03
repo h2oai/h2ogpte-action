@@ -247,7 +247,7 @@ export async function createCollection(
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({ name: collectionName, description }),
+    body: JSON.stringify({ name: collectionName, description: description }),
   };
 
   const response = await fetchWithRetry(
@@ -415,4 +415,69 @@ export async function deleteCollection(
   core.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
+}
+
+export async function getCollectionSettings(
+  collectionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.CollectionSettings> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/settings`,
+    options,
+    {
+      maxRetries: maxRetries,
+      retryDelay: retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get collection settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  const data = (await response.json()) as types.CollectionSettings;
+  return data;
+}
+
+export async function setCollectionSettings(
+  collectionId: string,
+  collectionSettings: types.CollectionSettings,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<void> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(collectionSettings),
+  };
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/collections/${collectionId}/settings`,
+    options,
+    {
+      maxRetries: maxRetries,
+      retryDelay: retryDelay,
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to set collection settings: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  core.debug(`${response.status} - Successfully set collection settings`);
 }
