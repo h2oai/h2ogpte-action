@@ -8,7 +8,10 @@ import { fetchGitHubData } from "./core/data/fetcher";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
-import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
+import {
+  parseH2ogpteConfig,
+  updateGuardRailsSettings,
+} from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
@@ -71,7 +74,7 @@ export async function run(): Promise<void> {
 
       // Set Guardrail settings
       core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
-      await h2ogpte.createGuardRailsSettings(
+      await updateGuardRailsSettings(
         collectionId,
         process.env.GUARDRAILS_SETTINGS,
       );

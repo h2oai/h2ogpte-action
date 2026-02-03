@@ -1,5 +1,11 @@
-import type { StreamingChunk, H2ogpteConfig } from "./types";
-
+import type {
+  StreamingChunk,
+  H2ogpteConfig,
+  CollectionSettings,
+} from "./types";
+import * as core from "@actions/core";
+import yaml from "js-yaml";
+import { getCollectionSettings, setCollectionSettings } from "./h2ogpte";
 /**
  * Gets H2OGPTE configuration from environment variables
  */
@@ -80,4 +86,27 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
     agent_accuracy: agent_accuracy || "standard",
     agent_total_timeout: agent_total_timeout,
   };
+}
+
+export async function updateGuardRailsSettings(
+  collectionId: string,
+  guardrailsSettings?: string,
+): Promise<void> {
+  if (!guardrailsSettings) {
+    core.debug("No guardrails settings found");
+    return;
+  }
+
+  core.debug(`Guardrails settings: ${guardrailsSettings}`);
+  const guardrailsSettingsPayload =
+    yaml.load(guardrailsSettings, {
+      schema: yaml.JSON_SCHEMA,
+    }) || undefined;
+  core.debug(`Guardrails settings payload: ${guardrailsSettingsPayload}`);
+  const oldSettings = await getCollectionSettings(collectionId);
+  const updatedSettings: CollectionSettings = {
+    ...oldSettings,
+    guardrails_settings: guardrailsSettingsPayload,
+  };
+  await setCollectionSettings(collectionId, updatedSettings);
 }
