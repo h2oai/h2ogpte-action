@@ -547,7 +547,7 @@ export async function setCollectionSettings(
   core.debug(`${response.status} - Successfully updated collection settings`);
 }
 
-export async function updateChatSettings(
+export async function setChatSettings(
   collectionId: string,
   chatSettingsPayload: types.ChatSettings,
   maxRetries: number = 3,

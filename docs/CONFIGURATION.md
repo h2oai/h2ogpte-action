@@ -43,7 +43,7 @@ This option is intended for advanced users who need fine-grained control over:
 
 ---
 
-## ✅ 3. Configuration Example
+## Configuration Example
 
 ```yaml
 - name: h2oGPTe Agent Assistant
@@ -56,7 +56,7 @@ This option is intended for advanced users who need fine-grained control over:
     agent_max_turns: "auto" # Automatically select optimal turns
     agent_accuracy: "maximum" # Highest accuracy for complex analysis
     agent_total_timeout: 7200 # 2 hours timeout for complex tasks
-    collection_id: my-custom-collection
+    collection_id: "my-custom-collection"
     guardrails_settings: |
       disallowed_regex_patterns:
         - secret_disallowed_word

@@ -8,7 +8,7 @@ import type {
 import {
   getCollectionSettings,
   getChatSettings,
-  updateChatSettings,
+  setChatSettings,
   getCollectionDocumentsData,
   addDocumentToCollection,
   getCollection,
@@ -121,7 +121,7 @@ export async function copyCollection(
     sourceCollectionId,
   )) as ChatSettings;
   // Update target chat settings
-  await updateChatSettings(targetCollectionId, chatSettings);
+  await setChatSettings(targetCollectionId, chatSettings);
 
   // Get source collection documents
   const documents = (await getCollectionDocumentsData(
