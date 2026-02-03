@@ -112,7 +112,6 @@ export interface Document {
   name: string;
 }
 
-
 export interface ChatSettings {
   llm: string;
 }

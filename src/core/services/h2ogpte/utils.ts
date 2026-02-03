@@ -7,13 +7,12 @@ import type {
 } from "./types";
 import {
   getCollectionSettings,
-  updateCollectionSettings,
   getChatSettings,
   updateChatSettings,
   getCollectionDocumentsData,
   addDocumentToCollection,
   getCollection,
-  setCollectionSettings
+  setCollectionSettings,
 } from "./h2ogpte";
 import * as core from "@actions/core";
 import yaml from "js-yaml";
@@ -115,7 +114,7 @@ export async function copyCollection(
     sourceCollectionId,
   )) as CollectionSettings;
   // Update target collection settings
-  await updateCollectionSettings(targetCollectionId, collectionSettings);
+  await setCollectionSettings(targetCollectionId, collectionSettings);
 
   // Get source chat settings
   const chatSettings = (await getChatSettings(
@@ -150,6 +149,7 @@ export async function isValidCollection(
   collectionId: string,
 ): Promise<boolean> {
   return (await getCollection(collectionId)) !== null;
+}
 export async function updateGuardRailsSettings(
   collectionId: string,
   guardrailsSettings?: string,
