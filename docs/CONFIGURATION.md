@@ -23,7 +23,7 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
     llm: "auto" # Automatically select best model
     agent_max_turns: "auto" # Automatically select optimal turns
     agent_accuracy: "maximum" # Highest accuracy for complex analysis
-    agent_total_timeout: 1800 # Agent can run for a max of 30 minutes
+    agent_total_timeout: 3600 # Agent can run for a max of 60 minutes
 ```
 
 ## Compatibility
