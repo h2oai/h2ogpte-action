@@ -58,7 +58,7 @@ See [examples](examples/) for more workflow configurations. Or, check out our [u
 
 ## ✅ Requirements
 
-h2oGPTe Action v0.2.1-beta requires h2oGPTe versions 1.6.31 through 1.6.45.
+h2oGPTe Action v0.2.2-beta requires h2oGPTe versions 1.6.31 through 1.6.47.
 
 This version range has been tested and verified for compatibility.
 

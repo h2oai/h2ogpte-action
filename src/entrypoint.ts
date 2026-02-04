@@ -5,14 +5,19 @@ import {
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
-import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
-import { buildH2ogpteResponse } from "./core/response/response_builder";
-import { extractInstruction } from "./core/response/utils/instruction";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
-import { parseH2ogpteConfig } from "./core/services/h2ogpte/utils";
+import {
+  parseH2ogpteConfig,
+  copyCollection,
+  isValidCollection,
+  updateGuardRailsSettings,
+} from "./core/services/h2ogpte/utils";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
+import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
+import { buildH2ogpteResponse } from "./core/response/response_builder";
+import { extractInstruction } from "./core/response/utils/instruction";
 import {
   checkWritePermissions,
   cleanup,
@@ -30,7 +35,8 @@ import { createInitialWorkingComment } from "./core/response/utils/comment-forma
 export async function run(): Promise<void> {
   let keyId: string | null = null;
   let toolId: string | null = null;
-  let collectionId: string | null = null;
+  const userProvidedCollectionId: string | null =
+    process.env.COLLECTION_ID || null;
 
   try {
     // Fetch context
@@ -55,6 +61,25 @@ export async function run(): Promise<void> {
     core.debug(`This run url is ${url}`);
 
     const instruction = extractInstruction(context);
+
+    // Create Collection
+    const collectionId = await h2ogpte.createCollection();
+
+    // Copy collection if userProvidedCollectionId exists
+    if (
+      userProvidedCollectionId &&
+      (await isValidCollection(userProvidedCollectionId))
+    ) {
+      await copyCollection(userProvidedCollectionId, collectionId);
+    }
+
+    // Set Guardrail settings
+    core.debug(`Guardrail settings: ${process.env.GUARDRAILS_SETTINGS}`);
+    await updateGuardRailsSettings(
+      collectionId,
+      process.env.GUARDRAILS_SETTINGS,
+    );
+
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
@@ -67,7 +92,9 @@ export async function run(): Promise<void> {
       });
       core.debug(`Github Data:\n${JSON.stringify(githubData, null, 2)}`);
 
-      collectionId = await uploadAttachmentsToH2oGPTe(
+      // Upload attachments
+      await uploadAttachmentsToH2oGPTe(
+        collectionId,
         githubData.attachmentUrlMap,
       );
 

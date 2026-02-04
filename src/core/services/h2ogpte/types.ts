@@ -130,3 +130,17 @@ export interface CustomTool {
 export interface Count {
   count: number;
 }
+
+export interface Document {
+  id: string;
+  name: string;
+}
+
+export interface ChatSettings {
+  llm: string;
+}
+
+export interface CollectionSettings {
+  guardrails_settings?: object;
+  [key: string]: unknown;
+}

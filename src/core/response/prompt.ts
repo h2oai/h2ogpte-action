@@ -136,7 +136,7 @@ function applyReplacements(
       IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction. In this case, you should:
       - Leave a polite comment explaining that you're ready to help but need more information
       - Ask the user what they would like you to do
-      - DO NOT make any code changes, create branches, or open PRs
+      - DO NOT make any code changes, create branches, or open PRs in the repository
       - DO NOT analyze code from the repository
     `
     : "";
