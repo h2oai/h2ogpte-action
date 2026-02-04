@@ -23,12 +23,14 @@ function getMcpInstructions(): string {
   return dedent`
     You have access to the GitHub Model Context Protocol (MCP) server through h2oGPTe's tool runner. The GitHub MCP custom tool is already configured and available for you to use. It provides standardized tools for interacting with GitHub repositories, issues, pull requests, Actions, security features, and more. The MCP server handles authentication automatically and provides a reliable and secure way to perform GitHub operations.
 
-    To discover all available tools, use the litellm_tool_runner to list available MCP tools:
+    The list of custom tools (including the GitHub tool) is provided in your system prompt. Use the GitHub tool name from that list (it is often suffixed with an ID, e.g. github_d007527f).
+
+    Optionally, to discover the tool name at runtime:
     \`\`\`python
-    from api_server.agent_tools.litellm_tool_runner import litellm_tool_runner
-    tools_dict = litellm_tool_runner(action="list")
+    from api_server.agent_tools.claude_tool_runner import claude_tool_runner
+    tools_dict = claude_tool_runner(action="list")
+    github_tool = [t["name"] for t in tools_dict.get("available_tools", []) if t.get("name", "").startswith("github")][0]
     \`\`\`
-    This will help you find the GitHub MCP tools and understand what's available.
 
     Some commonly used GitHub MCP tools include:
     - get_file_contents: Retrieve the contents of files from repositories
@@ -38,45 +40,57 @@ function getMcpInstructions(): string {
 
     IMPORTANT:
     - You must use the GitHub MCP custom tool through h2oGPTe's tool runner for all GitHub operations. The tool is already configured and ready to use.
-    - The litellm_tool_runner is a sub-agent that executes specific GitHub MCP operations. You should provide it with very specific, granular tasks rather than broad or vague instructions.
-    - To launch MCP tools, use the litellm_tool_runner from api_server.agent_tools.litellm_tool_runner. This is the designated way to execute GitHub MCP tools - do NOT attempt to create your own MCP client or wrapper code.
-    - Example usage - provide specific, granular tasks:
+    - The claude_tool_runner is a sub-agent that executes specific GitHub MCP operations. You should provide it with very specific, granular tasks rather than broad or vague instructions.
+    - To launch MCP tools, use the claude_tool_runner from api_server.agent_tools.claude_tool_runner. This is the designated way to execute GitHub MCP tools - do NOT attempt to create your own MCP client or wrapper code.
+    - When retrieving file contents, instruct the tool runner to write contents to the workspace and return the path rather than returning them inline.
+    - For commits: small changes can be passed directly to claude_tool_runner; for large commits or new files, write the content to a file first, then instruct claude_tool_runner to commit the changes from that file.
+    - Example usage - provide specific, granular tasks. Use the GitHub tool name from the custom tools list in your system prompt:
     \`\`\`python
-    from api_server.agent_tools.litellm_tool_runner import litellm_tool_runner
+    from api_server.agent_tools.claude_tool_runner import claude_tool_runner
 
-    # Example 1: Pull a specific file from a specific branch
-    litellm_tool_runner(
-        query="Get the contents of src/utils/helper.ts from the main branch in the repository",
-        tools=["github"]
+    # github_tool is the name from the custom tools list in your system prompt (e.g. github_d007527f)
+
+    # Example 1: Write a specific file's contents to the workspace and return the path
+    claude_tool_runner(
+        query="Write the contents of src/utils/helper.ts from the main branch to the workspace and return the path",
+        tools=[github_tool]
     )
 
-    # Example 2: Commit specific code to a specific file on a specific branch
-    litellm_tool_runner(
+    # Example 2: Small commit - pass content directly
+    claude_tool_runner(
         query="Update the file src/config/settings.json on branch feature/add-logging with the following content: {'debug': true, 'logLevel': 'info'}",
-        tools=["github"]
+        tools=[github_tool]
     )
 
-    # Example 3: Search for specific code patterns
-    litellm_tool_runner(
+    # Example 3: Large commit or new file - write to file first, then commit from file
+    # Step 1: Write your changes to a local file (e.g. patch.txt or new-feature.ts)
+    # Step 2: Instruct claude_tool_runner to commit from that file
+    claude_tool_runner(
+        query="Commit the changes from patch.txt to the repository on branch feature/add-logging",
+        tools=[github_tool]
+    )
+
+    # Example 4: Search for specific code patterns
+    claude_tool_runner(
         query="Search for all occurrences of 'useState' in TypeScript files (.ts, .tsx) in the src directory",
-        tools=["github"]
+        tools=[github_tool]
     )
 
-    # Example 4: Create a pull request with specific details
-    litellm_tool_runner(
+    # Example 5: Create a pull request with specific details
+    claude_tool_runner(
         query="Create a pull request from branch feature/fix-bug-123 to main branch with title 'Fix authentication bug' and description 'Resolves issue #123 by updating token validation logic'",
-        tools=["github"]
+        tools=[github_tool]
     )
 
-    # Example 5: Get multiple specific files
-    litellm_tool_runner(
-        query="Get the contents of package.json and tsconfig.json from the main branch",
-        tools=["github"]
+    # Example 6: Write multiple files to the workspace and return the paths
+    claude_tool_runner(
+        query="Write the contents of package.json and tsconfig.json from the main branch to the workspace and return the paths",
+        tools=[github_tool]
     )
     \`\`\`
     - Break down complex operations into multiple specific sub-agent calls. Each call should target a single, well-defined task.
     - Do NOT attempt to create your own MCP client in Python or any other language.
-    - Do NOT make direct API calls or use Python/shell scripts to interact with GitHub (except for using litellm_tool_runner to execute MCP tools).
+    - Do NOT make direct API calls or use Python/shell scripts to interact with GitHub (except for using claude_tool_runner to execute MCP tools).
     - If the MCP server encounters a fatal error, exit with an appropriate error message. For errors related to incorrect parameters or tool usage, handle them gracefully and provide helpful feedback.
   `;
 }
@@ -192,7 +206,7 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_pr_review = dedent`
-    Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to retrieve any necessary files using the GitHub MCP server's get_file_contents tool.
+    Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to write any necessary file contents to local files using the GitHub MCP.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
   `;
 
