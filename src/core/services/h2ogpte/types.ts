@@ -132,3 +132,11 @@ export interface Message {
   error?: string;
   type_list?: TypeList[];
 }
+
+export interface UsageStats {
+  llm: string;
+  cost: number;
+  response_time: number;
+  queue_time: number;
+  retrieval_time: number;
+}

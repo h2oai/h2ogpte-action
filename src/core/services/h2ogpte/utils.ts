@@ -5,6 +5,7 @@ import type {
   CollectionSettings,
   Document,
   Message,
+  UsageStats,
 } from "./types";
 import {
   getCollectionSettings,
@@ -206,13 +207,32 @@ export async function createUsageReport(sessionId: string): Promise<void> {
     replyMessage.type_list.length > 0 &&
     replyMessage.type_list.some((t) => t.message_type === "usage_stats")
   ) {
-    const usageStats = replyMessage.type_list.find(
+    const usageTypeList = replyMessage.type_list.find(
       (t) => t.message_type === "usage_stats",
-    )?.content;
+    );
+
+    if (!usageTypeList) {
+      core.warning(`Usage stats not found in message for session ${sessionId}`);
+      return;
+    }
+
+    const usage: UsageStats = JSON.parse(usageTypeList.content);
 
     await core.summary
-      .addHeading("📊 H2OGPTE Agent Usage Summary")
-      .addCodeBlock(JSON.stringify(usageStats, null, 2), "json")
+      .addHeading("📊 LLM Usage Summary")
+
+      .addTable([
+        [
+          { data: "Metric", header: true },
+          { data: "Value", header: true },
+        ],
+        ["Model", usage.llm.toString()],
+        ["Total Cost", usage.cost.toString()],
+        ["Response Time", usage.response_time.toString()],
+        ["Queue Time", usage.queue_time.toString()],
+        ["Retrieval Time", usage.retrieval_time.toString()],
+      ])
+      .addCodeBlock(JSON.stringify(usage, null, 2), "json")
       .write();
   }
 }
