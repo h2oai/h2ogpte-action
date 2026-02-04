@@ -4,6 +4,7 @@ import type {
   ChatSettings,
   CollectionSettings,
   Document,
+  Message,
 } from "./types";
 import {
   getCollectionSettings,
@@ -13,6 +14,7 @@ import {
   addDocumentToCollection,
   getCollection,
   setCollectionSettings,
+  getSessionMessages,
 } from "./h2ogpte";
 import * as core from "@actions/core";
 import yaml from "js-yaml";
@@ -171,4 +173,35 @@ export async function updateGuardRailsSettings(
     guardrails_settings: guardrailsSettingsPayload,
   };
   await setCollectionSettings(collectionId, updatedSettings);
+}
+
+export async function createUsageReport(sessionId: string): Promise<void> {
+  const messages = (await getSessionMessages(sessionId)) as Message[];
+  core.debug(`Fetched ${messages}`);
+  if (!messages || messages.length === 0) {
+    core.warning(`No messages found for session ${sessionId}`);
+    return;
+  }
+
+  const replyMessage = messages[0];
+  if (!replyMessage) {
+    core.warning(`First message is undefined for session ${sessionId}`);
+    return;
+  }
+
+  if (replyMessage.error && replyMessage.error !== "") {
+    core.warning(`Session ${sessionId} has error: ${replyMessage.error}`);
+    return;
+  }
+
+  if (
+    replyMessage.type_list &&
+    replyMessage.type_list.length > 0 &&
+    replyMessage.type_list.some((t) => t.message_type === "usage_report")
+  ) {
+    const usageStats = replyMessage.type_list.find(
+      (t) => t.message_type === "usage_report",
+    )?.content;
+    core.debug(`Session ${sessionId} has usage report \n ${usageStats}`);
+  }
 }

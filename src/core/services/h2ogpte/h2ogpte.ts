@@ -645,3 +645,57 @@ export async function addDocumentToCollection(
     `${res.status} - Successfully added document ${documentId} to collection`,
   );
 }
+
+export async function getSessionMessages(
+  sessionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.Message[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/chats/${sessionId}/messages`,
+    options,
+    { maxRetries, retryDelay },
+  );
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get session messages: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  return (await response.json()) as types.Message[];
+}
+
+export async function getMessageUsage(
+  messageId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<object> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/messages/${messageId}/meta?info_type=usage_stats`,
+    options,
+    { maxRetries, retryDelay },
+  );
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get message usage: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  return (await response.json()) as object;
+}

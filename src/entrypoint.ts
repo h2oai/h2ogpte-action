@@ -13,6 +13,7 @@ import {
   copyCollection,
   isValidCollection,
   updateGuardRailsSettings,
+  createUsageReport,
 } from "./core/services/h2ogpte/utils";
 import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
@@ -154,6 +155,7 @@ export async function run(): Promise<void> {
         context,
         h2ogpteComment.data.id,
       );
+      createUsageReport(chatSessionId.id);
     } else {
       // 1. Setup the GitHub secret in h2oGPTe
       keyUuid = await createSecretAndToolAssociation(githubToken);
@@ -183,6 +185,7 @@ export async function run(): Promise<void> {
       core.debug(
         `Chat completion:\n ${JSON.stringify(chatCompletion, null, 2)}`,
       );
+      createUsageReport(chatSessionId.id);
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
