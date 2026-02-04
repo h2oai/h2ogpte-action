@@ -137,7 +137,7 @@ export async function createGithubRemoteMcpCustomTool(
   return { toolName: githubKey, toolId: toolId };
 }
 
-function getToolNameById(tools: CustomTool[], toolId: string): string {
+export function getToolNameById(tools: CustomTool[], toolId: string): string {
   const tool = tools.find((t) => t.id === toolId);
   if (!tool) {
     throw new Error(`Tool with id ${toolId} not found`);
@@ -145,7 +145,7 @@ function getToolNameById(tools: CustomTool[], toolId: string): string {
   return tool.tool_name;
 }
 
-function addToolsToListIfMissing(
+export function addToolsToListIfMissing(
   toolNames: string[],
   toolsToAdd: string[],
 ): string[] {
