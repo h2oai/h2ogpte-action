@@ -28,7 +28,7 @@ import { createInitialWorkingComment } from "./core/response/utils/comment-forma
  * @returns Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
-  let keyUuid: string | null = null;
+  let keyId: string | null = null;
   let toolId: string | null = null;
   let collectionId: string | null = null;
 
@@ -74,9 +74,9 @@ export async function run(): Promise<void> {
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
       // 1. Setup the GitHub MCP and secret in h2oGPTe
-      const { keyUuid: createdKeyUuid, toolId: createdToolId } =
+      const { keyId: createdKeyId, toolId: createdToolId } =
         await createGithubMcpAndSecret(githubToken);
-      keyUuid = createdKeyUuid;
+      keyId = createdKeyId;
       toolId = createdToolId;
 
       // 2. Create a Chat Session in h2oGPTe
@@ -133,9 +133,9 @@ export async function run(): Promise<void> {
       );
     } else {
       // 1. Setup the GitHub secret in h2oGPTe
-      const { keyUuid: createdKeyUuid, toolId: createdToolId } =
+      const { keyId: createdKeyId, toolId: createdToolId } =
         await createGithubMcpAndSecret(githubToken);
-      keyUuid = createdKeyUuid;
+      keyId = createdKeyId;
       toolId = createdToolId;
 
       // 2. Create a Chat Session in h2oGPTe
@@ -168,7 +168,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    await cleanup(keyUuid, toolId);
+    await cleanup(keyId, toolId);
   }
 }
 

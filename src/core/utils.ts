@@ -4,11 +4,10 @@ import { AGENT_GITHUB_ENV_VAR } from "../constants";
 import type { ParsedGitHubContext } from "./services/github/types";
 import {
   createAgentKey,
-  createCustomTools,
+  createCustomTool,
   createToolAssociation,
   deleteAgentKey,
   deleteCustomTools,
-  getCustomTools,
 } from "./services/h2ogpte/h2ogpte";
 import type { CustomToolInput } from "./services/h2ogpte/types";
 
@@ -86,23 +85,13 @@ async function createAgentGitHubSecret(githubToken: string): Promise<string> {
 
 export async function createGithubMcpAndSecret(
   githubToken: string,
-): Promise<{ keyUuid: string; toolId: string }> {
-  const keyUuid = await createAgentGitHubSecret(githubToken);
-  const toolId = await createGithubRemoteMcpCustomTool();
+): Promise<{ keyId: string; toolId: string }> {
+  const keyId = await createAgentGitHubSecret(githubToken);
+  const { toolName, toolId } = await createGithubRemoteMcpCustomTool();
 
-  const customTools = await getCustomTools();
-  const createdTool = customTools.find((tool) => tool.id === toolId);
+  await createToolAssociation(toolName, keyId, AGENT_GITHUB_ENV_VAR);
 
-  if (!createdTool) {
-    throw new Error(`Failed to find created custom tool with ID: ${toolId}`);
-  }
-  await createToolAssociation(
-    createdTool.tool_name,
-    keyUuid,
-    AGENT_GITHUB_ENV_VAR,
-  );
-
-  return { keyUuid, toolId };
+  return { keyId, toolId };
 }
 
 /**
@@ -115,12 +104,13 @@ export async function createGithubRemoteMcpCustomTool(
     retryDelay?: number;
     timeoutMs?: number;
   } = {},
-): Promise<string> {
+): Promise<{ toolName: string; toolId: string }> {
+  const githubKey = `github_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
   const remoteMcpTool: CustomToolInput = {
     toolType: "remote_mcp",
     toolArgs: {
       mcp_config_json: JSON.stringify({
-        github: {
+        [githubKey]: {
           url: "https://api.githubcopilot.com/mcp/",
           type: "http",
           tool_usage_mode: ["runner"],
@@ -133,22 +123,22 @@ export async function createGithubRemoteMcpCustomTool(
     },
   };
 
-  const toolIds = await createCustomTools(remoteMcpTool, options);
-  if (toolIds.length === 0) {
+  const [toolId] = await createCustomTool(remoteMcpTool, options);
+  if (!toolId) {
     throw new Error(
       "Failed to create GitHub MCP custom tool: no tool ID returned",
     );
   }
-  return toolIds[0]!;
+  return { toolName: githubKey, toolId: toolId };
 }
 
 export async function cleanup(
-  keyUuid: string | null,
+  keyId: string | null,
   toolId: string | null,
 ): Promise<void> {
-  if (keyUuid) {
+  if (keyId) {
     try {
-      await deleteAgentKey(keyUuid);
+      await deleteAgentKey(keyId);
     } catch (error) {
       core.warning(
         `Failed to clean up agent key: ${error instanceof Error ? error.message : String(error)}`,

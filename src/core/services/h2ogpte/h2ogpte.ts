@@ -419,7 +419,7 @@ export async function deleteCollection(
   );
 }
 
-export async function createCustomTools(
+export async function createCustomTool(
   tool: types.CustomToolInput,
   options: {
     maxRetries?: number;
