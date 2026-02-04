@@ -177,6 +177,10 @@ export async function updateGuardRailsSettings(
 
 export async function createUsageReport(sessionId: string): Promise<void> {
   const messages = (await getSessionMessages(sessionId)) as Message[];
+  await core.summary
+    .addHeading("📊 Message Summary")
+    .addCodeBlock(JSON.stringify(messages, null, 2), "json")
+    .write();
   core.debug(`Fetched ${messages}`);
   if (!messages || messages.length === 0) {
     core.warning(`No messages found for session ${sessionId}`);
@@ -200,10 +204,10 @@ export async function createUsageReport(sessionId: string): Promise<void> {
   if (
     replyMessage.type_list &&
     replyMessage.type_list.length > 0 &&
-    replyMessage.type_list.some((t) => t.message_type === "usage_report")
+    replyMessage.type_list.some((t) => t.message_type === "usage_stats")
   ) {
     const usageStats = replyMessage.type_list.find(
-      (t) => t.message_type === "usage_report",
+      (t) => t.message_type === "usage_stats",
     )?.content;
 
     await core.summary
