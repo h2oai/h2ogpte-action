@@ -190,7 +190,10 @@ export async function createUsageReport(sessionId: string): Promise<void> {
   }
 
   if (replyMessage.error && replyMessage.error !== "") {
-    core.warning(`Session ${sessionId} has error: ${replyMessage.error}`);
+    await core.summary
+      .addHeading("🚨 H2OGPTE Agent Error Summary")
+      .addCodeBlock(JSON.stringify(replyMessage.error, null, 2), "json")
+      .write();
     return;
   }
 
@@ -202,6 +205,10 @@ export async function createUsageReport(sessionId: string): Promise<void> {
     const usageStats = replyMessage.type_list.find(
       (t) => t.message_type === "usage_report",
     )?.content;
-    core.debug(`Session ${sessionId} has usage report \n ${usageStats}`);
+
+    await core.summary
+      .addHeading("📊 H2OGPTE Agent Usage Summary")
+      .addCodeBlock(JSON.stringify(usageStats, null, 2), "json")
+      .write();
   }
 }
