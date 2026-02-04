@@ -8,8 +8,12 @@ import {
   createToolAssociation,
   deleteAgentKey,
   deleteCustomTools,
+  getChatSettings,
+  getCustomTools,
+  getSystemTools,
+  setChatSettings,
 } from "./services/h2ogpte/h2ogpte";
-import type { CustomToolInput } from "./services/h2ogpte/types";
+import type { CustomTool, CustomToolInput } from "./services/h2ogpte/types";
 
 /**
  * Gets Github key from environment variable
@@ -105,6 +109,7 @@ export async function createGithubRemoteMcpCustomTool(
     timeoutMs?: number;
   } = {},
 ): Promise<{ toolName: string; toolId: string }> {
+  // Generate a unique name for the GitHub MCP tool to avoid conflicts
   const githubKey = `github_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
   const remoteMcpTool: CustomToolInput = {
     toolType: "remote_mcp",
@@ -130,6 +135,61 @@ export async function createGithubRemoteMcpCustomTool(
     );
   }
   return { toolName: githubKey, toolId: toolId };
+}
+
+function getToolNameById(tools: CustomTool[], toolId: string): string {
+  const tool = tools.find((t) => t.id === toolId);
+  if (!tool) {
+    throw new Error(`Tool with id ${toolId} not found`);
+  }
+  return tool.tool_name;
+}
+
+function addToolsToListIfMissing(
+  toolNames: string[],
+  toolsToAdd: string[],
+): string[] {
+  const result = [...toolNames];
+  for (const tool of toolsToAdd) {
+    if (!result.includes(tool)) {
+      result.push(tool);
+    }
+  }
+  return result;
+}
+
+export async function restrictCollectionToMcpTool(
+  collectionId: string,
+  mcpToolId: string,
+): Promise<void> {
+  const MCP_TOOL_NAME = "claude_tool_runner.py";
+
+  const tools = await getCustomTools();
+  const mcpToolName = getToolNameById(tools, mcpToolId);
+
+  const systemTools = await getSystemTools();
+  const defaultSystemToolNames = systemTools
+    .filter((t) => t.default)
+    .map((t) => t.name);
+
+  const chatSettings = await getChatSettings(collectionId);
+  const currentAgentTools =
+    (chatSettings.llm_args?.agent_tools as string[] | undefined) ?? [];
+
+  const agentTools = addToolsToListIfMissing(currentAgentTools, [
+    mcpToolName,
+    MCP_TOOL_NAME,
+    ...defaultSystemToolNames,
+  ]);
+
+  core.debug(`Restricting collection agent tools to: ${agentTools}`);
+  await setChatSettings(collectionId, {
+    ...chatSettings,
+    llm_args: {
+      ...chatSettings.llm_args,
+      agent_tools: agentTools,
+    },
+  });
 }
 
 export async function cleanup(

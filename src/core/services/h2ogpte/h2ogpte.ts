@@ -113,10 +113,6 @@ export async function createChatSession(
   return data;
 }
 
-/**
- * Requests agent completion with improved error handling and timeout management
- * Now properly handles streaming responses when stream: true is set
- */
 export async function requestAgentCompletion(
   sessionId: string,
   prompt: string,
@@ -450,6 +446,41 @@ export async function createCustomTool(
   );
 
   return toolIds;
+}
+
+/**
+ * List agent tools present on the system
+ */
+export async function getSystemTools(
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.SystemTool[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/tools`,
+    options,
+    { maxRetries, retryDelay },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get system tools: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as types.SystemTool[];
+  core.debug(`Successfully retrieved ${data.length} system tool(s)`);
+
+  return data;
 }
 
 /**

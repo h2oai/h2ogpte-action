@@ -5,27 +5,28 @@ import {
   parseGitHubContext,
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
+import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
+import { buildH2ogpteResponse } from "./core/response/response_builder";
+import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
+import { extractInstruction } from "./core/response/utils/instruction";
+import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
 import { createReply, updateComment } from "./core/services/github/api";
 import { createOctokits } from "./core/services/github/octokits";
 import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
-  parseH2ogpteConfig,
   copyCollection,
   isValidCollection,
+  parseH2ogpteConfig,
   updateGuardRailsSettings,
 } from "./core/services/h2ogpte/utils";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
-import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { buildH2ogpteResponse } from "./core/response/response_builder";
-import { extractInstruction } from "./core/response/utils/instruction";
 import {
   checkWritePermissions,
   cleanup,
   createGithubMcpAndSecret,
   getGithubToken,
+  restrictCollectionToMcpTool,
 } from "./core/utils";
-import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
-import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 
 /**
  * The main function for the action.
@@ -33,8 +34,8 @@ import { createInitialWorkingComment } from "./core/response/utils/comment-forma
  * @returns Resolves when the action is complete.
  */
 export async function run(): Promise<void> {
-  let keyId: string | null = null;
-  let toolId: string | null = null;
+  let cleanupKeyId: string | null = null;
+  let cleanupToolId: string | null = null;
   const userProvidedCollectionId: string | null =
     process.env.COLLECTION_ID || null;
 
@@ -80,6 +81,24 @@ export async function run(): Promise<void> {
       process.env.GUARDRAILS_SETTINGS,
     );
 
+    // Setup the GitHub MCP and secret in h2oGPTe
+    const { keyId: gitHubSecretKeyId, toolId: gitHubMcpToolId } =
+      await createGithubMcpAndSecret(githubToken);
+    cleanupKeyId = gitHubSecretKeyId;
+    cleanupToolId = gitHubMcpToolId;
+
+    // Restrict collection to the GitHub MCP tool
+    await restrictCollectionToMcpTool(collectionId, gitHubMcpToolId);
+
+    // Create a Chat Session in h2oGPTe
+    const chatSessionId = await h2ogpte.createChatSession(collectionId);
+    const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
+    core.debug(`This chat session url is ${chatSessionUrl}`);
+
+    // Parse h2oGPTe configuration
+    const h2ogpteConfig = parseH2ogpteConfig();
+    core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
+
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
@@ -100,18 +119,7 @@ export async function run(): Promise<void> {
 
       core.debug(`Full payload: ${JSON.stringify(context.payload, null, 2)}`);
 
-      // 1. Setup the GitHub MCP and secret in h2oGPTe
-      const { keyId: createdKeyId, toolId: createdToolId } =
-        await createGithubMcpAndSecret(githubToken);
-      keyId = createdKeyId;
-      toolId = createdToolId;
-
-      // 2. Create a Chat Session in h2oGPTe
-      const chatSessionId = await h2ogpte.createChatSession(collectionId);
-      const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
-      core.debug(`This chat session url is ${chatSessionUrl}`);
-
-      // 3. Create the initial comment
+      // Create the initial comment
       const { commands: usedCommands, error: slashCommandError } =
         getSlashCommandsUsed(instruction);
       const initialCommentBody = createInitialWorkingComment(url, usedCommands);
@@ -121,24 +129,20 @@ export async function run(): Promise<void> {
         context,
       );
 
-      // 4. Create the agent instruction prompt
+      // Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         githubData,
       );
 
-      // 5. Parse h2oGPTe configuration
-      const h2ogpteConfig = parseH2ogpteConfig();
-      core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
-
-      // 6. Query h2oGPTe for Agent completion
+      // Query h2oGPTe for Agent completion
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
         h2ogpteConfig,
       );
 
-      // 7. Extract response from agent completion
+      // Extract response from agent completion
       const updatedCommentBody = buildH2ogpteResponse(
         chatCompletion,
         instruction,
@@ -151,7 +155,7 @@ export async function run(): Promise<void> {
 
       core.debug(`Commands used: ${JSON.stringify(usedCommands, null, 2)}`);
 
-      // 8. Update initial comment
+      // Update initial comment
       await updateComment(
         octokits.rest,
         updatedCommentBody,
@@ -159,28 +163,13 @@ export async function run(): Promise<void> {
         h2ogpteComment.data.id,
       );
     } else {
-      // 1. Setup the GitHub secret in h2oGPTe
-      const { keyId: createdKeyId, toolId: createdToolId } =
-        await createGithubMcpAndSecret(githubToken);
-      keyId = createdKeyId;
-      toolId = createdToolId;
-
-      // 2. Create a Chat Session in h2oGPTe
-      const chatSessionId = await h2ogpte.createChatSession(collectionId);
-      const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
-      core.debug(`This chat session url is ${chatSessionUrl}`);
-
-      // 3. Create the agent instruction prompt
+      // Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         undefined,
       );
 
-      // 4. Parse h2oGPTe configuration
-      const h2ogpteConfig = parseH2ogpteConfig();
-      core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
-
-      // 5. Query h2oGPTe for Agent completion
+      // Query h2oGPTe for Agent completion
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
@@ -195,7 +184,7 @@ export async function run(): Promise<void> {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
   } finally {
-    await cleanup(keyId, toolId);
+    await cleanup(cleanupKeyId, cleanupToolId);
   }
 }
 

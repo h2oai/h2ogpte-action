@@ -138,9 +138,23 @@ export interface Document {
 
 export interface ChatSettings {
   llm: string;
+  llm_args: Record<string, unknown>;
+  self_reflection_config: Record<string, unknown>;
+  rag_config: Record<string, unknown>;
+  include_chat_history: string;
+  tags: string[];
 }
 
 export interface CollectionSettings {
   guardrails_settings?: object;
   [key: string]: unknown;
+}
+
+export interface SystemTool {
+  name: string;
+  description: string;
+  enabled: boolean;
+  default: boolean;
+  extendable: boolean;
+  api_keys: Record<string, unknown>;
 }
