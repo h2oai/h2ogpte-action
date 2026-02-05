@@ -250,10 +250,13 @@ export async function createUsageReport(
       .write();
   }
   const apiBase = getH2ogpteConfig().apiBase;
+  const fullChatSessionUrl = apiBase.concat(
+    chatSessionUrl.replace(/^\*{3}/, ""),
+  );
   await core.summary
     .addHeading("🔗 View Full h2oGPTe Chat Session")
     .addLink(
-      apiBase.concat(chatSessionUrl.replace(/^\*{3}/, "")),
+      fullChatSessionUrl,
       "Click here to view the full chat session in h2oGPTe",
     )
     .write();
