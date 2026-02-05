@@ -250,7 +250,8 @@ export async function createUsageReport(sessionId: string): Promise<void> {
   await core.summary
     .addHeading("🔗 View Full h2oGPTe Chat Session")
     .addRaw(
-      `For more details on the agent's execution, please review the full chat session: [h2oGPTe Chat Session ID](${sessionId})`,
+      `For more details on the agent's execution, please review the full chat session using the Chat Session ID:`,
     )
+    .addCodeBlock(sessionId, "plaintext")
     .write();
 }
