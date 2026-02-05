@@ -119,3 +119,24 @@ export interface CollectionSettings {
   guardrails_settings?: object;
   [key: string]: unknown;
 }
+
+export interface TypeList {
+  content: string;
+  message_type: string;
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  created_at: string;
+  error?: string;
+  type_list?: TypeList[];
+}
+
+export interface UsageStats {
+  llm: string;
+  cost: number;
+  response_time: number;
+  queue_time: number;
+  retrieval_time: number;
+}

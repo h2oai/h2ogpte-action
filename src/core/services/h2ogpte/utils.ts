@@ -4,6 +4,7 @@ import type {
   ChatSettings,
   CollectionSettings,
   Document,
+  UsageStats,
 } from "./types";
 import {
   getCollectionSettings,
@@ -13,6 +14,7 @@ import {
   addDocumentToCollection,
   getCollection,
   setCollectionSettings,
+  getSessionMessages,
 } from "./h2ogpte";
 import * as core from "@actions/core";
 import yaml from "js-yaml";
@@ -171,4 +173,91 @@ export async function updateGuardRailsSettings(
     guardrails_settings: guardrailsSettingsPayload,
   };
   await setCollectionSettings(collectionId, updatedSettings);
+}
+
+/**
+ * Creates and writes a usage statistics report to the GitHub Actions job summary.
+ *
+ * This function fetches messages from an h2oGPTe chat session and generates a summary
+ * report containing usage statistics (model, cost, response time, queue time, retrieval time).
+ * If the session encountered an error, it displays an error message instead.
+ *
+ * @param sessionId - The unique identifier of the h2oGPTe chat session
+ * @returns A promise that resolves when the summary has been written
+ *
+ * @throws Will log warnings (not throw errors) if:
+ * - No messages are found for the session
+ * - The first message is undefined
+ * - Usage stats are not found in the message type list
+ **/
+export async function createUsageReport(sessionId: string): Promise<void> {
+  const messages = await getSessionMessages(sessionId);
+  if (!messages || messages.length === 0) {
+    core.warning(`No messages found for session ${sessionId}`);
+    return;
+  }
+
+  // Reply message is always at the first index
+  const replyMessage = messages.at(0);
+  if (!replyMessage) {
+    core.warning(`First message is undefined for session ${sessionId}`);
+    return;
+  }
+
+  if (replyMessage.error && replyMessage.error !== "") {
+    await core.summary
+      .addHeading("📋 Summary Statistics")
+      .addRaw(
+        "Usage Statistics are not available due to the following error:\n",
+      )
+      .addCodeBlock(
+        `"${
+          replyMessage.error.length > 100
+            ? replyMessage.error.substring(0, 100) + "..."
+            : replyMessage.error
+        }"`,
+        "plaintext",
+      )
+      .addRaw(
+        "\nTo view more details, please check the action logs and the h2oGPTe chat session.",
+      )
+      .write();
+    core.debug(`Error in chat session ${sessionId}: ${replyMessage.error}`);
+  } else if (
+    replyMessage.type_list &&
+    replyMessage.type_list.length > 0 &&
+    replyMessage.type_list.some((t) => t.message_type === "usage_stats")
+  ) {
+    const usageTypeList = replyMessage.type_list.find(
+      (t) => t.message_type === "usage_stats",
+    );
+
+    if (!usageTypeList) {
+      core.warning(`Usage stats not found in message for session ${sessionId}`);
+      return;
+    }
+
+    const usage: UsageStats = JSON.parse(usageTypeList.content);
+
+    await core.summary
+      .addHeading("📋 Summary Statistics", 2)
+      .addTable([
+        [
+          { data: "Metric", header: true },
+          { data: "Value", header: true },
+        ],
+        ["Model", usage.llm.toString()],
+        ["Total Cost", usage.cost.toString()],
+        ["Response Time", usage.response_time.toString()],
+        ["Queue Time", usage.queue_time.toString()],
+        ["Retrieval Time", usage.retrieval_time.toString()],
+      ])
+      .addDetails(
+        "Detailed Usage Statistics",
+        `<pre><code class="language-json">
+        ${JSON.stringify(usage, null, 2)}
+        </code></pre>`,
+      )
+      .write();
+  }
 }
