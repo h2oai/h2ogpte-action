@@ -197,12 +197,15 @@ export async function createUsageReport(
       .addHeading("🚨 Action ran unsuccessfully")
       .addSeparator()
       .addHeading("📊 Usage Statistics")
-      .addRaw(replyMessage.error)
-      .addSeparator()
+      .addRaw(
+        "Usage Statistics are not available due to an error in the h2oGPTe chat session.",
+      )
+      .addRaw(replyMessage.error.substring(0, 100))
       .addRaw(
         "To view more details, please check the acj\tion logs and the h2oGPTe chat session linked below.",
       )
       .write();
+    core.debug(`Error in chat session ${sessionId}: ${replyMessage.error}`);
   } else if (
     replyMessage.type_list &&
     replyMessage.type_list.length > 0 &&
