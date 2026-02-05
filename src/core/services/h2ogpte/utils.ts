@@ -200,7 +200,7 @@ export async function createUsageReport(
       .addRaw(
         "Usage Statistics are not available due to the following error:\n",
       )
-      .addCodeBlock(replyMessage.error.substring(0, 100))
+      .addCodeBlock(replyMessage.error.substring(0, 100).concat("..."))
       .addRaw(
         ":\nTo view more details, please check the action logs and the h2oGPTe chat session linked below.",
       )
