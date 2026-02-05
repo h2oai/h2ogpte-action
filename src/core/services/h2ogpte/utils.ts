@@ -249,12 +249,12 @@ export async function createUsageReport(
       )
       .write();
   }
-
+  const apiBase = getH2ogpteConfig().apiBase;
   await core.summary
     .addHeading("🔗 View Full h2oGPTe Chat Session")
     .addLink(
+      apiBase.concat(chatSessionUrl.replace(/^\*{3}/, "")),
       "Click here to view the full chat session in h2oGPTe",
-      chatSessionUrl,
     )
     .write();
 }
