@@ -198,11 +198,11 @@ export async function createUsageReport(
       .addSeparator()
       .addHeading("📊 Usage Statistics")
       .addRaw(
-        "Usage Statistics are not available due to an error in the h2oGPTe chat session.",
+        "Usage Statistics are not available due to the following error:\n",
       )
-      .addRaw(replyMessage.error.substring(0, 100))
+      .addCodeBlock(replyMessage.error.substring(0, 100))
       .addRaw(
-        "To view more details, please check the acj\tion logs and the h2oGPTe chat session linked below.",
+        ":\nTo view more details, please check the action logs and the h2oGPTe chat session linked below.",
       )
       .write();
     core.debug(`Error in chat session ${sessionId}: ${replyMessage.error}`);
