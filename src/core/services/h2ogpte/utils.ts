@@ -229,9 +229,9 @@ export async function createUsageReport(sessionId: string): Promise<void> {
       ])
       .addDetails(
         "Detailed Usage Statistics",
-        `\`\`\`json
+        `<pre><code class="language-json">
 ${JSON.stringify(usage, null, 2)}
-\`\`\``,
+</code></pre>`,
       )
       .write();
   }
