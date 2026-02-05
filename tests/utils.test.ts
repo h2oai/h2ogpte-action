@@ -1,5 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { CustomTool } from "../src/core/services/h2ogpte/types";
+import { getGithubMcpUrl } from "../src/core/services/github/copilot-mcp";
 import { addToolsToListIfMissing, getToolNameById } from "../src/core/utils";
 
 function createTool(id: string, toolName: string): CustomTool {
@@ -11,6 +12,51 @@ function createTool(id: string, toolName: string): CustomTool {
     owner_email: "test@example.com",
   };
 }
+
+describe("getGithubMcpUrl", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  test("returns api.githubcopilot.com for github.com", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.com";
+    expect(getGithubMcpUrl()).toBe("https://api.githubcopilot.com/mcp/");
+  });
+
+  test("returns api.githubcopilot.com for github.com with trailing slash", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.com/";
+    expect(getGithubMcpUrl()).toBe("https://api.githubcopilot.com/mcp/");
+  });
+
+  test("returns copilot-api subdomain for GHE.com with data residency", () => {
+    process.env.GITHUB_SERVER_URL = "https://octocorp.ghe.com";
+    expect(getGithubMcpUrl()).toBe("https://copilot-api.octocorp.ghe.com/mcp");
+  });
+
+  test("throws for GitHub Enterprise Server", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.company.com";
+    expect(() => getGithubMcpUrl()).toThrow(
+      "GitHub MCP is not supported for GitHub Enterprise Server (https://github.company.com)." +
+        " GitHub Enterprise Server support is planned for a future release",
+    );
+  });
+
+  test("throws when GITHUB_SERVER_URL is missing", () => {
+    delete process.env.GITHUB_SERVER_URL;
+    expect(() => getGithubMcpUrl()).toThrow("GitHub server url is required");
+  });
+
+  test("throws when GITHUB_SERVER_URL is invalid", () => {
+    process.env.GITHUB_SERVER_URL = "not-a-valid-url";
+    expect(() => getGithubMcpUrl()).toThrow("Invalid GitHub server URL");
+  });
+});
 
 describe("getToolNameById", () => {
   test("returns tool_name when tool exists", () => {

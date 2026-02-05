@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { AGENT_GITHUB_ENV_VAR } from "../constants";
 import type { ParsedGitHubContext } from "./services/github/types";
+import { getGithubMcpUrl } from "./services/github/copilot-mcp";
 import {
   createAgentKey,
   createCustomTool,
@@ -43,6 +44,19 @@ export function getGithubApiUrl(): string {
   }
 
   return githubApiBase;
+}
+
+/**
+ * Gets the GitHub server URL from environment variable
+ */
+export function getGithubServerUrl(): string {
+  const githubServerUrl = process.env.GITHUB_SERVER_URL;
+
+  if (!githubServerUrl) {
+    throw new Error("GitHub server url is required");
+  }
+
+  return githubServerUrl;
 }
 
 /**
@@ -115,12 +129,13 @@ export async function createGithubRemoteMcpCustomTool(
 ): Promise<{ toolName: string; toolId: string }> {
   // Generate a unique name for the GitHub MCP tool to avoid conflicts
   const githubKey = `github_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
+  const mcpUrl = getGithubMcpUrl();
   const remoteMcpTool: CustomToolInput = {
     toolType: "remote_mcp",
     toolArgs: {
       mcp_config_json: JSON.stringify({
         [githubKey]: {
-          url: "https://api.githubcopilot.com/mcp/",
+          url: mcpUrl,
           type: "http",
           tool_usage_mode: ["runner"],
           description: "GitHub MCP: issues, PRs, Actions, security, repos",
@@ -131,6 +146,10 @@ export async function createGithubRemoteMcpCustomTool(
       }),
     },
   };
+
+  core.debug(
+    `Creating Github MCP tool with config: ${JSON.stringify(remoteMcpTool)}`,
+  );
 
   const [toolId] = await createCustomTool(remoteMcpTool, options);
   if (!toolId) {
