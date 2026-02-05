@@ -1,28 +1,23 @@
+import assert from "node:assert";
 import { getGithubServerUrl } from "../../utils";
 
 const GITHUB_COM_HOST = "github.com";
 
 /**
  * Returns the comma-separated list of allowed tools for the GitHub MCP.
- * Requires GITHUB_MCP_ALLOWED_TOOLS env (set via action inputs with defaults).
  */
 export function getGithubMcpAllowedTools(): string {
   const value = process.env.GITHUB_MCP_ALLOWED_TOOLS;
-  if (!value) {
-    throw new Error("GITHUB_MCP_ALLOWED_TOOLS is required");
-  }
+  assert(value !== undefined, "GITHUB_MCP_ALLOWED_TOOLS is required");
   return value;
 }
 
 /**
  * Returns the comma-separated list of allowed toolsets for the GitHub MCP.
- * Requires GITHUB_MCP_ALLOWED_TOOLSETS env (set via action inputs with defaults).
  */
 export function getGithubMcpAllowedToolsets(): string {
   const value = process.env.GITHUB_MCP_ALLOWED_TOOLSETS;
-  if (!value) {
-    throw new Error("GITHUB_MCP_ALLOWED_TOOLSETS is required");
-  }
+  assert(value !== undefined, "GITHUB_MCP_ALLOWED_TOOLSETS is required");
   return value;
 }
 const GITHUB_COM_MCP_URL = "https://api.githubcopilot.com/mcp/";
