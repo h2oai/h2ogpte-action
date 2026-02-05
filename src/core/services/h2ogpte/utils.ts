@@ -16,6 +16,7 @@ import {
   getCollection,
   setCollectionSettings,
   getSessionMessages,
+  getChatSessionUrl,
 } from "./h2ogpte";
 import * as core from "@actions/core";
 import yaml from "js-yaml";
@@ -176,10 +177,7 @@ export async function updateGuardRailsSettings(
   await setCollectionSettings(collectionId, updatedSettings);
 }
 
-export async function createUsageReport(
-  sessionId: string,
-  chatSessionUrl: string,
-): Promise<void> {
+export async function createUsageReport(sessionId: string): Promise<void> {
   const messages = (await getSessionMessages(sessionId)) as Message[];
   if (!messages || messages.length === 0) {
     core.warning(`No messages found for session ${sessionId}`);
@@ -249,15 +247,12 @@ export async function createUsageReport(
       )
       .write();
   }
-  const apiBase = getH2ogpteConfig().apiBase;
-  const fullChatSessionUrl = apiBase.concat(
-    chatSessionUrl.replace(/^\*{3}/, ""),
-  );
+  const chatSessionUrl = getChatSessionUrl(sessionId);
   await core.summary
     .addHeading("🔗 View Full h2oGPTe Chat Session")
     .addLink(
-      fullChatSessionUrl,
       "Click here to view the full chat session in h2oGPTe",
+      chatSessionUrl,
     )
     .write();
 }
