@@ -4,6 +4,10 @@ import {
   isPullRequestReviewCommentEvent,
 } from "../data/context";
 import type { FetchDataResult } from "../data/fetcher";
+import {
+  getGithubMcpAllowedTools,
+  getGithubMcpAllowedToolsets,
+} from "../services/github/copilot-mcp";
 import type { ParsedGitHubContext } from "../services/github/types";
 import { buildEventsText } from "./utils/formatter";
 import {
@@ -19,9 +23,32 @@ import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
 
 const USER_PROMPT = process.env.PROMPT || "";
 
+function getGithubMcpToolsAndToolsetsSection(): string {
+  const toolsStr = getGithubMcpAllowedTools();
+  const toolsetsStr = getGithubMcpAllowedToolsets();
+  const tools = toolsStr
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const toolsets = toolsetsStr
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const toolsDisplay =
+    toolsStr === "" || tools.length === 0 ? "none" : tools.join(", ");
+  const toolsetsDisplay =
+    toolsetsStr === "" || toolsets.length === 0 ? "none" : toolsets.join(", ");
+  return dedent`
+    Available tools: ${toolsDisplay}
+    Available toolsets: ${toolsetsDisplay}
+  `;
+}
+
 function getMcpInstructions(): string {
   return dedent`
     You have access to the GitHub Model Context Protocol (MCP) server through h2oGPTe's tool runner. The GitHub MCP custom tool is already configured and available for you to use. It provides standardized tools for interacting with GitHub repositories, issues, pull requests, Actions, security features, and more. The MCP server handles authentication automatically and provides a reliable and secure way to perform GitHub operations.
+
+    ${getGithubMcpToolsAndToolsetsSection()}
 
     The list of custom tools (including the GitHub tool) is provided in your system prompt. Use the GitHub tool name from that list (it is often suffixed with an ID, e.g. github_d007527f).
 
@@ -31,12 +58,6 @@ function getMcpInstructions(): string {
     tools_dict = claude_tool_runner(action="list")
     github_tool = [t["name"] for t in tools_dict.get("available_tools", []) if t.get("name", "").startswith("github")][0]
     \`\`\`
-
-    Some commonly used GitHub MCP tools include:
-    - get_file_contents: Retrieve the contents of files from repositories
-    - search_code: Search for code snippets across repositories
-    - create_pull_request: Create new pull requests
-    - create_or_update_file: Create or update files in repositories
 
     IMPORTANT:
     - You must use the GitHub MCP custom tool through h2oGPTe's tool runner for all GitHub operations. The tool is already configured and ready to use.

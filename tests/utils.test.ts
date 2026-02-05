@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import type { CustomTool } from "../src/core/services/h2ogpte/types";
 import {
   getGithubMcpAllowedTools,
   getGithubMcpAllowedToolsets,
   getGithubMcpUrl,
 } from "../src/core/services/github/copilot-mcp";
+import type { CustomTool } from "../src/core/services/h2ogpte/types";
 import { addToolsToListIfMissing, getToolNameById } from "../src/core/utils";
 
 function createTool(id: string, toolName: string): CustomTool {
@@ -84,6 +84,11 @@ describe("getGithubMcpAllowedTools", () => {
       "GITHUB_MCP_ALLOWED_TOOLS is required",
     );
   });
+
+  test("returns empty string when env is explicitly empty", () => {
+    process.env.GITHUB_MCP_ALLOWED_TOOLS = "";
+    expect(getGithubMcpAllowedTools()).toBe("");
+  });
 });
 
 describe("getGithubMcpAllowedToolsets", () => {
@@ -107,6 +112,11 @@ describe("getGithubMcpAllowedToolsets", () => {
     expect(() => getGithubMcpAllowedToolsets()).toThrow(
       "GITHUB_MCP_ALLOWED_TOOLSETS is required",
     );
+  });
+
+  test("returns empty string when env is explicitly empty", () => {
+    process.env.GITHUB_MCP_ALLOWED_TOOLSETS = "";
+    expect(getGithubMcpAllowedToolsets()).toBe("");
   });
 });
 

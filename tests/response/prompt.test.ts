@@ -44,6 +44,12 @@ describe("createAgentInstructionPrompt", () => {
     // Store original environment variables
     originalEnv = { ...process.env };
 
+    // Set env vars required by getMcpInstructions
+    process.env.GITHUB_MCP_ALLOWED_TOOLS =
+      "get_label,issue_read,create_pull_request";
+    process.env.GITHUB_MCP_ALLOWED_TOOLSETS =
+      "context,repos,issues,pull_requests";
+
     // Reset all mocks
     jest.clearAllMocks();
 
@@ -100,6 +106,32 @@ describe("createAgentInstructionPrompt", () => {
 
       // The basic replacements should still work
       expect(result).toContain("test-owner/test-repo");
+    });
+
+    test("should show 'none' for Available tools/toolsets when either is empty", () => {
+      const context = createMockContext();
+
+      process.env.GITHUB_MCP_ALLOWED_TOOLS = "";
+      process.env.GITHUB_MCP_ALLOWED_TOOLSETS = "context,repos";
+      const resultWithEmptyTools = createAgentInstructionPrompt(
+        context,
+        undefined,
+      );
+      expect(resultWithEmptyTools).toContain("Available tools: none");
+      expect(resultWithEmptyTools).toContain(
+        "Available toolsets: context, repos",
+      );
+
+      process.env.GITHUB_MCP_ALLOWED_TOOLS = "issue_read,create_pull_request";
+      process.env.GITHUB_MCP_ALLOWED_TOOLSETS = "";
+      const resultWithEmptyToolsets = createAgentInstructionPrompt(
+        context,
+        undefined,
+      );
+      expect(resultWithEmptyToolsets).toContain(
+        "Available tools: issue_read, create_pull_request",
+      );
+      expect(resultWithEmptyToolsets).toContain("Available toolsets: none");
     });
   });
 
