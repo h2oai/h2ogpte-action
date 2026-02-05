@@ -192,7 +192,7 @@ export async function createUsageReport(sessionId: string): Promise<void> {
   if (replyMessage.error && replyMessage.error !== "") {
     await core.summary
       .addHeading("🚨 H2OGPTE Agent Error Summary")
-      .addCodeBlock(JSON.stringify(replyMessage.error, null, 2), "json")
+      .addRaw(replyMessage.error)
       .write();
     return;
   }
@@ -228,6 +228,7 @@ export async function createUsageReport(sessionId: string): Promise<void> {
         ["Retrieval Time", usage.retrieval_time.toString()],
       ])
       .addCodeBlock(JSON.stringify(usage, null, 2), "json")
+      .addDetails("Detailed Usage Statistics", JSON.stringify(usage, null, 2))
       .write();
   }
 }
