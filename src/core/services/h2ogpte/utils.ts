@@ -16,7 +16,6 @@ import {
   getCollection,
   setCollectionSettings,
   getSessionMessages,
-  getChatSessionUrl,
 } from "./h2ogpte";
 import * as core from "@actions/core";
 import yaml from "js-yaml";
@@ -203,7 +202,7 @@ export async function createUsageReport(sessionId: string): Promise<void> {
         "plaintext",
       )
       .addRaw(
-        "\nTo view more details, please check the action logs and the h2oGPTe chat session linked below.",
+        "\nTo view more details, please check the action logs and the h2oGPTe chat session.",
       )
       .write();
     core.debug(`Error in chat session ${sessionId}: ${replyMessage.error}`);
@@ -247,12 +246,11 @@ export async function createUsageReport(sessionId: string): Promise<void> {
       )
       .write();
   }
-  const chatSessionUrl = getChatSessionUrl(sessionId);
+
   await core.summary
     .addHeading("🔗 View Full h2oGPTe Chat Session")
-    .addLink(
-      "Click here to view the full chat session in h2oGPTe",
-      chatSessionUrl,
+    .addRaw(
+      `For more details on the agent's execution, please review the full chat session: [h2oGPTe Chat Session ID](${sessionId})`,
     )
     .write();
 }
