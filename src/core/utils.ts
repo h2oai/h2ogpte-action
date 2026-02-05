@@ -13,7 +13,11 @@ import {
   getSystemTools,
   setChatSettings,
 } from "./services/h2ogpte/h2ogpte";
-import type { CustomTool, CustomToolInput } from "./services/h2ogpte/types";
+import type {
+  CustomTool,
+  CustomToolInput,
+  H2ogpteConfig,
+} from "./services/h2ogpte/types";
 
 /**
  * Gets Github key from environment variable
@@ -158,10 +162,13 @@ export function addToolsToListIfMissing(
   return result;
 }
 
-export async function restrictCollectionToMcpTool(
-  collectionId: string,
+/**
+ * Returns the list of tool names to restrict the collection to when using the GitHub MCP.
+ * Includes the MCP tool, the tool runner, and default system tools.
+ */
+export async function getToolsToRestrictCollectionTo(
   mcpToolId: string,
-): Promise<void> {
+): Promise<string[]> {
   const MCP_TOOL_NAME = "claude_tool_runner.py";
 
   const tools = await getCustomTools();
@@ -172,22 +179,39 @@ export async function restrictCollectionToMcpTool(
     .filter((t) => t.default)
     .map((t) => t.name);
 
+  return [mcpToolName, MCP_TOOL_NAME, ...defaultSystemToolNames];
+}
+
+/**
+ * Joins the user's h2ogpte config with the restricted tools and applies the combined
+ * settings to the collection's chat settings.
+ */
+export async function applyChatSettingsWithUserConfigAndTools(
+  collectionId: string,
+  h2ogpteConfig: H2ogpteConfig,
+  restrictedTools: string[],
+): Promise<void> {
   const chatSettings = await getChatSettings(collectionId);
   const currentAgentTools =
     (chatSettings.llm_args?.agent_tools as string[] | undefined) ?? [];
+  const agentTools = addToolsToListIfMissing(
+    currentAgentTools,
+    restrictedTools,
+  );
 
-  const agentTools = addToolsToListIfMissing(currentAgentTools, [
-    mcpToolName,
-    MCP_TOOL_NAME,
-    ...defaultSystemToolNames,
-  ]);
-
-  core.debug(`Restricting collection agent tools to: ${agentTools}`);
+  core.debug(
+    `Applying chat settings with user h2ogpte config and agent tools: ${agentTools}`,
+  );
   await setChatSettings(collectionId, {
     ...chatSettings,
+    llm: h2ogpteConfig.llm,
     llm_args: {
       ...chatSettings.llm_args,
+      use_agent: true,
       agent_tools: agentTools,
+      agent_max_turns: h2ogpteConfig.agent_max_turns,
+      agent_accuracy: h2ogpteConfig.agent_accuracy,
+      agent_total_timeout: h2ogpteConfig.agent_total_timeout,
     },
   });
 }

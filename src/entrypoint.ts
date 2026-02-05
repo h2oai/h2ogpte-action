@@ -17,15 +17,16 @@ import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   copyCollection,
   isValidCollection,
-  parseH2ogpteConfig,
+  parseUserH2ogpteConfig,
   updateGuardRailsSettings,
 } from "./core/services/h2ogpte/utils";
 import {
+  applyChatSettingsWithUserConfigAndTools,
   checkWritePermissions,
   cleanup,
   createGithubMcpAndSecret,
   getGithubToken,
-  restrictCollectionToMcpTool,
+  getToolsToRestrictCollectionTo,
 } from "./core/utils";
 
 /**
@@ -87,17 +88,26 @@ export async function run(): Promise<void> {
     cleanupKeyId = gitHubSecretKeyId;
     cleanupToolId = gitHubMcpToolId;
 
-    // Restrict collection to the GitHub MCP tool
-    await restrictCollectionToMcpTool(collectionId, gitHubMcpToolId);
+    // Parse h2oGPTe configuration
+    const h2ogpteConfig = parseUserH2ogpteConfig();
+    core.debug(
+      `User provided h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`,
+    );
+
+    // Apply user config combined with restricted MCP tools to collection chat settings
+    // h2oGPTe always overrides settings so better to apply it once to the collection globally
+    const restrictedTools =
+      await getToolsToRestrictCollectionTo(gitHubMcpToolId);
+    await applyChatSettingsWithUserConfigAndTools(
+      collectionId,
+      h2ogpteConfig,
+      restrictedTools,
+    );
 
     // Create a Chat Session in h2oGPTe
     const chatSessionId = await h2ogpte.createChatSession(collectionId);
     const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
     core.debug(`This chat session url is ${chatSessionUrl}`);
-
-    // Parse h2oGPTe configuration
-    const h2ogpteConfig = parseH2ogpteConfig();
-    core.debug(`h2oGPTe config: ${JSON.stringify(h2ogpteConfig)}`);
 
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
@@ -139,7 +149,6 @@ export async function run(): Promise<void> {
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
-        h2ogpteConfig,
       );
 
       // Extract response from agent completion
@@ -173,7 +182,6 @@ export async function run(): Promise<void> {
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
-        h2ogpteConfig,
       );
 
       core.debug(

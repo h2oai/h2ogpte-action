@@ -1,7 +1,16 @@
-import { readFileSync } from "fs";
-import { basename } from "path";
 import * as core from "@actions/core";
+import { readFileSync } from "fs";
 import yaml from "js-yaml";
+import { basename } from "path";
+import {
+  addDocumentToCollection,
+  getChatSettings,
+  getCollection,
+  getCollectionDocumentsData,
+  getCollectionSettings,
+  setChatSettings,
+  setCollectionSettings,
+} from "./h2ogpte";
 import type {
   ChatSettings,
   CollectionSettings,
@@ -10,15 +19,6 @@ import type {
   H2ogpteConfig,
   StreamingChunk,
 } from "./types";
-import {
-  addDocumentToCollection,
-  getCollection,
-  getCollectionDocumentsData,
-  getCollectionSettings,
-  getChatSettings,
-  setCollectionSettings,
-  setChatSettings,
-} from "./h2ogpte";
 /**
  * Gets H2OGPTE configuration from environment variables
  */
@@ -64,7 +64,7 @@ export function parseStreamingAgentResponse(
 /**
  * Parse h2oGPTe configuration from GitHub action inputs
  */
-export function parseH2ogpteConfig(): H2ogpteConfig {
+export function parseUserH2ogpteConfig(): H2ogpteConfig {
   const llm = process.env.LLM;
   const agent_max_turns = process.env.AGENT_MAX_TURNS;
   const agent_accuracy = process.env.AGENT_ACCURACY;
