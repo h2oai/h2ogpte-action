@@ -253,8 +253,8 @@ export async function createUsageReport(
   await core.summary
     .addHeading("🔗 View Full h2oGPTe Chat Session")
     .addLink(
-      chatSessionUrl,
       "Click here to view the full chat session in h2oGPTe",
+      chatSessionUrl,
     )
     .write();
 }
