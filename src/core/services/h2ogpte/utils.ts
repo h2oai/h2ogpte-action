@@ -176,7 +176,10 @@ export async function updateGuardRailsSettings(
   await setCollectionSettings(collectionId, updatedSettings);
 }
 
-export async function createUsageReport(sessionId: string): Promise<void> {
+export async function createUsageReport(
+  sessionId: string,
+  chatSessionUrl: string,
+): Promise<void> {
   const messages = (await getSessionMessages(sessionId)) as Message[];
   if (!messages || messages.length === 0) {
     core.warning(`No messages found for session ${sessionId}`);
@@ -191,13 +194,16 @@ export async function createUsageReport(sessionId: string): Promise<void> {
 
   if (replyMessage.error && replyMessage.error !== "") {
     await core.summary
-      .addHeading("🚨 H2OGPTE Agent Error Summary")
+      .addHeading("🚨 Action ran unsuccessfully")
+      .addSeparator()
+      .addHeading("📊 Usage Statistics")
       .addRaw(replyMessage.error)
+      .addSeparator()
+      .addRaw(
+        "To view more details, please check the acj\tion logs and the h2oGPTe chat session linked below.",
+      )
       .write();
-    return;
-  }
-
-  if (
+  } else if (
     replyMessage.type_list &&
     replyMessage.type_list.length > 0 &&
     replyMessage.type_list.some((t) => t.message_type === "usage_stats")
@@ -214,7 +220,9 @@ export async function createUsageReport(sessionId: string): Promise<void> {
     const usage: UsageStats = JSON.parse(usageTypeList.content);
 
     await core.summary
-      .addHeading("📊 LLM Usage Summary")
+      .addHeading("✅ Action ran successfully")
+      .addSeparator()
+      .addHeading("📊 Usage Statistics")
 
       .addTable([
         [
@@ -230,9 +238,17 @@ export async function createUsageReport(sessionId: string): Promise<void> {
       .addDetails(
         "Detailed Usage Statistics",
         `<pre><code class="language-json">
-${JSON.stringify(usage, null, 2)}
-</code></pre>`,
+        ${JSON.stringify(usage, null, 2)}
+        </code></pre>`,
       )
       .write();
   }
+
+  await core.summary
+    .addHeading("🔗 View Full h2oGPTe Chat Session")
+    .addLink(
+      chatSessionUrl,
+      "Click here to view the full chat session in h2oGPTe",
+    )
+    .write();
 }
