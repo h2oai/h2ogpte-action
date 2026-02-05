@@ -2,7 +2,11 @@ import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { AGENT_GITHUB_ENV_VAR } from "../constants";
 import type { ParsedGitHubContext } from "./services/github/types";
-import { getGithubMcpUrl } from "./services/github/copilot-mcp";
+import {
+  getGithubMcpAllowedTools,
+  getGithubMcpAllowedToolsets,
+  getGithubMcpUrl,
+} from "./services/github/copilot-mcp";
 import {
   createAgentKey,
   createCustomTool,
@@ -141,6 +145,8 @@ export async function createGithubRemoteMcpCustomTool(
           description: "GitHub MCP: issues, PRs, Actions, security, repos",
           headers: {
             Authorization: `Bearer os.environ/${AGENT_GITHUB_ENV_VAR}`,
+            "X-MCP-Tools": getGithubMcpAllowedTools(),
+            "X-MCP-Toolsets": getGithubMcpAllowedToolsets(),
           },
         },
       }),

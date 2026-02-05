@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { CustomTool } from "../src/core/services/h2ogpte/types";
-import { getGithubMcpUrl } from "../src/core/services/github/copilot-mcp";
+import {
+  getGithubMcpAllowedTools,
+  getGithubMcpAllowedToolsets,
+  getGithubMcpUrl,
+} from "../src/core/services/github/copilot-mcp";
 import { addToolsToListIfMissing, getToolNameById } from "../src/core/utils";
 
 function createTool(id: string, toolName: string): CustomTool {
@@ -55,6 +59,54 @@ describe("getGithubMcpUrl", () => {
   test("throws when GITHUB_SERVER_URL is invalid", () => {
     process.env.GITHUB_SERVER_URL = "not-a-valid-url";
     expect(() => getGithubMcpUrl()).toThrow("Invalid GitHub server URL");
+  });
+});
+
+describe("getGithubMcpAllowedTools", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  test("returns env value when set", () => {
+    process.env.GITHUB_MCP_ALLOWED_TOOLS = "custom_tool_a,custom_tool_b";
+    expect(getGithubMcpAllowedTools()).toBe("custom_tool_a,custom_tool_b");
+  });
+
+  test("throws when env not set", () => {
+    delete process.env.GITHUB_MCP_ALLOWED_TOOLS;
+    expect(() => getGithubMcpAllowedTools()).toThrow(
+      "GITHUB_MCP_ALLOWED_TOOLS is required",
+    );
+  });
+});
+
+describe("getGithubMcpAllowedToolsets", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  test("returns env value when set", () => {
+    process.env.GITHUB_MCP_ALLOWED_TOOLSETS = "issues,repos";
+    expect(getGithubMcpAllowedToolsets()).toBe("issues,repos");
+  });
+
+  test("throws when env not set", () => {
+    delete process.env.GITHUB_MCP_ALLOWED_TOOLSETS;
+    expect(() => getGithubMcpAllowedToolsets()).toThrow(
+      "GITHUB_MCP_ALLOWED_TOOLSETS is required",
+    );
   });
 });
 
