@@ -227,8 +227,12 @@ export async function createUsageReport(sessionId: string): Promise<void> {
         ["Queue Time", usage.queue_time.toString()],
         ["Retrieval Time", usage.retrieval_time.toString()],
       ])
-      .addCodeBlock(JSON.stringify(usage, null, 2), "json")
-      .addDetails("Detailed Usage Statistics", JSON.stringify(usage, null, 2))
+      .addDetails(
+        "Detailed Usage Statistics",
+        `\`\`\`json
+${JSON.stringify(usage, null, 2)}
+\`\`\``,
+      )
       .write();
   }
 }
