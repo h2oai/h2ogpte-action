@@ -217,7 +217,7 @@ describe("parseH2ogpteConfig", () => {
   });
 });
 
-describe("createUsageReport - Function Behavior", () => {
+describe("createUsageReport", () => {
   test("should call core.warning when no messages are found", async () => {
     const warningSpy = spyOn(core, "warning");
     const getMessagesSpy = spyOn(

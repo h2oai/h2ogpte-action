@@ -255,7 +255,7 @@ export async function createUsageReport(sessionId: string): Promise<void> {
           "\nTo view more details, please check the action logs and the h2oGPTe chat session.",
         )
         .write();
-      core.debug(`Error in chat session ${sessionId}: ${replyMessage.error}`);
+      core.warning(`Error in chat session ${sessionId}: ${replyMessage.error}`);
     } else if (
       replyMessage.type_list &&
       replyMessage.type_list.length > 0 &&
