@@ -5,7 +5,6 @@ import { join } from "path";
 import {
   buildCustomToolFormData,
   parseStreamingAgentResponse,
-  parseH2ogpteConfig,
   createUsageReport,
   parseUserH2ogpteConfig,
 } from "../../src/core/services/h2ogpte/utils";
