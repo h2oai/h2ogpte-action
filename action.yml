@@ -67,7 +67,7 @@ runs:
       shell: bash
       run: |
         cd ${GITHUB_ACTION_PATH}
-        bun install
+        bun install --frozen-lockfile --production
 
     - name: Run Action
       shell: bash
