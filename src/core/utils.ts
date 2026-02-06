@@ -194,14 +194,14 @@ export function addToolsToListIfMissing(
 export async function getToolsToRestrictCollectionTo(
   mcpToolId: string,
 ): Promise<string[]> {
-  const MCP_TOOL_NAME = "claude_tool_runner.py";
+  const DEFAULT_MCP_TOOL_RUNNER_NAME = "claude_tool_runner.py";
 
   const tools = await getCustomTools();
   const mcpToolName = getToolNameById(tools, mcpToolId);
   const defaultSystemTools = await extractDefaultSystemTools();
   const defaultSystemToolNames = defaultSystemTools.map((t) => t.name);
 
-  return [mcpToolName, MCP_TOOL_NAME, ...defaultSystemToolNames];
+  return [mcpToolName, DEFAULT_MCP_TOOL_RUNNER_NAME, ...defaultSystemToolNames];
 }
 
 /**
