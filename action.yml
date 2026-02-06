@@ -25,6 +25,14 @@ inputs:
     description: GitHub server base url (no trailing slash). By default, it is set to https://github.com.
     required: false
     default: https://github.com
+  github_mcp_allowed_tools:
+    description: List of specific tools to use with the GitHub MCP. Select specific tools for granular control. See https://github.com/github/github-mcp-server/blob/main/README.md#tools
+    required: false
+    default: "get_label,issue_read,list_issues,search_issues,create_pull_request,list_pull_requests,pull_request_read,search_pull_requests,update_pull_request,update_pull_request_branch"
+  github_mcp_allowed_toolsets:
+    description: List of allowed toolsets to use with the GitHub MCP. See https://github.com/github/github-mcp-server/blob/main/README.md#available-toolsets
+    required: false
+    default: "context,repos,issues,pull_requests,users"
   # h2oGPTe Configuration
   llm:
     description: Language model to use (by default, h2oGPTe will select the best available model for the task)
@@ -67,7 +75,7 @@ runs:
       shell: bash
       run: |
         cd ${GITHUB_ACTION_PATH}
-        bun install
+        bun install --frozen-lockfile --production
 
     - name: Run Action
       shell: bash
@@ -79,6 +87,8 @@ runs:
         GITHUB_SERVER_URL: ${{ inputs.github_server_url }}
         H2OGPTE_API_KEY: ${{ inputs.h2ogpte_api_key }}
         H2OGPTE_API_BASE: ${{ inputs.h2ogpte_api_base }}
+        GITHUB_MCP_ALLOWED_TOOLS: ${{ inputs.github_mcp_allowed_tools }}
+        GITHUB_MCP_ALLOWED_TOOLSETS: ${{ inputs.github_mcp_allowed_toolsets }}
         # h2oGPTe Configuration
         LLM: ${{ inputs.llm }}
         AGENT_MAX_TURNS: ${{ inputs.agent_max_turns }}

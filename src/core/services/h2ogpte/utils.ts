@@ -1,23 +1,26 @@
-import type {
-  StreamingChunk,
-  H2ogpteConfig,
-  ChatSettings,
-  CollectionSettings,
-  Document,
-  UsageStats,
-} from "./types";
+import * as core from "@actions/core";
+import { readFileSync } from "fs";
+import yaml from "js-yaml";
+import { basename } from "path";
 import {
-  getCollectionSettings,
-  getChatSettings,
-  setChatSettings,
-  getCollectionDocumentsData,
   addDocumentToCollection,
+  getChatSettings,
   getCollection,
+  getCollectionDocumentsData,
+  getCollectionSettings,
+  setChatSettings,
   setCollectionSettings,
   getSessionMessages,
 } from "./h2ogpte";
-import * as core from "@actions/core";
-import yaml from "js-yaml";
+import type {
+  ChatSettings,
+  CollectionSettings,
+  CustomToolInput,
+  Document,
+  H2ogpteConfig,
+  StreamingChunk,
+  UsageStats,
+} from "./types";
 /**
  * Gets H2OGPTE configuration from environment variables
  */
@@ -63,7 +66,7 @@ export function parseStreamingAgentResponse(
 /**
  * Parse h2oGPTe configuration from GitHub action inputs
  */
-export function parseH2ogpteConfig(): H2ogpteConfig {
+export function parseUserH2ogpteConfig(): H2ogpteConfig {
   const llm = process.env.LLM;
   const agent_max_turns = process.env.AGENT_MAX_TURNS;
   const agent_accuracy = process.env.AGENT_ACCURACY;
@@ -98,6 +101,34 @@ export function parseH2ogpteConfig(): H2ogpteConfig {
     agent_accuracy: agent_accuracy || "standard",
     agent_total_timeout: agent_total_timeout,
   };
+}
+
+export function buildCustomToolFormData(input: CustomToolInput): FormData {
+  const formData = new FormData();
+  const toolArgsString =
+    typeof input.toolArgs === "string"
+      ? input.toolArgs
+      : JSON.stringify(input.toolArgs);
+
+  formData.append("tool_type", input.toolType);
+  formData.append("tool_args", toolArgsString);
+
+  if (input.customToolPath) {
+    formData.append("custom_tool_path", input.customToolPath);
+  }
+
+  if (input.filePath) {
+    const buffer = readFileSync(input.filePath);
+    const name = input.filename || basename(input.filePath);
+    const file = new File([buffer], name);
+    formData.append("file", file);
+  }
+
+  if (input.filename) {
+    formData.append("filename", input.filename);
+  }
+
+  return formData;
 }
 
 /**
@@ -152,6 +183,7 @@ export async function isValidCollection(
 ): Promise<boolean> {
   return (await getCollection(collectionId)) !== null;
 }
+
 export async function updateGuardRailsSettings(
   collectionId: string,
   guardrailsSettings?: string,
