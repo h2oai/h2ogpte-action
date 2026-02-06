@@ -8,6 +8,7 @@ import {
   getCollection,
   getCollectionDocumentsData,
   getCollectionSettings,
+  getSystemTools,
   setChatSettings,
   setCollectionSettings,
 } from "./h2ogpte";
@@ -18,6 +19,7 @@ import type {
   Document,
   H2ogpteConfig,
   StreamingChunk,
+  SystemTool,
 } from "./types";
 /**
  * Gets H2OGPTE configuration from environment variables
@@ -127,6 +129,14 @@ export function buildCustomToolFormData(input: CustomToolInput): FormData {
   }
 
   return formData;
+}
+
+/**
+ * Extracts the default system tools from h2oGPTe.
+ */
+export async function extractDefaultSystemTools(): Promise<SystemTool[]> {
+  const systemTools = await getSystemTools();
+  return systemTools.filter((t) => t.default);
 }
 
 /**

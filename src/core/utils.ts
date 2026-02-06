@@ -15,9 +15,9 @@ import {
   deleteCustomTools,
   getChatSettings,
   getCustomTools,
-  getSystemTools,
   setChatSettings,
 } from "./services/h2ogpte/h2ogpte";
+import { extractDefaultSystemTools } from "./services/h2ogpte/utils";
 import type {
   CustomTool,
   CustomToolInput,
@@ -198,11 +198,8 @@ export async function getToolsToRestrictCollectionTo(
 
   const tools = await getCustomTools();
   const mcpToolName = getToolNameById(tools, mcpToolId);
-
-  const systemTools = await getSystemTools();
-  const defaultSystemToolNames = systemTools
-    .filter((t) => t.default)
-    .map((t) => t.name);
+  const defaultSystemTools = await extractDefaultSystemTools();
+  const defaultSystemToolNames = defaultSystemTools.map((t) => t.name);
 
   return [mcpToolName, MCP_TOOL_NAME, ...defaultSystemToolNames];
 }
