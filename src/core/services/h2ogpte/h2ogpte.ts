@@ -3,7 +3,11 @@ import { readFileSync } from "fs";
 import { basename } from "path";
 import { fetchWithRetry, fetchWithRetryStreaming } from "../base";
 import * as types from "./types";
-import { getH2ogpteConfig, parseStreamingAgentResponse } from "./utils";
+import {
+  buildCustomToolFormData,
+  getH2ogpteConfig,
+  parseStreamingAgentResponse,
+} from "./utils";
 /**
  * Creates agent keys with retry mechanism
  */
@@ -74,8 +78,6 @@ export async function createToolAssociation(
   );
 
   const data = (await response.json()) as types.ToolAssociations;
-  core.debug(`Successfully created tool association`);
-
   return data;
 }
 
@@ -111,14 +113,9 @@ export async function createChatSession(
   return data;
 }
 
-/**
- * Requests agent completion with improved error handling and timeout management
- * Now properly handles streaming responses when stream: true is set
- */
 export async function requestAgentCompletion(
   sessionId: string,
   prompt: string,
-  config?: types.H2ogpteConfig,
   systemPrompt?: string,
   timeoutMinutes: number = 30,
   maxRetries: number = 1,
@@ -128,13 +125,6 @@ export async function requestAgentCompletion(
 
   const agentCompletionConfig = {
     message: prompt,
-    llm: config?.llm,
-    llm_args: {
-      use_agent: true,
-      agent_accuracy: config?.agent_accuracy,
-      agent_max_turns: config?.agent_max_turns,
-      agent_total_timeout: config?.agent_total_timeout,
-    },
     tags: ["github_action_trigger"],
     stream: true,
     ...(systemPrompt && { system_prompt: systemPrompt }),
@@ -414,6 +404,146 @@ export async function deleteCollection(
   core.debug(
     `${response.status} - Successfully deleted collection: ${collectionId}`,
   );
+}
+
+export async function createCustomTool(
+  tool: types.CustomToolInput,
+  options: {
+    maxRetries?: number;
+    retryDelay?: number;
+    timeoutMs?: number;
+  } = {},
+): Promise<string[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const { maxRetries = 3, retryDelay = 1000, timeoutMs = 5000 } = options;
+
+  const formData = buildCustomToolFormData(tool);
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/custom_tools`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: formData,
+    },
+    { maxRetries, retryDelay, timeoutMs },
+  );
+
+  const data = (await response.json()) as types.AgentCustomToolResponse[];
+  const toolIds = data.map((item) => item.agent_custom_tool_id);
+  core.debug(
+    `Created custom agent tool(s) for type ${tool.toolType}: ${toolIds.join(",")}`,
+  );
+
+  return toolIds;
+}
+
+/**
+ * List agent tools present on the system
+ */
+export async function getSystemTools(
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.SystemTool[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/tools`,
+    options,
+    { maxRetries, retryDelay },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get system tools: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as types.SystemTool[];
+  core.debug(`Successfully retrieved ${data.length} system tool(s)`);
+
+  return data;
+}
+
+/**
+ * Gets custom tools with retry mechanism
+ */
+export async function getCustomTools(
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.CustomTool[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/custom_tools`,
+    options,
+    { maxRetries, retryDelay },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to get custom tools: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as types.CustomTool[];
+  core.debug(`Successfully retrieved ${data.length} custom tool(s)`);
+
+  return data;
+}
+
+/**
+ * Deletes custom agent tools with retry mechanism
+ */
+export async function deleteCustomTools(
+  toolIds: string[],
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.Count> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+
+  const toolIdsPath = toolIds.join(",");
+
+  const options = {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/agents/custom_tools/${toolIdsPath}`,
+    options,
+    { maxRetries, retryDelay },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Failed to delete custom tools: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as types.Count;
+  return data;
 }
 
 export async function getCollection(
