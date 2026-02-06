@@ -666,6 +666,9 @@ export async function getSessionMessages(
   );
   if (!response.ok) {
     const errorText = await response.text();
+    core.debug(
+      `Failed to fetch messages for session ${sessionId}: ${errorText}`,
+    );
     throw new Error(
       `Failed to get session messages: ${response.status} ${response.statusText} - ${errorText}`,
     );

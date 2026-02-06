@@ -1,8 +1,12 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { describe, test, expect, beforeEach, afterEach, spyOn } from "bun:test";
 import {
   parseStreamingAgentResponse,
   parseH2ogpteConfig,
+  createUsageReport,
 } from "../../src/core/services/h2ogpte/utils";
+import type { Message } from "../../src/core/services/h2ogpte/types";
+import * as h2ogpte from "../../src/core/services/h2ogpte/h2ogpte";
+import * as core from "@actions/core";
 
 // Helper function to test validation logic
 function validateAgentMaxTurns(value: string): string | null {
@@ -267,5 +271,89 @@ describe("parseH2ogpteConfig", () => {
     expect(config.agent_max_turns).toBe("20");
     expect(config.agent_accuracy).toBe("maximum");
     expect(config.agent_total_timeout).toBe(5400);
+  });
+});
+
+describe("createUsageReport - Function Behavior", () => {
+  test("should call core.warning when no messages are found", async () => {
+    const warningSpy = spyOn(core, "warning");
+    const getMessagesSpy = spyOn(
+      h2ogpte,
+      "getSessionMessages",
+    ).mockResolvedValue([]);
+
+    await createUsageReport("session-123");
+
+    expect(warningSpy).toHaveBeenCalledWith(
+      "No messages found for session session-123",
+    );
+    expect(warningSpy).toHaveBeenCalledTimes(1);
+
+    warningSpy.mockRestore();
+    getMessagesSpy.mockRestore();
+  });
+
+  test("should call core.warning when messages is null", async () => {
+    const warningSpy = spyOn(core, "warning");
+    const getMessagesSpy = spyOn(
+      h2ogpte,
+      "getSessionMessages",
+    ).mockResolvedValue(null as unknown as Message[]);
+
+    await createUsageReport("session-456");
+
+    expect(warningSpy).toHaveBeenCalledWith(
+      "No messages found for session session-456",
+    );
+    expect(warningSpy).toHaveBeenCalledTimes(1);
+
+    warningSpy.mockRestore();
+    getMessagesSpy.mockRestore();
+  });
+
+  test("should attempt to write summary when error is present", async () => {
+    const warningSpy = spyOn(core, "warning");
+    const getMessagesSpy = spyOn(
+      h2ogpte,
+      "getSessionMessages",
+    ).mockResolvedValue([
+      {
+        id: "msg-1",
+        content: "",
+        created_at: "2024-01-01T00:00:00Z",
+        error: "Test error message",
+      },
+    ] as Message[]);
+
+    await createUsageReport("session-789");
+
+    // In test env, core.summary.write() will fail due to missing GITHUB_STEP_SUMMARY
+    // This will trigger the catch block which calls core.warning
+    expect(warningSpy).toHaveBeenCalled();
+    expect(warningSpy.mock.calls[0]?.[0]).toContain(
+      "Failed to create usage report",
+    );
+
+    warningSpy.mockRestore();
+    getMessagesSpy.mockRestore();
+  });
+
+  test("should handle errors and call core.warning on failure", async () => {
+    const warningSpy = spyOn(core, "warning");
+    const getMessagesSpy = spyOn(
+      h2ogpte,
+      "getSessionMessages",
+    ).mockRejectedValue(new Error("Network error"));
+
+    await createUsageReport("session-error");
+
+    expect(warningSpy).toHaveBeenCalled();
+    expect(warningSpy.mock.calls[0]?.[0]).toContain(
+      "Failed to create usage report",
+    );
+    expect(warningSpy.mock.calls[0]?.[0]).toContain("Network error");
+
+    warningSpy.mockRestore();
+    getMessagesSpy.mockRestore();
   });
 });
