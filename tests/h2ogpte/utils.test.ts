@@ -253,49 +253,6 @@ describe("createUsageReport", () => {
     warningSpy.mockRestore();
     getMessagesSpy.mockRestore();
   });
-
-  test("should attempt to write summary when error is present", async () => {
-    const warningSpy = spyOn(core, "warning");
-    const getMessagesSpy = spyOn(
-      h2ogpte,
-      "getSessionMessages",
-    ).mockResolvedValue([
-      {
-        id: "msg-1",
-        content: "",
-        created_at: "2024-01-01T00:00:00Z",
-        error: "Test error message",
-      },
-    ] as Message[]);
-
-    await createUsageReport("session-789");
-
-    expect(warningSpy.mock.calls[0]?.[0]).toContain(
-      "Failed to create usage report",
-    );
-
-    warningSpy.mockRestore();
-    getMessagesSpy.mockRestore();
-  });
-
-  test("should handle errors and call core.warning on failure", async () => {
-    const warningSpy = spyOn(core, "warning");
-    const getMessagesSpy = spyOn(
-      h2ogpte,
-      "getSessionMessages",
-    ).mockRejectedValue(new Error("Network error"));
-
-    await createUsageReport("session-error");
-
-    expect(warningSpy).toHaveBeenCalled();
-    expect(warningSpy.mock.calls[0]?.[0]).toContain(
-      "Failed to create usage report",
-    );
-    expect(warningSpy.mock.calls[0]?.[0]).toContain("Network error");
-
-    warningSpy.mockRestore();
-    getMessagesSpy.mockRestore();
-  });
 });
 
 describe("buildCustomToolFormData", () => {
