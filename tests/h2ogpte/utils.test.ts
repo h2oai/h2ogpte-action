@@ -270,7 +270,6 @@ describe("createUsageReport - Function Behavior", () => {
 
     await createUsageReport("session-789");
 
-    expect(warningSpy).toHaveBeenCalled();
     expect(warningSpy.mock.calls[0]?.[0]).toContain(
       "Failed to create usage report",
     );
