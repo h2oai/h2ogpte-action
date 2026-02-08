@@ -286,7 +286,9 @@ export async function createUsageReport(sessionId: string): Promise<void> {
     ])
     .addDetails(
       "Detailed Usage Statistics",
-      "```json\n" + JSON.stringify(usage, null, 2) + "\n```",
+      `<pre><code class="language-json">
+        ${JSON.stringify(usage, null, 2)}
+        </code></pre>`,
     )
     .write();
 }
