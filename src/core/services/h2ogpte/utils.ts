@@ -278,11 +278,11 @@ export async function createUsageReport(sessionId: string): Promise<void> {
         { data: "Metric", header: true },
         { data: "Value", header: true },
       ],
-      ["Model", usage.llm],
-      ["Total Cost", `$${usage.cost.toFixed(4)} USD`],
-      ["Response Time", `${usage.response_time.toFixed(2)}s`],
-      ["Queue Time", `${usage.queue_time.toFixed(2)}s`],
-      ["Retrieval Time", `${usage.retrieval_time.toFixed(2)}s`],
+      ["Model", `${usage.llm}`],
+      ["Total Cost", `${usage.cost}`],
+      ["Response Time", `${usage.response_time}`],
+      ["Queue Time", `${usage.queue_time}`],
+      ["Retrieval Time", `${usage.retrieval_time}`],
     ])
     .addDetails(
       "Detailed Usage Statistics",
