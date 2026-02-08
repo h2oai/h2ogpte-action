@@ -80,14 +80,11 @@ This option is intended for advanced users who need fine-grained control over:
       pii_detection_llm_input_action: "redact"
       pii_detection_llm_output_action: "redact"
       exception_message: "Test"
-      prompt_guard_labels_to_flag:
-        - JAILBREAK
       guardrails_labels_to_flag:
         - Violent Crimes
         - Non-Violent Crimes
         - Intellectual Property
         - Code Interpreter Abuse
-      guardrails_llm: "h2oai/h2o-danube3-4b-chat"
       guardrails_safe_category: "Safe"
       guardrails_entities:
         Safe: "Messages that do not contain any of the following unsafe content"
