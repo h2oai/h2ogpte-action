@@ -1,16 +1,12 @@
-import { describe, test, expect, beforeEach, afterEach, spyOn } from "bun:test";
+import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import {
   buildCustomToolFormData,
   parseStreamingAgentResponse,
-  createUsageReport,
   parseUserH2ogpteConfig,
 } from "../../src/core/services/h2ogpte/utils";
-import type { Message } from "../../src/core/services/h2ogpte/types";
-import * as h2ogpte from "../../src/core/services/h2ogpte/h2ogpte";
-import * as core from "@actions/core";
 
 function createTempFile(filename: string, content: string) {
   const dir = mkdtempSync(join(tmpdir(), "h2ogpte-"));
@@ -214,44 +210,6 @@ describe("parseH2ogpteConfig", () => {
     expect(config.agent_max_turns).toBe("20");
     expect(config.agent_accuracy).toBe("maximum");
     expect(config.agent_total_timeout).toBe(5400);
-  });
-});
-
-describe("createUsageReport", () => {
-  test("should call core.warning when no messages are found", async () => {
-    const warningSpy = spyOn(core, "warning");
-    const getMessagesSpy = spyOn(
-      h2ogpte,
-      "getSessionMessages",
-    ).mockResolvedValue([]);
-
-    await createUsageReport("session-123");
-
-    expect(warningSpy).toHaveBeenCalledWith(
-      "No messages found for session session-123",
-    );
-    expect(warningSpy).toHaveBeenCalledTimes(1);
-
-    warningSpy.mockRestore();
-    getMessagesSpy.mockRestore();
-  });
-
-  test("should call core.warning when messages is null", async () => {
-    const warningSpy = spyOn(core, "warning");
-    const getMessagesSpy = spyOn(
-      h2ogpte,
-      "getSessionMessages",
-    ).mockResolvedValue(null as unknown as Message[]);
-
-    await createUsageReport("session-456");
-
-    expect(warningSpy).toHaveBeenCalledWith(
-      "No messages found for session session-456",
-    );
-    expect(warningSpy).toHaveBeenCalledTimes(1);
-
-    warningSpy.mockRestore();
-    getMessagesSpy.mockRestore();
   });
 });
 

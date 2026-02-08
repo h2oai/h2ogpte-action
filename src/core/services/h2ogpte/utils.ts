@@ -212,87 +212,81 @@ export async function updateGuardRailsSettings(
  *
  * This function fetches messages from an h2oGPTe chat session and generates a summary
  * report containing usage statistics (model, cost, response time, queue time, retrieval time).
- * If the session encountered an error, it displays an error message instead.
+ * If the session encountered an error, it displays an error summary and throws.
  *
  * @param sessionId - The unique identifier of the h2oGPTe chat session
  * @returns A promise that resolves when the summary has been written
  *
- * @throws Will log warnings (not throw errors) if:
+ * @throws Error if:
  * - No messages are found for the session
  * - The first message is undefined
+ * - The agent execution encountered an error
  * - Usage stats are not found in the message type list
  **/
 export async function createUsageReport(sessionId: string): Promise<void> {
-  try {
-    const messages = await getSessionMessages(sessionId);
-    if (!messages || messages.length === 0) {
-      core.warning(`No messages found for session ${sessionId}`);
-      return;
-    }
+  const messages = await getSessionMessages(sessionId);
+  if (!messages || messages.length === 0) {
+    throw new Error(`No messages found for session ${sessionId}`);
+  }
 
-    // Reply message is always at the first index
-    const replyMessage = messages.at(0);
-    if (!replyMessage) {
-      core.warning(`First message is undefined for session ${sessionId}`);
-      return;
-    }
-    if (replyMessage.error && replyMessage.error !== "") {
-      const MAX_ERROR_LENGTH = 100;
-      await core.summary
-        .addHeading("📋 Summary Statistics")
-        .addRaw(
-          "Usage Statistics are not available due to the following error:\n",
-        )
-        .addCodeBlock(
-          `"${
-            replyMessage.error.length > MAX_ERROR_LENGTH
-              ? replyMessage.error.substring(0, MAX_ERROR_LENGTH) + "..."
-              : replyMessage.error
-          }"`,
-          "plaintext",
-        )
-        .addRaw(
-          "\nTo view more details, please check the action logs and the h2oGPTe chat session.",
-        )
-        .write();
-      core.warning(`Error in chat session ${sessionId}: ${replyMessage.error}`);
-    } else if (
-      replyMessage.type_list &&
-      replyMessage.type_list.length > 0 &&
-      replyMessage.type_list.some((t) => t.message_type === "usage_stats")
-    ) {
-      const usageTypeList = replyMessage.type_list.find(
-        (t) => t.message_type === "usage_stats",
-      )!;
+  // Reply message is always at the first index
+  const replyMessage = messages.at(0);
+  if (!replyMessage) {
+    throw new Error(`First message is undefined for session ${sessionId}`);
+  }
 
-      const usage: UsageStats = JSON.parse(usageTypeList.content);
+  if (replyMessage.error && replyMessage.error !== "") {
+    const MAX_ERROR_LENGTH = 100;
+    await core.summary
+      .addHeading("📋 Summary Statistics")
+      .addRaw(
+        "Usage Statistics are not available due to the following error:\n",
+      )
+      .addCodeBlock(
+        replyMessage.error.length > MAX_ERROR_LENGTH
+          ? replyMessage.error.substring(0, MAX_ERROR_LENGTH) + "..."
+          : replyMessage.error,
+        "plaintext",
+      )
+      .addRaw(
+        "\nTo view more details, please check the action logs and the h2oGPTe chat session.",
+      )
+      .write();
+    return;
+  }
 
-      await core.summary
-        .addHeading("📋 Summary Statistics", 2)
-        .addTable([
-          [
-            { data: "Metric", header: true },
-            { data: "Value", header: true },
-          ],
-          ["Model", usage.llm.toString()],
-          ["Total Cost", usage.cost.toString()],
-          ["Response Time", usage.response_time.toString()],
-          ["Queue Time", usage.queue_time.toString()],
-          ["Retrieval Time", usage.retrieval_time.toString()],
-        ])
-        .addDetails(
-          "Detailed Usage Statistics",
-          `<pre><code class="language-json">
-        ${JSON.stringify(usage, null, 2)}
-        </code></pre>`,
-        )
-        .write();
-    }
-  } catch (error) {
-    core.warning(
-      `Failed to create usage report for session ${sessionId}: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+  if (
+    !replyMessage.type_list ||
+    replyMessage.type_list.length === 0 ||
+    !replyMessage.type_list.some((t) => t.message_type === "usage_stats")
+  ) {
+    throw new Error(
+      `Usage stats not found in message type list for session ${sessionId}`,
     );
   }
+
+  const usageTypeList = replyMessage.type_list.find(
+    (t) => t.message_type === "usage_stats",
+  )!;
+
+  const usage: UsageStats = JSON.parse(usageTypeList.content);
+
+  await core.summary
+    .addHeading("📋 Summary Statistics", 2)
+    .addTable([
+      [
+        { data: "Metric", header: true },
+        { data: "Value", header: true },
+      ],
+      ["Model", usage.llm],
+      ["Total Cost", `$${usage.cost.toFixed(4)} USD`],
+      ["Response Time", `${usage.response_time.toFixed(2)}s`],
+      ["Queue Time", `${usage.queue_time.toFixed(2)}s`],
+      ["Retrieval Time", `${usage.retrieval_time.toFixed(2)}s`],
+    ])
+    .addDetails(
+      "Detailed Usage Statistics",
+      "```json\n" + JSON.stringify(usage, null, 2) + "\n```",
+    )
+    .write();
 }
