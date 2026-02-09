@@ -8,6 +8,7 @@ import {
   getCollection,
   getCollectionDocumentsData,
   getCollectionSettings,
+  getCustomTools,
   getSystemTools,
   setChatSettings,
   setCollectionSettings,
@@ -17,7 +18,6 @@ import type {
   CollectionSettings,
   CustomToolInput,
   Document,
-  H2ogpteConfig,
   StreamingChunk,
   SystemTool,
 } from "./types";
@@ -63,46 +63,6 @@ export function parseStreamingAgentResponse(
   return null;
 }
 
-/**
- * Parse h2oGPTe configuration from GitHub action inputs
- */
-export function parseUserH2ogpteConfig(): H2ogpteConfig {
-  const llm = process.env.LLM;
-  const agent_max_turns = process.env.AGENT_MAX_TURNS;
-  const agent_accuracy = process.env.AGENT_ACCURACY;
-  const agent_total_timeout_raw = process.env.AGENT_TOTAL_TIMEOUT;
-  let agent_total_timeout = 3600; // default value
-
-  if (agent_total_timeout_raw !== undefined && agent_total_timeout_raw !== "") {
-    const parsed = parseInt(agent_total_timeout_raw);
-    if (!isNaN(parsed) && parsed >= 0) {
-      agent_total_timeout = parsed;
-    }
-    // If parsing fails or value is negative, keep the default value
-  }
-
-  const allowedMaxTurnsValues = ["auto", "5", "10", "15", "20"];
-  if (agent_max_turns && !allowedMaxTurnsValues.includes(agent_max_turns)) {
-    throw new Error(
-      `Invalid agent_max_turns value: "${agent_max_turns}". Must be one of: ${allowedMaxTurnsValues.join(", ")}`,
-    );
-  }
-
-  const allowedAccuracyValues = ["quick", "basic", "standard", "maximum"];
-  if (agent_accuracy && !allowedAccuracyValues.includes(agent_accuracy)) {
-    throw new Error(
-      `Invalid agent_accuracy value: "${agent_accuracy}". Must be one of: ${allowedAccuracyValues.join(", ")}`,
-    );
-  }
-
-  return {
-    llm: llm || "auto",
-    agent_max_turns: agent_max_turns || "auto",
-    agent_accuracy: agent_accuracy || "standard",
-    agent_total_timeout: agent_total_timeout,
-  };
-}
-
 export function buildCustomToolFormData(input: CustomToolInput): FormData {
   const formData = new FormData();
   const toolArgsString =
@@ -129,6 +89,30 @@ export function buildCustomToolFormData(input: CustomToolInput): FormData {
   }
 
   return formData;
+}
+
+export async function getAllAgentToolNamesFromLabel(
+  toolLabels: string[],
+): Promise<string[]> {
+  const allSystemTools = await getSystemTools();
+  const allCustomTools = await getCustomTools();
+
+  const systemTools = allSystemTools.filter((t) =>
+    toolLabels.includes(t.description),
+  );
+  const customTools = allCustomTools.filter((t) => {
+    const label = t.tool_args?.label;
+    return typeof label === "string" && toolLabels.includes(label);
+  });
+
+  const systemToolNames = systemTools.map((t) => t.name);
+  const customToolNames = customTools.map((t) => t.tool_name);
+
+  const allToolNames = [...systemToolNames, ...customToolNames];
+  core.debug(
+    `Matched agent labels [${toolLabels.join(", ")}] to agent tool names: [${allToolNames.join(", ")}]`,
+  );
+  return allToolNames;
 }
 
 /**

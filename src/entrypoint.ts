@@ -17,7 +17,6 @@ import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   copyCollection,
   isValidCollection,
-  parseUserH2ogpteConfig,
   updateGuardRailsSettings,
 } from "./core/services/h2ogpte/utils";
 import {
@@ -27,6 +26,7 @@ import {
   createGithubMcpAndSecret,
   getGithubToken,
   getToolsToRestrictCollectionTo,
+  parseUserH2ogpteConfig,
 } from "./core/utils";
 
 /**
