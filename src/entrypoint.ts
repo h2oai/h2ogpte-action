@@ -33,7 +33,7 @@ import {
 } from "./core/utils";
 
 import { pathExists } from "./core/response/utils/guidlines";
-
+import { readdirSync } from "fs";
 /**
  * The main function for the action.
  *
@@ -117,6 +117,15 @@ export async function run(): Promise<void> {
     // Upload agent.md guidlines document to collection if it exists in the repository
     const agentDocsPath = process.env.AGENT_DOCS || "~/agents.md";
     let guidelinePrompt = "";
+    core.debug(`Current directory: ${process.cwd()}`);
+    core.debug(`Github workspace directory: ${process.env.GITHUB_WORKSPACE}`);
+    core.debug(`GITHUB_ACTION_PATH: ${process.env.GITHUB_ACTION_PATH}`);
+    try {
+      const files = readdirSync(process.cwd());
+      core.debug(`Files in repository root: ${files.join(", ")}`);
+    } catch (error) {
+      core.debug(`Error reading directory: ${error}`);
+    }
     if (await pathExists(agentDocsPath)) {
       const guidelinesMap = new Map();
       guidelinesMap.set("agent-guidelines", agentDocsPath);
