@@ -34,6 +34,7 @@ import {
 
 import { pathExists } from "./core/response/utils/guidlines";
 import { readdirSync } from "fs";
+import path from "path";
 /**
  * The main function for the action.
  *
@@ -115,7 +116,10 @@ export async function run(): Promise<void> {
     core.debug(`This chat session url is ${chatSessionUrl}`);
 
     // Upload agent.md guidlines document to collection if it exists in the repository
-    const agentDocsPath = process.env.AGENT_DOCS || "~/agents.md";
+    const agentDocsPath = path.join(
+      process.env.GITHUB_WORKSPACE!,
+      process.env.AGENT_DOCS!,
+    );
     let guidelinePrompt = "";
     core.debug(`Current directory: ${process.cwd()}`);
     core.debug(`Github workspace directory: ${process.env.GITHUB_WORKSPACE}`);
