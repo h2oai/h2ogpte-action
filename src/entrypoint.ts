@@ -115,7 +115,7 @@ export async function run(): Promise<void> {
     core.debug(`This chat session url is ${chatSessionUrl}`);
 
     // Upload agent.md guidlines document to collection if it exists in the repository
-    const agentDocsPath = process.env.AGENT_DOCS || "agents.md";
+    const agentDocsPath = process.env.AGENT_DOCS || "./../agents.md";
     let guidelinePrompt = "";
     if (await pathExists(agentDocsPath)) {
       const guidelinesMap = new Map();
