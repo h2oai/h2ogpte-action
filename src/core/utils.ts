@@ -201,7 +201,9 @@ export function getUserProvidedAgentTools(): string[] {
 /**
  * Returns user-chosen agent tool names (from AGENT_TOOLS action input) or default system tool names.
  */
-export async function getUserChosenOrSystemAgentToolNames(): Promise<string[]> {
+export async function getUserChosenOrSystemDefaultAgentToolNames(): Promise<
+  string[]
+> {
   const userProvidedAgentTools = getUserProvidedAgentTools();
   if (userProvidedAgentTools.length > 0) {
     return await getAllAgentToolNamesFromLabel(userProvidedAgentTools);
@@ -221,7 +223,7 @@ export async function getToolsToRestrictCollectionTo(
 
   const tools = await getCustomTools();
   const githubMcpToolName = getToolNameById(tools, githubMcpToolId);
-  const agentToolNames = await getUserChosenOrSystemAgentToolNames();
+  const agentToolNames = await getUserChosenOrSystemDefaultAgentToolNames();
   return [githubMcpToolName, DEFAULT_MCP_TOOL_RUNNER_NAME, ...agentToolNames];
 }
 
