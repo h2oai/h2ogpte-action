@@ -62,6 +62,10 @@ inputs:
   guardrails_settings:
     description: Configuration for input/output control of Personal Identifiable Information (PII) and harmful content generation. For more information https://docs.h2o.ai/enterprise-h2ogpte/guide/collections/pii-sanitization
     required: false
+  agent_docs:
+    description: documentation to guide the h2oGPTe coding agent. Always searches the root directory. Defaults to agents.md
+    required: false
+    default: "agents.md"
 
 runs:
   using: composite
@@ -98,3 +102,4 @@ runs:
         SLASH_COMMANDS: ${{ inputs.slash_commands }}
         COLLECTION_ID: ${{ inputs.collection_id }}
         GUARDRAILS_SETTINGS: ${{ inputs.guardrails_settings }}
+        AGENT_DOCS: ${{ inputs.agent_docs }}

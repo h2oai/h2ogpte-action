@@ -6,7 +6,10 @@ import {
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
+import {
+  createAgentInstructionPrompt,
+  createAgentInstructionPromptForGuidelines,
+} from "./core/response/prompt";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 import { extractInstruction } from "./core/response/utils/instruction";
@@ -28,6 +31,8 @@ import {
   getGithubToken,
   getToolsToRestrictCollectionTo,
 } from "./core/utils";
+
+import { pathExists } from "./core/response/utils/guidlines";
 
 /**
  * The main function for the action.
@@ -109,6 +114,21 @@ export async function run(): Promise<void> {
     const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
     core.debug(`This chat session url is ${chatSessionUrl}`);
 
+    // Upload agent.md guidlines document to collection if it exists in the repository
+    const agentDocsPath = process.env.AGENT_DOCS || "agents.md";
+    let guidelinePrompt = "";
+    if (await pathExists(agentDocsPath)) {
+      const guidelinesMap = new Map();
+      guidelinesMap.set("agent-guidelines", agentDocsPath);
+      await uploadAttachmentsToH2oGPTe(collectionId, guidelinesMap);
+      guidelinePrompt = await createAgentInstructionPromptForGuidelines(
+        collectionId,
+        agentDocsPath,
+      );
+    } else {
+      core.debug(`No agent guidelines file found at path: ${agentDocsPath}`);
+    }
+
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
@@ -149,6 +169,7 @@ export async function run(): Promise<void> {
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
+        guidelinePrompt,
       );
 
       // Extract response from agent completion
@@ -182,6 +203,7 @@ export async function run(): Promise<void> {
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
+        guidelinePrompt,
       );
 
       core.debug(

@@ -20,6 +20,7 @@ import {
 } from "./utils/instruction";
 import { getSlashCommandsPrompt } from "./utils/slash-commands";
 import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
+import { basename } from "path";
 
 const USER_PROMPT = process.env.PROMPT || "";
 
@@ -301,4 +302,16 @@ function createAgentInstructionPromptForComment(
     prompt,
     githubData.attachmentUrlMap,
   );
+}
+
+export async function createAgentInstructionPromptForGuidelines(
+  collectionId: string,
+  agentDocsPath: string,
+): Promise<string> {
+  const prompt = dedent`
+    You're h2oGPTe, an AI Agent created to help software developers review their code in GitHub. Follow the guidelines set out in the markdown file named ${basename(agentDocsPath)} in the collection to ensure your assistance is helpful, relevant, and aligned with best practices for code review and repository interaction.
+
+    Always adhere to these guidelines in every response and action you take. They are critical for ensuring that your assistance is helpful, relevant, and aligned with best practices for code review and repository interaction.
+  `;
+  return prompt;
 }
