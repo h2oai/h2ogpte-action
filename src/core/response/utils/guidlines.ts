@@ -31,7 +31,7 @@ export async function getGuidelinesFile(
     );
   }
 
-  if (!response.data.content) {
+  if (!(response.data.content == "") && !response.data.content) {
     throw new Error(
       `File content not found in response for path '${agentDocsPath}'`,
     );
