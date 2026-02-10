@@ -116,7 +116,11 @@ export async function run(): Promise<void> {
       process.env.GITHUB_WORKSPACE!,
       process.env.AGENT_DOCS!,
     );
-    const fileLocalPath = await getGuidelinesFile(octokits.rest, agentDocsPath);
+    const fileLocalPath = await getGuidelinesFile(
+      octokits.rest,
+      agentDocsPath,
+      context,
+    );
     const map = new Map();
     map.set("configurationFile", fileLocalPath);
     uploadAttachmentsToH2oGPTe(collectionId, map);

@@ -5,20 +5,21 @@ import { basename } from "path";
 import path from "path";
 import { getFile } from "../../services/github/api";
 import core from "@actions/core";
+import type { ParsedGitHubContext } from "../../services/github/types";
 
 export async function getGuidelinesFile(
   octokit: Octokit,
   agentDocsPath: string,
+  context: ParsedGitHubContext,
 ): Promise<string | null> {
-  const repo = process.env.repoName;
-  core.debug(`repoName environment variable: ${repo}`);
-  if (!repo) {
-    throw new Error("repoName environment variable is not set");
-  }
-
   const maxFileSize = 50 * 1024 * 1024; // 50 MB
   core.debug(`Fetching guidelines file from ${agentDocsPath}`);
-  const response = await getFile(octokit, agentDocsPath, repo);
+  const response = await getFile(
+    octokit,
+    agentDocsPath,
+    context.repository.owner,
+    context.repository.repo,
+  );
   if (Array.isArray(response.data)) {
     throw new Error(
       `Expected a single file but got a directory listing for path '${agentDocsPath}'`,
