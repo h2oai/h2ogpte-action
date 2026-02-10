@@ -124,6 +124,8 @@ This event is triggered automatically when a pull request is created/synchronize
 
 ${createAgentInstructionPromptForGuidelines(process.env.AGENT_DOCS ? process.env.AGENT_DOCS : "")}
 
+${getInstructionPromptForCollections()}
+
 ${getMcpInstructions()}
 
 You must only work in the user's repository, {{repoName}}.
@@ -216,6 +218,8 @@ function createAgentInstructionPromptForComment(
     Developers interact with you by adding @h2ogpte in their pull request review comments.
 
     ${createAgentInstructionPromptForGuidelines(process.env.AGENT_DOCS ? process.env.AGENT_DOCS : "")}
+
+    ${getInstructionPromptForCollections()}
 
     ${getMcpInstructions()}
 
@@ -326,6 +330,13 @@ function createAgentInstructionPromptForGuidelines(
   If any pull request, issue, or comment does not comply with the guidelines, you must:
     - Explicitly identify the violated guideline(s), and
     - Reference the exact section(s) in ${basename(agentDocsPath)} that were broken.
+  `;
+  return prompt;
+}
+
+function getInstructionPromptForCollections(): string {
+  const prompt = dedent`
+  Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
   `;
   return prompt;
 }
