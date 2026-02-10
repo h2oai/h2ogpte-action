@@ -112,14 +112,17 @@ export async function run(): Promise<void> {
 
     // Upload agent.md guidlines document to collection if it exists in the repository
     const agentDocsPath = process.env.AGENT_DOCS!;
-    const fileLocalPath = await getGuidelinesFile(
-      octokits.rest,
-      agentDocsPath,
-      context,
-    );
-    const map = new Map();
-    map.set("configurationFile", fileLocalPath);
-    uploadAttachmentsToH2oGPTe(collectionId, map);
+    if (agentDocsPath) {
+      const fileLocalPath = await getGuidelinesFile(
+        octokits.rest,
+        agentDocsPath,
+        context,
+      );
+      const map = new Map();
+      map.set("configurationFile", fileLocalPath);
+      uploadAttachmentsToH2oGPTe(collectionId, map);
+    }
+
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({

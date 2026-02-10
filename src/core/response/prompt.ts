@@ -122,6 +122,8 @@ function getPromptWrapper(): string {
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
+${createAgentInstructionPromptForGuidelines(process.env.AGENT_DOCS ? process.env.AGENT_DOCS : "")}
+
 ${getMcpInstructions()}
 
 You must only work in the user's repository, {{repoName}}.
@@ -212,6 +214,8 @@ function createAgentInstructionPromptForComment(
 
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
+
+    ${createAgentInstructionPromptForGuidelines(process.env.AGENT_DOCS ? process.env.AGENT_DOCS : "")}
 
     ${getMcpInstructions()}
 
@@ -304,14 +308,24 @@ function createAgentInstructionPromptForComment(
   );
 }
 
-export async function createAgentInstructionPromptForGuidelines(
-  collectionId: string,
+function createAgentInstructionPromptForGuidelines(
   agentDocsPath: string,
-): Promise<string> {
+): string {
   const prompt = dedent`
-    You're h2oGPTe, an AI Agent created to help software developers review their code in GitHub. Follow the guidelines set out in the markdown file named ${basename(agentDocsPath)} in the collection to ensure your assistance is helpful, relevant, and aligned with best practices for code review and repository interaction.
+  You must strictly follow and reference the guidelines defined in the markdown file ${basename(agentDocsPath)} contained in the collection.
 
-    Always adhere to these guidelines in every response and action you take. They are critical for ensuring that your assistance is helpful, relevant, and aligned with best practices for code review and repository interaction.
+  These guidelines are mandatory and apply to all of your actions and outputs, including but not limited to:
+    - Pull requests
+    - Issues
+    - Issue comments
+    - Pull request reviews
+    - Pull request comments
+
+  Every response or action you take must be helpful, relevant, and aligned with best practices for code review and repository interaction, as defined in ${basename(agentDocsPath)}.
+
+  If any pull request, issue, or comment does not comply with the guidelines, you must:
+    - Explicitly identify the violated guideline(s), and
+    - Reference the exact section(s) in ${basename(agentDocsPath)} that were broken.
   `;
   return prompt;
 }
