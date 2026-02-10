@@ -30,7 +30,6 @@ import {
 } from "./core/utils";
 
 import { getGuidelinesFile } from "./core/response/utils/guidlines";
-import path from "path";
 /**
  * The main function for the action.
  *
@@ -112,10 +111,7 @@ export async function run(): Promise<void> {
     core.debug(`This chat session url is ${chatSessionUrl}`);
 
     // Upload agent.md guidlines document to collection if it exists in the repository
-    const agentDocsPath = path.join(
-      process.env.GITHUB_WORKSPACE!,
-      process.env.AGENT_DOCS!,
-    );
+    const agentDocsPath = process.env.AGENT_DOCS!;
     const fileLocalPath = await getGuidelinesFile(
       octokits.rest,
       agentDocsPath,
