@@ -112,15 +112,17 @@ export async function run(): Promise<void> {
 
     // Upload agent.md guidlines document to collection if it exists in the repository
     const agentDocsPath = process.env.AGENT_DOCS!;
+    let agentDocContent;
     if (agentDocsPath) {
-      const fileLocalPath = await getGuidelinesFile(
+      agentDocContent = await getGuidelinesFile(
         octokits.rest,
         agentDocsPath,
         context,
       );
-      const map = new Map();
-      map.set("configurationFile", fileLocalPath);
-      uploadAttachmentsToH2oGPTe(collectionId, map);
+
+      //const map = new Map();
+      //map.set("configurationFile", agentDocLocalPath);
+      //uploadAttachmentsToH2oGPTe(collectionId, map);
     }
 
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
@@ -157,6 +159,7 @@ export async function run(): Promise<void> {
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         githubData,
+        agentDocContent,
       );
 
       // Query h2oGPTe for Agent completion
@@ -190,6 +193,7 @@ export async function run(): Promise<void> {
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         undefined,
+        agentDocContent,
       );
 
       // Query h2oGPTe for Agent completion

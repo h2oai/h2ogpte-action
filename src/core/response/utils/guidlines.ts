@@ -1,8 +1,4 @@
 import { Octokit } from "@octokit/rest";
-import tmp from "tmp";
-import fs from "fs/promises";
-import { basename } from "path";
-import path from "path";
 import { getFile } from "../../services/github/api";
 import core from "@actions/core";
 import type { ParsedGitHubContext } from "../../services/github/types";
@@ -11,7 +7,7 @@ export async function getGuidelinesFile(
   octokit: Octokit,
   agentDocsPath: string,
   context: ParsedGitHubContext,
-): Promise<string | null> {
+): Promise<string> {
   const maxFileSize = 50 * 1024 * 1024; // 50 MB
   core.debug(`Fetching guidelines file from ${agentDocsPath}`);
   core.debug(
@@ -51,9 +47,5 @@ export async function getGuidelinesFile(
     "utf-8",
   );
 
-  const downloadsDir = tmp.dirSync({ unsafeCleanup: true }).name;
-  const fileName = path.join(downloadsDir, basename(agentDocsPath));
-
-  await fs.writeFile(fileName, content);
-  return fileName;
+  return content;
 }

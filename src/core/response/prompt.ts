@@ -20,7 +20,6 @@ import {
 } from "./utils/instruction";
 import { getSlashCommandsPrompt } from "./utils/slash-commands";
 import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
-import { basename } from "path";
 
 const USER_PROMPT = process.env.PROMPT || "";
 
@@ -117,12 +116,12 @@ function getMcpInstructions(): string {
   `;
 }
 
-function getPromptWrapper(): string {
+function getPromptWrapper(agentDocContent?: string | undefined): string {
   return dedent`
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
-${createAgentInstructionPromptForGuidelines(process.env.AGENT_DOCS ? process.env.AGENT_DOCS : "")}
+${agentDocContent ? createAgentInstructionPromptForGuidelines(agentDocContent) : ""}
 
 ${getInstructionPromptForCollections()}
 
@@ -139,6 +138,7 @@ Respond and execute actions according to the user's instruction.
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult | undefined,
+  agentDocContent?: string | undefined,
 ): string {
   let prompt: string;
 
@@ -147,9 +147,13 @@ export function createAgentInstructionPrompt(
     extractInstruction(context)?.includes("@h2ogpte") &&
     githubData
   ) {
-    prompt = createAgentInstructionPromptForComment(context, githubData);
+    prompt = createAgentInstructionPromptForComment(
+      context,
+      githubData,
+      agentDocContent,
+    );
   } else {
-    prompt = getPromptWrapper();
+    prompt = getPromptWrapper(agentDocContent);
   }
   return applyReplacements(prompt, context, githubData);
 }
@@ -206,6 +210,7 @@ function applyReplacements(
 function createAgentInstructionPromptForComment(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
+  agentDocContent?: string | undefined,
 ): string {
   const isPRReviewComment = isPullRequestReviewCommentEvent(context);
 
@@ -217,7 +222,7 @@ function createAgentInstructionPromptForComment(
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
 
-    ${createAgentInstructionPromptForGuidelines(process.env.AGENT_DOCS ? process.env.AGENT_DOCS : "")}
+    ${agentDocContent ? createAgentInstructionPromptForGuidelines(agentDocContent) : ""}
 
     ${getInstructionPromptForCollections()}
 
@@ -313,10 +318,11 @@ function createAgentInstructionPromptForComment(
 }
 
 function createAgentInstructionPromptForGuidelines(
-  agentDocsPath: string,
+  agentDocContent: string,
 ): string {
   const prompt = dedent`
-  You must strictly follow and reference the guidelines defined in the markdown file ${basename(agentDocsPath)} contained in the collection.
+  You must strictly follow and reference the guidelines below:
+  ${agentDocContent ? agentDocContent : ""}
 
   These guidelines are mandatory and apply to all of your actions and outputs, including but not limited to:
     - Pull requests
@@ -325,11 +331,11 @@ function createAgentInstructionPromptForGuidelines(
     - Pull request reviews
     - Pull request comments
 
-  Every response or action you take must be helpful, relevant, and aligned with best practices for code review and repository interaction, as defined in ${basename(agentDocsPath)}.
+  Every response or action you take must be helpful, relevant, and aligned with best practices for code review and repository interaction, as defined in the guidelines above.
 
   If any pull request, issue, or comment does not comply with the guidelines, you must:
     - Explicitly identify the violated guideline(s), and
-    - Reference the exact section(s) in ${basename(agentDocsPath)} that were broken.
+    - Reference the exact section(s) that were broken.
   `;
   return prompt;
 }
