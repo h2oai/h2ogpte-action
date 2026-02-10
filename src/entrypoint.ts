@@ -6,10 +6,7 @@ import {
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import {
-  createAgentInstructionPrompt,
-  createAgentInstructionPromptForGuidelines,
-} from "./core/response/prompt";
+import { createAgentInstructionPrompt } from "./core/response/prompt";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 import { extractInstruction } from "./core/response/utils/instruction";
@@ -32,8 +29,7 @@ import {
   getToolsToRestrictCollectionTo,
 } from "./core/utils";
 
-import { pathExists } from "./core/response/utils/guidlines";
-import { readdirSync } from "fs";
+import { getGuidelinesFile } from "./core/response/utils/guidlines";
 import path from "path";
 /**
  * The main function for the action.
@@ -120,28 +116,10 @@ export async function run(): Promise<void> {
       process.env.GITHUB_WORKSPACE!,
       process.env.AGENT_DOCS!,
     );
-    let guidelinePrompt = "";
-    core.debug(`Current directory: ${process.cwd()}`);
-    core.debug(`Github workspace directory: ${process.env.GITHUB_WORKSPACE}`);
-    core.debug(`GITHUB_ACTION_PATH: ${process.env.GITHUB_ACTION_PATH}`);
-    try {
-      const files = readdirSync(process.cwd());
-      core.debug(`Files in repository root: ${files.join(", ")}`);
-    } catch (error) {
-      core.debug(`Error reading directory: ${error}`);
-    }
-    if (await pathExists(agentDocsPath)) {
-      const guidelinesMap = new Map();
-      guidelinesMap.set("agent-guidelines", agentDocsPath);
-      await uploadAttachmentsToH2oGPTe(collectionId, guidelinesMap);
-      guidelinePrompt = await createAgentInstructionPromptForGuidelines(
-        collectionId,
-        agentDocsPath,
-      );
-    } else {
-      core.debug(`No agent guidelines file found at path: ${agentDocsPath}`);
-    }
-
+    const fileLocalPath = await getGuidelinesFile(octokits.rest, agentDocsPath);
+    const map = new Map();
+    map.set("configurationFile", fileLocalPath);
+    uploadAttachmentsToH2oGPTe(collectionId, map);
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
@@ -182,7 +160,6 @@ export async function run(): Promise<void> {
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
-        guidelinePrompt,
       );
 
       // Extract response from agent completion
@@ -216,7 +193,6 @@ export async function run(): Promise<void> {
       const chatCompletion = await h2ogpte.requestAgentCompletion(
         chatSessionId.id,
         instructionPrompt,
-        guidelinePrompt,
       );
 
       core.debug(
