@@ -100,7 +100,7 @@ export async function getFile(
   path: string,
   owner: string,
   repo: string,
-  ref: string = "main",
+  ref: string = "HEAD",
 ) {
   const response = await octokit.rest.repos.getContent({
     owner,
