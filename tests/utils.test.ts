@@ -5,7 +5,12 @@ import {
   getGithubMcpUrl,
 } from "../src/core/services/github/copilot-mcp";
 import type { CustomTool } from "../src/core/services/h2ogpte/types";
-import { addToolsToListIfMissing, getToolNameById } from "../src/core/utils";
+import {
+  addToolsToListIfMissing,
+  getToolNameById,
+  getUserProvidedAgentTools,
+  parseUserH2ogpteConfig,
+} from "../src/core/utils";
 
 function createTool(id: string, toolName: string): CustomTool {
   return {
@@ -196,5 +201,197 @@ describe("addToolsToListIfMissing", () => {
   test("preserves order of existing tools", () => {
     const result = addToolsToListIfMissing(["first", "second"], ["new"]);
     expect(result).toEqual(["first", "second", "new"]);
+  });
+});
+
+describe("getUserProvidedAgentTools", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  test("returns empty array when AGENT_TOOLS is not set", () => {
+    delete process.env.AGENT_TOOLS;
+    expect(getUserProvidedAgentTools()).toEqual([]);
+  });
+
+  test("returns empty array when AGENT_TOOLS is empty string", () => {
+    process.env.AGENT_TOOLS = "";
+    expect(getUserProvidedAgentTools()).toEqual([]);
+  });
+
+  test("returns single tool when one tool provided", () => {
+    process.env.AGENT_TOOLS = "tool_a";
+    expect(getUserProvidedAgentTools()).toEqual(["tool_a"]);
+  });
+
+  test("returns array of tools when comma-separated", () => {
+    process.env.AGENT_TOOLS = "tool_a,tool_b,tool_c";
+    expect(getUserProvidedAgentTools()).toEqual(["tool_a", "tool_b", "tool_c"]);
+  });
+
+  test("strips whitespace around commas while preserving spaces in tool names", () => {
+    process.env.AGENT_TOOLS = "Tool A, Tool B ,  Tool C  ";
+    expect(getUserProvidedAgentTools()).toEqual(["Tool A", "Tool B", "Tool C"]);
+  });
+});
+
+describe("parseUserH2ogpteConfig", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    // Reset environment variables before each test
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    // Restore original environment variables
+    process.env = originalEnv;
+  });
+
+  test("should parse valid agent_max_turns from environment", () => {
+    process.env.AGENT_MAX_TURNS = "15";
+    process.env.LLM = "gpt-4o";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_max_turns).toBe("15");
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should throw error for invalid agent_max_turns from environment", () => {
+    process.env.AGENT_MAX_TURNS = "7";
+
+    expect(() => parseUserH2ogpteConfig()).toThrow(
+      `Invalid agent_max_turns value: "7". Must be one of: auto, 5, 10, 15, 20`,
+    );
+  });
+
+  test("should parse auto agent_max_turns from environment", () => {
+    process.env.AGENT_MAX_TURNS = "auto";
+    process.env.LLM = "gpt-4o";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_max_turns).toBe("auto");
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should use default llm when empty from environment", () => {
+    process.env.LLM = "";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.llm).toBe("auto");
+  });
+
+  test("should use default agent_max_turns when empty from environment", () => {
+    process.env.AGENT_MAX_TURNS = "";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_max_turns).toBe("auto");
+  });
+
+  test("should parse valid agent_accuracy from environment", () => {
+    process.env.AGENT_ACCURACY = "standard";
+    process.env.LLM = "gpt-4o";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_accuracy).toBe("standard");
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should throw error for invalid agent_accuracy from environment", () => {
+    process.env.AGENT_ACCURACY = "very_high";
+
+    expect(() => parseUserH2ogpteConfig()).toThrow(
+      `Invalid agent_accuracy value: "very_high". Must be one of: quick, basic, standard, maximum`,
+    );
+  });
+
+  test("should use default agent_accuracy when empty from environment", () => {
+    process.env.AGENT_ACCURACY = "";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_accuracy).toBe("standard");
+  });
+
+  test("should parse valid agent_total_timeout from environment", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "1800";
+    process.env.LLM = "gpt-4o";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(1800);
+    expect(config.llm).toBe("gpt-4o");
+  });
+
+  test("should use default agent_total_timeout when empty from environment", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should use default agent_total_timeout when undefined from environment", () => {
+    delete process.env.AGENT_TOTAL_TIMEOUT;
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should parse zero timeout value", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "0";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(0);
+  });
+
+  test("should parse large timeout values", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "7200";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(7200);
+  });
+
+  test("should handle negative timeout values by using default", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "-1";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should handle non-numeric timeout values by using default", () => {
+    process.env.AGENT_TOTAL_TIMEOUT = "invalid";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should use defaults when environment variables are undefined", () => {
+    delete process.env.LLM;
+    delete process.env.AGENT_MAX_TURNS;
+    delete process.env.AGENT_ACCURACY;
+    delete process.env.AGENT_TOTAL_TIMEOUT;
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.llm).toBe("auto");
+    expect(config.agent_max_turns).toBe("auto");
+    expect(config.agent_accuracy).toBe("standard");
+    expect(config.agent_total_timeout).toBe(3600);
+  });
+
+  test("should parse all configuration values together", () => {
+    process.env.LLM = "gpt-4o";
+    process.env.AGENT_MAX_TURNS = "20";
+    process.env.AGENT_ACCURACY = "maximum";
+    process.env.AGENT_TOTAL_TIMEOUT = "5400";
+
+    const config = parseUserH2ogpteConfig();
+    expect(config.llm).toBe("gpt-4o");
+    expect(config.agent_max_turns).toBe("20");
+    expect(config.agent_accuracy).toBe("maximum");
+    expect(config.agent_total_timeout).toBe(5400);
   });
 });

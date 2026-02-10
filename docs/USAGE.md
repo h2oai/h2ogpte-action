@@ -155,3 +155,13 @@ When using custom prompts, you can inject the following variables into your prom
 | `{{eventsText}}` | Chronological list of previous events, including pull request/issue comments and commit history separated by new lines. | `Here are the previous events: {{eventsText}}`              |
 
 These variables are automatically populated by the action and help provide context-aware responses.
+
+## 🧰 MCPs & Custom Tools
+
+The h2oGPTe action supports both built-in system tools and custom tools, including Python scripts and [MCP (Model Context Protocol) servers](https://docs.h2o.ai/enterprise-h2ogpte/guide/agents/mcp-servers/mcp-servers-overview). You can mix and match tools to tailor the agent's capabilities for your workflow.
+
+### 🔧 Configuring Custom Tools
+
+Before using custom tools in the action, you must register them in your h2oGPTe instance. See the [h2oGPTe MCP servers guide](https://docs.h2o.ai/enterprise-h2ogpte/guide/agents/mcp-servers/mcp-servers-overview) for setup instructions.
+
+Once configured in h2oGPTe, specify which tools the agent can use via the `agent_tools` [configuration option](CONFIGURATION.md#action-configuration-options). Provide a comma-separated list of tool names (e.g. `"Python Coding, Google Search, Shell Scripting"`). **Note:** Setting `agent_tools` restricts the agent to only the tools you specify; all other tools are excluded.
