@@ -30,6 +30,8 @@ import {
   getToolsToRestrictCollectionTo,
 } from "./core/utils";
 
+import { isValidInstruction } from "./core/response/utils/empty_instruction";
+
 /**
  * The main function for the action.
  *
@@ -64,6 +66,19 @@ export async function run(): Promise<void> {
     core.debug(`This run url is ${url}`);
 
     const instruction = extractInstruction(context);
+
+    if (
+      !isValidInstruction(instruction) &&
+      isPRIssueEvent(context) &&
+      instruction?.includes("@h2ogpte")
+    ) {
+      await createReply(
+        octokits.rest,
+        "Provide an instruction for the agent to execute",
+        context,
+      );
+      return;
+    }
 
     // Create Collection
     const collectionId = await h2ogpte.createCollection();
@@ -139,7 +154,6 @@ export async function run(): Promise<void> {
         initialCommentBody,
         context,
       );
-
       // Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
         context,
