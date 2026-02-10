@@ -29,7 +29,7 @@ import {
   getToolsToRestrictCollectionTo,
 } from "./core/utils";
 
-import { getGuidelinesFile } from "./core/response/utils/guidlines";
+import { getGuidelinesFile } from "./core/response/utils/guidelines";
 /**
  * The main function for the action.
  *
@@ -110,19 +110,15 @@ export async function run(): Promise<void> {
     const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
     core.debug(`This chat session url is ${chatSessionUrl}`);
 
-    // Upload agent.md guidlines document to collection if it exists in the repository
-    const agentDocsPath = process.env.AGENT_DOCS!;
-    let agentDocContent;
+    // Retrieved agent doc's contents
+    const agentDocsPath = process.env.AGENT_DOCS;
+    let agentDocsContent;
     if (agentDocsPath) {
-      agentDocContent = await getGuidelinesFile(
+      agentDocsContent = await getGuidelinesFile(
         octokits.rest,
         agentDocsPath,
         context,
       );
-
-      //const map = new Map();
-      //map.set("configurationFile", agentDocLocalPath);
-      //uploadAttachmentsToH2oGPTe(collectionId, map);
     }
 
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
@@ -159,7 +155,7 @@ export async function run(): Promise<void> {
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         githubData,
-        agentDocContent,
+        agentDocsContent,
       );
 
       // Query h2oGPTe for Agent completion
@@ -193,7 +189,7 @@ export async function run(): Promise<void> {
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         undefined,
-        agentDocContent,
+        agentDocsContent,
       );
 
       // Query h2oGPTe for Agent completion

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { getGuidelinesFile } from "../../src/core/response/utils/guidlines";
+import { getGuidelinesFile } from "../../../src/core/response/utils/guidelines";
 import type { Octokit } from "@octokit/rest";
-import type { ParsedGitHubContext } from "../../src/core/services/github/types";
+import type { ParsedGitHubContext } from "../../../src/core/services/github/types";
 
 // Helper function to create a fake Octokit that returns predefined responses
 function createFakeOctokit(mockResponse: object): Octokit {

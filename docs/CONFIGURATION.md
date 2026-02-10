@@ -20,6 +20,7 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
 | `agent_total_timeout`         | No       | `3600`                         | Positive integer (seconds)                                                     | Maximum time the agent can run before timing out.                                                                                            |
 | `prompt`                      | No       | —                              | String                                                                         | Custom workflow prompt. Supports `{{repoName}}`, `{{idNumber}}`, `{{eventsText}}`. See [Custom Workflows](USAGE.md#-custom-workflows).       |
 | `collection_id`               | No       | —                              | String                                                                         | Duplicate an existing collection. New files from the PR/issue/comment are added. User must instruct the agent to read the collection.        |
+| `agent_docs`                  | No       | —                              | String                                                                         | Path to an "ENTER_NAME.md" file containing guidelines and best practices for the agent to enforce and abide by.                              |
 | `guardrails_settings`         | No       | —                              | YAML string                                                                    | Content safety and PII configuration. See [Guardrails Configuration](#guardrails-configuration-advanced) below.                              |
 
 ## Guardrails Configuration (Advanced)
@@ -52,7 +53,7 @@ This option is intended for advanced users who need fine-grained control over:
 
 ---
 
-## Configuration Example
+## General Configuration Example
 
 ```yaml
 - name: h2oGPTe Agent Assistant
@@ -66,6 +67,7 @@ This option is intended for advanced users who need fine-grained control over:
     agent_accuracy: "maximum" # Highest accuracy for complex analysis
     agent_total_timeout: 7200 # 2 hours timeout for complex tasks
     collection_id: "my-custom-collection"
+    agent_docs: "agents.md"
     guardrails_settings: |
       disallowed_regex_patterns:
         - secret_disallowed_word

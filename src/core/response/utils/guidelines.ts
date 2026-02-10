@@ -2,13 +2,19 @@ import { Octokit } from "@octokit/rest";
 import { getFile } from "../../services/github/api";
 import core from "@actions/core";
 import type { ParsedGitHubContext } from "../../services/github/types";
-
+/**
+ * Retrieves file containing best practices/guidelines
+ * @param octokit
+ * @param agentDocsPath
+ * @param context
+ * @returns contents of file
+ */
 export async function getGuidelinesFile(
   octokit: Octokit,
   agentDocsPath: string,
   context: ParsedGitHubContext,
 ): Promise<string> {
-  const maxFileSize = 50 * 1024 * 1024; // 50 MB
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
   core.debug(`Fetching guidelines file from ${agentDocsPath}`);
   core.debug(
     `Owner: ${context.repository.owner}, Repo: ${context.repository.repo}`,
@@ -31,15 +37,15 @@ export async function getGuidelinesFile(
     );
   }
 
-  if (!(response.data.content == "") && !response.data.content) {
+  if (!(response.data.content === "") && !response.data.content) {
     throw new Error(
       `File content not found in response for path '${agentDocsPath}'`,
     );
   }
 
-  if (response.data.size > maxFileSize) {
+  if (response.data.size > MAX_FILE_SIZE_BYTES) {
     throw new Error(
-      `File size exceeds maximum limit of ${maxFileSize} bytes for path '${agentDocsPath}'`,
+      `File size exceeds maximum limit of ${MAX_FILE_SIZE_BYTES} bytes for path '${agentDocsPath}'`,
     );
   }
 

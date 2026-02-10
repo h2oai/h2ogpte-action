@@ -155,3 +155,7 @@ When using custom prompts, you can inject the following variables into your prom
 | `{{eventsText}}` | Chronological list of previous events, including pull request/issue comments and commit history separated by new lines. | `Here are the previous events: {{eventsText}}`              |
 
 These variables are automatically populated by the action and help provide context-aware responses.
+
+## 📜 Custom Agent Guidelines Document
+
+You can provide custom guidelines and best practices for the h2oGPTe agent to enforce and abide by using an `ENTER_NAME.md` file and specifying the file path relative to the root of your repository via the `agent_docs` input.

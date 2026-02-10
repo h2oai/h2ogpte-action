@@ -116,12 +116,12 @@ function getMcpInstructions(): string {
   `;
 }
 
-function getPromptWrapper(agentDocContent?: string | undefined): string {
+function getPromptWrapper(agentDocsContent?: string | undefined): string {
   return dedent`
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
-${agentDocContent ? createAgentInstructionPromptForGuidelines(agentDocContent) : ""}
+${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
 
 ${getInstructionPromptForCollections()}
 
@@ -138,7 +138,7 @@ Respond and execute actions according to the user's instruction.
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult | undefined,
-  agentDocContent?: string | undefined,
+  agentDocsContent?: string | undefined,
 ): string {
   let prompt: string;
 
@@ -150,10 +150,10 @@ export function createAgentInstructionPrompt(
     prompt = createAgentInstructionPromptForComment(
       context,
       githubData,
-      agentDocContent,
+      agentDocsContent,
     );
   } else {
-    prompt = getPromptWrapper(agentDocContent);
+    prompt = getPromptWrapper(agentDocsContent);
   }
   return applyReplacements(prompt, context, githubData);
 }
@@ -210,7 +210,7 @@ function applyReplacements(
 function createAgentInstructionPromptForComment(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
-  agentDocContent?: string | undefined,
+  agentDocsContent?: string | undefined,
 ): string {
   const isPRReviewComment = isPullRequestReviewCommentEvent(context);
 
@@ -222,7 +222,7 @@ function createAgentInstructionPromptForComment(
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
 
-    ${agentDocContent ? createAgentInstructionPromptForGuidelines(agentDocContent) : ""}
+    ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
 
     ${getInstructionPromptForCollections()}
 
@@ -318,11 +318,11 @@ function createAgentInstructionPromptForComment(
 }
 
 function createAgentInstructionPromptForGuidelines(
-  agentDocContent: string,
+  agentDocsContent: string,
 ): string {
   const prompt = dedent`
   You must strictly follow and reference the guidelines below:
-  ${agentDocContent ? agentDocContent : ""}
+  ${agentDocsContent ? agentDocsContent : ""}
 
   These guidelines are mandatory and apply to all of your actions and outputs, including but not limited to:
     - Pull requests
