@@ -12,6 +12,7 @@ import {
   getSystemTools,
   setChatSettings,
   setCollectionSettings,
+  getSessionMessages,
 } from "./h2ogpte";
 import type {
   ChatSettings,
@@ -20,6 +21,7 @@ import type {
   Document,
   StreamingChunk,
   SystemTool,
+  UsageStats,
 } from "./types";
 /**
  * Gets H2OGPTE configuration from environment variables
@@ -197,4 +199,90 @@ export async function updateGuardRailsSettings(
     guardrails_settings: guardrailsSettingsPayload,
   };
   await setCollectionSettings(collectionId, updatedSettings);
+}
+
+/**
+ * Creates and writes a usage statistics report to the GitHub Actions job summary.
+ *
+ * This function fetches messages from an h2oGPTe chat session and generates a summary
+ * report containing usage statistics (model, cost, response time, queue time, retrieval time).
+ * If the session encountered an error, it displays an error summary and throws.
+ *
+ * @param sessionId - The unique identifier of the h2oGPTe chat session
+ * @returns A promise that resolves when the summary has been written
+ *
+ * @throws Error if:
+ * - No messages are found for the session
+ * - The first message is undefined
+ * - The agent execution encountered an error
+ * - Usage stats are not found in the message type list
+ **/
+export async function createUsageReport(sessionId: string): Promise<void> {
+  const messages = await getSessionMessages(sessionId);
+  if (!messages || messages.length === 0) {
+    throw new Error(`No messages found for session ${sessionId}`);
+  }
+
+  // Reply message is always at the first index
+  const replyMessage = messages.at(0);
+  if (!replyMessage) {
+    throw new Error(`First message is undefined for session ${sessionId}`);
+  }
+
+  if (replyMessage.error && replyMessage.error !== "") {
+    const MAX_ERROR_LENGTH = 100;
+    await core.summary
+      .addHeading("📋 Summary Statistics")
+      .addRaw(
+        "Usage Statistics are not available due to the following error:\n",
+      )
+      .addCodeBlock(
+        replyMessage.error.length > MAX_ERROR_LENGTH
+          ? replyMessage.error.substring(0, MAX_ERROR_LENGTH) + "..."
+          : replyMessage.error,
+        "plaintext",
+      )
+      .addRaw(
+        "\nTo view more details, please check the action logs and the h2oGPTe chat session.",
+      )
+      .write();
+    return;
+  }
+
+  if (
+    !replyMessage.type_list ||
+    replyMessage.type_list.length === 0 ||
+    !replyMessage.type_list.some((t) => t.message_type === "usage_stats")
+  ) {
+    throw new Error(
+      `Usage stats not found in message type list for session ${sessionId}`,
+    );
+  }
+
+  const usageTypeList = replyMessage.type_list.find(
+    (t) => t.message_type === "usage_stats",
+  )!;
+
+  const usage: UsageStats = JSON.parse(usageTypeList.content);
+
+  await core.summary
+    .addHeading("📋 Summary Statistics", 2)
+    .addTable([
+      [
+        { data: "Metric", header: true },
+        { data: "Value", header: true },
+      ],
+      ["Model", `${usage.llm}`],
+      ["Total Cost", `${usage.cost}`],
+      ["Response Time", `${usage.response_time}`],
+      ["Queue Time", `${usage.queue_time}`],
+      ["Retrieval Time", `${usage.retrieval_time}`],
+    ])
+    .addDetails(
+      "Detailed Usage Statistics",
+      `<pre><code class="language-json">
+        ${JSON.stringify(usage, null, 2)}
+        </code></pre>`,
+    )
+    .write();
 }
