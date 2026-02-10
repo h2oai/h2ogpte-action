@@ -14,6 +14,9 @@ export async function getGuidelinesFile(
 ): Promise<string | null> {
   const maxFileSize = 50 * 1024 * 1024; // 50 MB
   core.debug(`Fetching guidelines file from ${agentDocsPath}`);
+  core.debug(
+    `Owner: ${context.repository.owner}, Repo: ${context.repository.repo}`,
+  );
   const response = await getFile(
     octokit,
     agentDocsPath,
