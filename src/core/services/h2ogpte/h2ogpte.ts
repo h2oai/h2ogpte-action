@@ -775,3 +775,33 @@ export async function addDocumentToCollection(
     `${res.status} - Successfully added document ${documentId} to collection`,
   );
 }
+
+export async function getSessionMessages(
+  sessionId: string,
+  maxRetries: number = 3,
+  retryDelay: number = 1000,
+): Promise<types.Message[]> {
+  const { apiKey, apiBase } = getH2ogpteConfig();
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  };
+
+  const response = await fetchWithRetry(
+    `${apiBase}/api/v1/chats/${sessionId}/messages`,
+    options,
+    { maxRetries, retryDelay },
+  );
+  if (!response.ok) {
+    const errorText = await response.text();
+    core.debug(
+      `Failed to fetch messages for session ${sessionId}: ${errorText}`,
+    );
+    throw new Error(
+      `Failed to get session messages: ${response.status} ${response.statusText} - ${errorText}`,
+    );
+  }
+  return (await response.json()) as types.Message[];
+}
