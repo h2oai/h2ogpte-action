@@ -48,12 +48,42 @@ describe("getGithubMcpUrl", () => {
     expect(getGithubMcpUrl()).toBe("https://copilot-api.octocorp.ghe.com/mcp");
   });
 
-  test("throws for GitHub Enterprise Server", () => {
+  test("throws for GitHub Enterprise Server when GITHUB_MCP_URL is not set", () => {
     process.env.GITHUB_SERVER_URL = "https://github.company.com";
-    expect(() => getGithubMcpUrl()).toThrow(
-      "GitHub MCP is not supported for GitHub Enterprise Server (https://github.company.com)." +
-        " GitHub Enterprise Server support is planned for a future release",
-    );
+    delete process.env.GITHUB_MCP_URL;
+    const err = () => getGithubMcpUrl();
+    expect(err).toThrow("when using the default remote MCP");
+    expect(err).toThrow("github_mcp_url");
+    expect(err).toThrow("docs/CONFIGURATION.md");
+  });
+
+  test("returns custom URL for GHES when GITHUB_MCP_URL is set", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.company.com";
+    process.env.GITHUB_MCP_URL = "https://mcp.example.com/mcp";
+    expect(getGithubMcpUrl()).toBe("https://mcp.example.com/mcp");
+  });
+
+  test("uses custom URL for github.com when GITHUB_MCP_URL is set", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.com";
+    process.env.GITHUB_MCP_URL = "https://custom-mcp.example.com/mcp";
+    expect(getGithubMcpUrl()).toBe("https://custom-mcp.example.com/mcp");
+  });
+
+  test("ignores empty GITHUB_MCP_URL and uses dynamic URL for github.com", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.com";
+    process.env.GITHUB_MCP_URL = "";
+    expect(getGithubMcpUrl()).toBe("https://api.githubcopilot.com/mcp/");
+  });
+
+  test("accepts GITHUB_MCP_URL with http protocol", () => {
+    process.env.GITHUB_SERVER_URL = "https://github.com";
+    process.env.GITHUB_MCP_URL = "http://mcp.example.com/mcp";
+    expect(getGithubMcpUrl()).toBe("http://mcp.example.com/mcp");
+  });
+
+  test("throws when GITHUB_MCP_URL is invalid", () => {
+    process.env.GITHUB_MCP_URL = "not-a-valid-url";
+    expect(() => getGithubMcpUrl()).toThrow("Invalid GITHUB_MCP_URL");
   });
 
   test("throws when GITHUB_SERVER_URL is missing", () => {

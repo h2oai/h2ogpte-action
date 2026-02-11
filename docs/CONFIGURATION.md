@@ -13,6 +13,7 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
 | `github_server_url`           | No       | `https://github.com`           | URL (no trailing slash)                                                        | GitHub server base url.                                                                                                                              |
 | `github_mcp_allowed_tools`    | No       | See action.yml                 | Comma-separated list                                                           | List of specific tools for GitHub MCP. See [tools](https://github.com/github/github-mcp-server/blob/main/README.md#tools).                           |
 | `github_mcp_allowed_toolsets` | No       | See action.yml                 | Comma-separated list                                                           | List of allowed toolsets for GitHub MCP. See [toolsets](https://github.com/github/github-mcp-server/blob/main/README.md#available-toolsets).         |
+| `github_mcp_url`              | No       | —                              | Full URL                                                                       | Custom GitHub MCP server URL for GitHub Enterprise Server. See [Configuring MCP for GHES](#configuring-mcp-for-github-enterprise-server-ghes).       |
 | `slash_commands`              | No       | —                              | JSON string                                                                    | JSON defining slash commands. Each command requires `name` and `prompt`. See [Slash Commands](USAGE.md#-slash-commands).                             |
 | `llm`                         | No       | `"auto"`                       | [Approved models](https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section) | Language model to use. `"auto"` selects the best available model.                                                                                    |
 | `agent_max_turns`             | No       | `"auto"`                       | `"auto"`, `5`, `10`, `15`, `20`                                                | Maximum reasoning steps. Higher values allow more complex reasoning but take longer.                                                                 |
@@ -51,7 +52,12 @@ This option is intended for advanced users who need fine-grained control over:
 | `guardrails_safe_category`        | `string`                        | Name of the safe category for guardrails. Must be a key in guardrails_entities, if provided. Otherwise uses system defaults.                                        |
 | `guardrails_entities`             | `Record<string, string>`        | Dictionary of entities and their descriptions for the guardrails model to classify. The first entry is the "safe" class, the rest are "unsafe" classes.             |
 
----
+## Configuring MCP for GitHub Enterprise Server (GHES)
+
+- **Problem**: The remote GitHub MCP (github.com / \*.ghe.com) does not support GHES; the action would otherwise throw when `github_server_url` points to GHES.
+- **Approach**: Host a **standalone** GitHub MCP server (built from [github/github-mcp-server](https://github.com/github/github-mcp-server)) in your environment; expose it at a URL reachable by the h2oGPTe cluster (e.g. VM, internal load balancer, or tunnel). Do **not** rely on hosting MCP inside h2oGPTe or on Docker MCP commands.
+- **Action config**: Set `github_mcp_url` to the **full URL** of your MCP server (e.g. `https://my.internal.mcp.server` or `http://...` for internal servers). The action uses this URL as the MCP endpoint.
+- **Requirements**: Network reachability from the runner/h2oGPTe to the MCP host; MCP server configured for your GHES API/server URLs and auth.
 
 ## Configuration Example
 
@@ -61,6 +67,8 @@ This option is intended for advanced users who need fine-grained control over:
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+    # GitHub Enterprise Server (GHES): set github_mcp_url to your MCP server URL
+    # github_mcp_url: "https://my.internal.mcp.server"
     # h2oGPTe Configuration (optional)
     llm: "auto" # Automatically select best model
     agent_max_turns: "auto" # Automatically select optimal turns
