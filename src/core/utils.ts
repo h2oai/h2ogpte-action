@@ -269,3 +269,7 @@ export async function cleanup(
     core.warning(`No custom tool to clean up`);
   }
 }
+
+export function isValidInstruction(instruction: string) {
+  return !(instruction.trim() === "@h2ogpte");
+}

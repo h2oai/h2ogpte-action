@@ -302,3 +302,14 @@ function createAgentInstructionPromptForComment(
     githubData.attachmentUrlMap,
   );
 }
+
+export function getEmptyInstrctionResponse() {
+  return dedent(`
+> 💡 **Instructions Needed**
+>
+> ---
+>
+> You said \`@h2ogpte\`
+> Give h2oGPTe an instruction to get started!
+`);
+}

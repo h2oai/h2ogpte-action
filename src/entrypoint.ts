@@ -6,7 +6,10 @@ import {
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
+import {
+  createAgentInstructionPrompt,
+  getEmptyInstrctionResponse,
+} from "./core/response/prompt";
 import { buildH2ogpteResponse } from "./core/response/response_builder";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 import { extractInstruction } from "./core/response/utils/instruction";
@@ -30,7 +33,7 @@ import {
   getToolsToRestrictCollectionTo,
 } from "./core/utils";
 
-import { isValidInstruction } from "./core/response/utils/empty_instruction";
+import { isValidInstruction } from "./core/utils";
 
 /**
  * The main function for the action.
@@ -72,11 +75,7 @@ export async function run(): Promise<void> {
       !isValidInstruction(instruction)
     ) {
       core.debug("Empty Instruction given");
-      await createReply(
-        octokits.rest,
-        "Provide an instruction for the agent to execute.",
-        context,
-      );
+      await createReply(octokits.rest, getEmptyInstrctionResponse(), context);
       return;
     }
 
