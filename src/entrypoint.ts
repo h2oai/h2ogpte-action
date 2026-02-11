@@ -30,6 +30,7 @@ import {
   parseUserH2ogpteConfig,
 } from "./core/utils";
 
+import { getGuidelinesFile } from "./core/response/utils/guidelines";
 /**
  * The main function for the action.
  *
@@ -110,6 +111,17 @@ export async function run(): Promise<void> {
     const chatSessionUrl = h2ogpte.getChatSessionUrl(chatSessionId.id);
     core.debug(`This chat session url is ${chatSessionUrl}`);
 
+    // Retrieved agent doc's contents
+    const agentDocsPath = process.env.AGENT_DOCS;
+    let agentDocsContent;
+    if (agentDocsPath) {
+      agentDocsContent = await getGuidelinesFile(
+        octokits.rest,
+        agentDocsPath,
+        context,
+      );
+    }
+
     if (isPRIssueEvent(context) && instruction?.includes("@h2ogpte")) {
       // Fetch Github comment data (only for PR/Issue events)
       const githubData = await fetchGitHubData({
@@ -144,6 +156,7 @@ export async function run(): Promise<void> {
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         githubData,
+        agentDocsContent,
       );
 
       // Query h2oGPTe for Agent completion
@@ -178,6 +191,7 @@ export async function run(): Promise<void> {
       const instructionPrompt = createAgentInstructionPrompt(
         context,
         undefined,
+        agentDocsContent,
       );
 
       // Query h2oGPTe for Agent completion

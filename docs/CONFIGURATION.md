@@ -22,6 +22,7 @@ The h2oGPTe GitHub Action supports several configuration options to customize th
 | `agent_tools`                 | No       | All default agent tools        | Comma-separated list                                                           | Restricts allowed tools to those specified. Accepts both system tools and custom MCP tools (e.g. `"Python Coding, Google Search, Shell Scripting"`). |
 | `prompt`                      | No       | —                              | String                                                                         | Custom workflow prompt. Supports `{{repoName}}`, `{{idNumber}}`, `{{eventsText}}`. See [Custom Workflows](USAGE.md#-custom-workflows).               |
 | `collection_id`               | No       | —                              | String                                                                         | Duplicate an existing collection. New files from the PR/issue/comment are added. User must instruct the agent to read the collection.                |
+| `agent_docs`                  | No       | —                              | String                                                                         | Path to an "agents.md" file or equivalent containing guidelines and best practices for the agent to enforce and abide by.                            |
 | `guardrails_settings`         | No       | —                              | YAML string                                                                    | Content safety and PII configuration. See [Guardrails Configuration](#guardrails-configuration-advanced) below.                                      |
 
 ## Guardrails Configuration (Advanced)
@@ -59,7 +60,7 @@ This option is intended for advanced users who need fine-grained control over:
 - **Action config**: Set `github_mcp_url` to the **full URL** of your MCP server (e.g. `https://my.internal.mcp.server` or `http://...` for internal servers). The action uses this URL as the MCP endpoint.
 - **Requirements**: Network reachability from the runner/h2oGPTe to the MCP host; MCP server configured for your GHES API/server URLs and auth.
 
-## Configuration Example
+## General Configuration Example
 
 ```yaml
 - name: h2oGPTe Agent Assistant
@@ -75,6 +76,7 @@ This option is intended for advanced users who need fine-grained control over:
     agent_accuracy: "maximum" # Highest accuracy for complex analysis
     agent_total_timeout: 7200 # 2 hours timeout for complex tasks
     collection_id: "my-custom-collection"
+    agent_docs: "agents.md"
     guardrails_settings: |
       disallowed_regex_patterns:
         - secret_disallowed_word

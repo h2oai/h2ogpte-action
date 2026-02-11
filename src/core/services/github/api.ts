@@ -94,3 +94,20 @@ async function updateIssueComment(
     body: comment_body,
   });
 }
+
+export async function getFile(
+  octokit: Octokit,
+  path: string,
+  owner: string,
+  repo: string,
+  ref?: string,
+) {
+  const response = await octokit.rest.repos.getContent({
+    owner,
+    repo,
+    path,
+    ref,
+  });
+
+  return response;
+}
