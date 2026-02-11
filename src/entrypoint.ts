@@ -66,10 +66,6 @@ export async function run(): Promise<void> {
     core.debug(`This run url is ${url}`);
 
     const instruction = extractInstruction(context);
-    core.debug(instruction);
-    core.debug(isPRIssueEvent(context).toString());
-    core.debug(instruction?.includes("@h2ogpte").toString());
-    core.debug((!isValidInstruction(instruction)).toString());
     if (
       isPRIssueEvent(context) &&
       instruction?.includes("@h2ogpte") &&
@@ -78,7 +74,7 @@ export async function run(): Promise<void> {
       core.debug("Empty Instruction given");
       await createReply(
         octokits.rest,
-        "Provide an instruction for the agent to execute",
+        "Provide an instruction for the agent to execute.",
         context,
       );
       return;
