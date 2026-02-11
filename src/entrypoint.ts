@@ -75,7 +75,11 @@ export async function run(): Promise<void> {
       !isValidInstruction(instruction)
     ) {
       core.debug("Empty Instruction given");
-      await createReply(octokits.rest, getEmptyInstrctionResponse(), context);
+      await createReply(
+        octokits.rest,
+        getEmptyInstrctionResponse(url),
+        context,
+      );
       return;
     }
 
