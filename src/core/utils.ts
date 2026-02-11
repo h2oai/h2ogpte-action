@@ -1,12 +1,12 @@
 import * as core from "@actions/core";
 import { Octokit } from "@octokit/rest";
 import { AGENT_GITHUB_ENV_VAR } from "../constants";
-import type { ParsedGitHubContext } from "./services/github/types";
 import {
   getGithubMcpAllowedTools,
   getGithubMcpAllowedToolsets,
   getGithubMcpUrl,
-} from "./services/github/copilot-mcp";
+} from "./services/github/mcp";
+import type { ParsedGitHubContext } from "./services/github/types";
 import {
   createAgentKey,
   createCustomTool,
@@ -15,7 +15,6 @@ import {
   deleteCustomTools,
   getChatSettings,
   getCustomTools,
-  getSystemTools,
   setChatSettings,
 } from "./services/h2ogpte/h2ogpte";
 import type {
@@ -23,6 +22,10 @@ import type {
   CustomToolInput,
   H2ogpteConfig,
 } from "./services/h2ogpte/types";
+import {
+  extractDefaultSystemTools,
+  getAllAgentToolNamesFromLabel,
+} from "./services/h2ogpte/utils";
 
 /**
  * Gets Github key from environment variable
@@ -187,24 +190,41 @@ export function addToolsToListIfMissing(
   return result;
 }
 
+export function getUserProvidedAgentTools(): string[] {
+  const agent_tools = process.env.AGENT_TOOLS;
+  if (!agent_tools) {
+    return [];
+  }
+  return agent_tools.split(",").map((t) => t.trim());
+}
+
+/**
+ * Returns user-chosen agent tool names (from AGENT_TOOLS action input) or default system tool names.
+ */
+export async function getUserChosenOrSystemDefaultAgentToolNames(): Promise<
+  string[]
+> {
+  const userProvidedAgentTools = getUserProvidedAgentTools();
+  if (userProvidedAgentTools.length > 0) {
+    return await getAllAgentToolNamesFromLabel(userProvidedAgentTools);
+  }
+  const defaultSystemTools = await extractDefaultSystemTools();
+  return defaultSystemTools.map((t) => t.name);
+}
+
 /**
  * Returns the list of tool names to restrict the collection to when using the GitHub MCP.
- * Includes the MCP tool, the tool runner, and default system tools.
+ * Includes the MCP tool, the tool runner, and default system tools (unless specified otherwise by the user).
  */
 export async function getToolsToRestrictCollectionTo(
-  mcpToolId: string,
+  githubMcpToolId: string,
 ): Promise<string[]> {
-  const MCP_TOOL_NAME = "claude_tool_runner.py";
+  const DEFAULT_MCP_TOOL_RUNNER_NAME = "claude_tool_runner.py";
 
   const tools = await getCustomTools();
-  const mcpToolName = getToolNameById(tools, mcpToolId);
-
-  const systemTools = await getSystemTools();
-  const defaultSystemToolNames = systemTools
-    .filter((t) => t.default)
-    .map((t) => t.name);
-
-  return [mcpToolName, MCP_TOOL_NAME, ...defaultSystemToolNames];
+  const githubMcpToolName = getToolNameById(tools, githubMcpToolId);
+  const agentToolNames = await getUserChosenOrSystemDefaultAgentToolNames();
+  return [githubMcpToolName, DEFAULT_MCP_TOOL_RUNNER_NAME, ...agentToolNames];
 }
 
 /**
@@ -239,6 +259,47 @@ export async function applyChatSettingsWithUserConfigAndTools(
       agent_total_timeout: h2ogpteConfig.agent_total_timeout,
     },
   });
+}
+
+/**
+ * Parse h2oGPTe configuration from GitHub action inputs
+ */
+
+export function parseUserH2ogpteConfig(): H2ogpteConfig {
+  const llm = process.env.LLM;
+  const agent_max_turns = process.env.AGENT_MAX_TURNS;
+  const agent_accuracy = process.env.AGENT_ACCURACY;
+  const agent_total_timeout_raw = process.env.AGENT_TOTAL_TIMEOUT;
+  let agent_total_timeout = 3600; // default value
+
+  if (agent_total_timeout_raw !== undefined && agent_total_timeout_raw !== "") {
+    const parsed = parseInt(agent_total_timeout_raw);
+    if (!isNaN(parsed) && parsed >= 0) {
+      agent_total_timeout = parsed;
+    }
+    // If parsing fails or value is negative, keep the default value
+  }
+
+  const allowedMaxTurnsValues = ["auto", "5", "10", "15", "20"];
+  if (agent_max_turns && !allowedMaxTurnsValues.includes(agent_max_turns)) {
+    throw new Error(
+      `Invalid agent_max_turns value: "${agent_max_turns}". Must be one of: ${allowedMaxTurnsValues.join(", ")}`,
+    );
+  }
+
+  const allowedAccuracyValues = ["quick", "basic", "standard", "maximum"];
+  if (agent_accuracy && !allowedAccuracyValues.includes(agent_accuracy)) {
+    throw new Error(
+      `Invalid agent_accuracy value: "${agent_accuracy}". Must be one of: ${allowedAccuracyValues.join(", ")}`,
+    );
+  }
+
+  return {
+    llm: llm || "auto",
+    agent_max_turns: agent_max_turns || "auto",
+    agent_accuracy: agent_accuracy || "standard",
+    agent_total_timeout: agent_total_timeout,
+  };
 }
 
 export async function cleanup(

@@ -53,6 +53,8 @@ h2oGPTe Action v0.2.2-beta requires h2oGPTe versions 1.6.31 through 1.6.47.
 
 This version range has been tested and verified for compatibility.
 
+For GitHub Enterprise Server, see [Configuring MCP for GHES](docs/CONFIGURATION.md#configuring-mcp-for-github-enterprise-server-ghes).
+
 ## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

@@ -7,7 +7,7 @@ import type { FetchDataResult } from "../data/fetcher";
 import {
   getGithubMcpAllowedTools,
   getGithubMcpAllowedToolsets,
-} from "../services/github/copilot-mcp";
+} from "../services/github/mcp";
 import type { ParsedGitHubContext } from "../services/github/types";
 import { buildEventsText } from "./utils/formatter";
 import {
@@ -116,10 +116,14 @@ function getMcpInstructions(): string {
   `;
 }
 
-function getPromptWrapper(): string {
+function getPromptWrapper(agentDocsContent?: string | undefined): string {
   return dedent`
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
+
+${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
+
+${getInstructionPromptForCollections()}
 
 ${getMcpInstructions()}
 
@@ -134,6 +138,7 @@ Respond and execute actions according to the user's instruction.
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult | undefined,
+  agentDocsContent?: string | undefined,
 ): string {
   let prompt: string;
 
@@ -142,9 +147,13 @@ export function createAgentInstructionPrompt(
     extractInstruction(context)?.includes("@h2ogpte") &&
     githubData
   ) {
-    prompt = createAgentInstructionPromptForComment(context, githubData);
+    prompt = createAgentInstructionPromptForComment(
+      context,
+      githubData,
+      agentDocsContent,
+    );
   } else {
-    prompt = getPromptWrapper();
+    prompt = getPromptWrapper(agentDocsContent);
   }
   return applyReplacements(prompt, context, githubData);
 }
@@ -201,6 +210,7 @@ function applyReplacements(
 function createAgentInstructionPromptForComment(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
+  agentDocsContent?: string | undefined,
 ): string {
   const isPRReviewComment = isPullRequestReviewCommentEvent(context);
 
@@ -211,6 +221,10 @@ function createAgentInstructionPromptForComment(
 
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
+
+    ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
+
+    ${getInstructionPromptForCollections()}
 
     ${getMcpInstructions()}
 
@@ -303,6 +317,7 @@ function createAgentInstructionPromptForComment(
   );
 }
 
+<<<<<<< feat/deterministic-empty-instructions
 export function getEmptyInstrctionResponse(actionUrl: string) {
   const references = `For more details see the [github action run](${actionUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
   return dedent(`
@@ -315,4 +330,27 @@ export function getEmptyInstrctionResponse(actionUrl: string) {
 
 ${references}
 `);
+=======
+function createAgentInstructionPromptForGuidelines(
+  agentDocsContent: string,
+): string {
+  const prompt = dedent`
+  You must strictly follow all rules and guidelines defined in the document below.
+
+  If there is any conflict between this document and other instructions,
+  the document takes precedence.
+
+  <AGENT_DOCS>
+  ${agentDocsContent}
+  </AGENT_DOCS>
+  `;
+  return prompt;
+}
+
+function getInstructionPromptForCollections(): string {
+  const prompt = dedent`
+  Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
+  `;
+  return prompt;
+>>>>>>> main
 }
