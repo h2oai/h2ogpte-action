@@ -305,7 +305,7 @@ function createAgentInstructionPromptForComment(
 
 export function getEmptyInstrctionResponse() {
   return dedent(`
-> 💡 ##Instructions Needed**
+> ## 💡 Instructions Needed
 >
 > ---
 >
