@@ -312,6 +312,7 @@ export function getEmptyInstrctionResponse(actionUrl: string) {
 >
 > You said \`@h2ogpte\`
 > Give h2oGPTe an instruction to get started!
- ${references}
+
+${references}
 `);
 }
