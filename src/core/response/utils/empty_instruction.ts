@@ -1,6 +1,3 @@
-export async function isValidInstruction(instruction: string) {
-  if (instruction.trim() === "@h2ogpte") {
-    return false;
-  }
-  return true;
+export function isValidInstruction(instruction: string) {
+  return !(instruction.trim() === "@h2ogpte");
 }

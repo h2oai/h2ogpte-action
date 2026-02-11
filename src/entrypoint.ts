@@ -67,10 +67,13 @@ export async function run(): Promise<void> {
 
     const instruction = extractInstruction(context);
     core.debug(instruction);
+    core.debug(isPRIssueEvent(context).toString());
+    core.debug(instruction?.includes("@h2ogpte").toString());
+    core.debug((!isValidInstruction(instruction)).toString());
     if (
-      !isValidInstruction(instruction) &&
       isPRIssueEvent(context) &&
-      instruction?.includes("@h2ogpte")
+      instruction?.includes("@h2ogpte") &&
+      !isValidInstruction(instruction)
     ) {
       core.debug("Empty Instruction given");
       await createReply(
