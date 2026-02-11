@@ -132,6 +132,9 @@ You must only work in the user's repository, {{repoName}}.
 {{userPrompt}}
 
 Respond and execute actions according to the user's instruction.
+
+${getFileEmbeddingPrompt}
+
 `;
 }
 
@@ -337,5 +340,95 @@ function getInstructionPromptForCollections(): string {
   const prompt = dedent`
   Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
   `;
+  return prompt;
+}
+
+function getFileEmbeddingPrompt(): string {
+  const prompt = dedent`
+    ## Agent Instruction: Image Handling and Embedding Rules
+
+When you generate a response that includes an image, you must follow this procedure:
+
+---
+
+### 1. Image Storage Rule
+All images must first be saved into the repository before referencing them.
+You must never generate image links that point to:
+
+- \`/issues/\`
+- \`/pull/\`
+- local file paths
+- temporary runtime paths
+
+Only repository-stored images are valid.
+
+---
+
+### 2. Image Upload Location
+Images must be committed to the repository at:
+
+agent_outputs/images/{filename}
+
+
+If no branch is specified, default to:
+
+main
+
+
+---
+
+### 3. Image URL Format (MANDATORY)
+
+After storing the image, you must generate the URL using this exact format:
+
+https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
+
+
+**Example**
+https://raw.githubusercontent.com/Sanktrip/h2ogpte_action_testing/main/agent_outputs/images/chart.png
+
+
+---
+
+### 4. Markdown Embed Format
+
+Images must always be embedded using Markdown:
+
+
+
+Never output a bare URL unless explicitly asked.
+
+---
+
+### 5. Validation Before Sending Response
+
+Before posting your final comment, verify:
+
+- URL starts with \`https://raw.githubusercontent.com/\`
+- URL does NOT contain \`/issues/\`
+- URL does NOT contain \`/pull/\`
+- Path includes \`/agent_outputs/images/\`
+
+If validation fails, regenerate the link.
+
+---
+
+### 6. Failure Handling
+
+If you cannot upload or commit the image:
+
+> Image generation succeeded but upload failed. Please check repository write permissions.
+
+Do **not** fabricate a link.
+Do **not** guess a path.
+
+---
+
+### 7. Priority Rule
+
+Correct image delivery is more important than speed.
+Never send a response containing a broken or unverified image link.
+  `;
+
   return prompt;
 }
