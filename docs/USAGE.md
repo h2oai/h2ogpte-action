@@ -163,3 +163,13 @@ You can provide custom guidelines and best practices for the h2oGPTe agent to en
 An [`agents.md`](https://agents.md/) file provides high-level guidance that shapes how an agent behaves when responding to requests. It is intended to capture general rules, preferences, and constraints that should apply consistently across interactions, helping ensure the agent’s outputs align with the goals, conventions, and expectations of the repository or project.
 
 Note that `agents.md` is the recommended format but the agent can be configured using any other markdown framework (`claude.md`, `cursor.md`, etc).
+
+## 🧰 MCPs & Custom Tools
+
+The h2oGPTe action supports both built-in system tools and custom tools, including Python scripts and [MCP (Model Context Protocol) servers](https://docs.h2o.ai/enterprise-h2ogpte/guide/agents/mcp-servers/mcp-servers-overview). You can mix and match tools to tailor the agent's capabilities for your workflow.
+
+### 🔧 Configuring Custom Tools
+
+Before using custom tools in the action, you must register them in your h2oGPTe instance. See the [h2oGPTe MCP servers guide](https://docs.h2o.ai/enterprise-h2ogpte/guide/agents/mcp-servers/mcp-servers-overview) for setup instructions.
+
+Once configured in h2oGPTe, specify which tools the agent can use via the `agent_tools` [configuration option](CONFIGURATION.md#action-configuration-options). Provide a comma-separated list of tool names (e.g. `"Python Coding, Google Search, Shell Scripting"`). **Note:** Setting `agent_tools` restricts the agent to only the tools you specify; all other tools are excluded.

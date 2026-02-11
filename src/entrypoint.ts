@@ -17,8 +17,8 @@ import * as h2ogpte from "./core/services/h2ogpte/h2ogpte";
 import {
   copyCollection,
   isValidCollection,
-  parseUserH2ogpteConfig,
   updateGuardRailsSettings,
+  createUsageReport,
 } from "./core/services/h2ogpte/utils";
 import {
   applyChatSettingsWithUserConfigAndTools,
@@ -27,6 +27,7 @@ import {
   createGithubMcpAndSecret,
   getGithubToken,
   getToolsToRestrictCollectionTo,
+  parseUserH2ogpteConfig,
 } from "./core/utils";
 
 import { getGuidelinesFile } from "./core/response/utils/guidelines";
@@ -184,6 +185,7 @@ export async function run(): Promise<void> {
         context,
         h2ogpteComment.data.id,
       );
+      await createUsageReport(chatSessionId.id);
     } else {
       // Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
@@ -201,6 +203,7 @@ export async function run(): Promise<void> {
       core.debug(
         `Chat completion:\n ${JSON.stringify(chatCompletion, null, 2)}`,
       );
+      await createUsageReport(chatSessionId.id);
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
