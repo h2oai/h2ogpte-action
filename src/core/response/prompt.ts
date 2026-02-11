@@ -7,7 +7,7 @@ import type { FetchDataResult } from "../data/fetcher";
 import {
   getGithubMcpAllowedTools,
   getGithubMcpAllowedToolsets,
-} from "../services/github/copilot-mcp";
+} from "../services/github/mcp";
 import type { ParsedGitHubContext } from "../services/github/types";
 import { buildEventsText } from "./utils/formatter";
 import {

@@ -25,11 +25,34 @@ const GITHUB_COM_MCP_URL = "https://api.githubcopilot.com/mcp/";
 /**
  * Returns the GitHub Copilot MCP URL for the current GitHub instance.
  *
+ * - If GITHUB_MCP_URL is set: validate (valid URL) and return it.
  * - github.com -> https://api.githubcopilot.com/mcp/
  * - GitHub Enterprise Cloud with data residency (*.ghe.com) -> https://copilot-api.{subdomain}.ghe.com/mcp
- * - GitHub Enterprise Server -> throws (MCP not supported)
+ * - GitHub Enterprise Server (no custom URL) -> throws; set github_mcp_url for GHES.
  */
 export function getGithubMcpUrl(): string {
+  const customUrl = process.env.GITHUB_MCP_URL?.trim();
+  if (customUrl) {
+    try {
+      const parsedUrl = new URL(customUrl);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        throw new Error(
+          `Invalid GITHUB_MCP_URL protocol: ${parsedUrl.protocol}. Only http and https are supported. ` +
+            `See docs/CONFIGURATION.md for configuring MCP for GHES.`,
+        );
+      }
+      return customUrl;
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("GITHUB_MCP_URL")) {
+        throw err;
+      }
+      throw new Error(
+        `Invalid GITHUB_MCP_URL: ${customUrl}. Must be a valid URL. ` +
+          `See docs/CONFIGURATION.md for configuring MCP for GHES.`,
+      );
+    }
+  }
+
   const serverUrl = getGithubServerUrl();
   let host: string;
   try {
@@ -52,7 +75,8 @@ export function getGithubMcpUrl(): string {
   }
 
   throw new Error(
-    `GitHub MCP is not supported for GitHub Enterprise Server (${serverUrl}). ` +
-      `GitHub Enterprise Server support is planned for a future release`,
+    `GitHub MCP is not supported for GitHub Enterprise Server (${serverUrl}) when using the default remote MCP. ` +
+      `Host a standalone GitHub MCP server and set the github_mcp_url input to its full URL. ` +
+      `See docs/CONFIGURATION.md for configuring MCP for GHES.`,
   );
 }

@@ -33,6 +33,9 @@ inputs:
     description: List of allowed toolsets to use with the GitHub MCP. See https://github.com/github/github-mcp-server/blob/main/README.md#available-toolsets
     required: false
     default: "context,repos,issues,pull_requests,users"
+  github_mcp_url:
+    description: Full URL of your GitHub MCP server, for use with GitHub Enterprise Server. When set, the action uses this URL as the MCP endpoint. Required for GHES; leave unset for github.com and GitHub Enterprise Cloud.
+    required: false
   # h2oGPTe Configuration
   llm:
     description: Language model to use (by default, h2oGPTe will select the best available model for the task)
@@ -92,6 +95,7 @@ runs:
         H2OGPTE_API_BASE: ${{ inputs.h2ogpte_api_base }}
         GITHUB_MCP_ALLOWED_TOOLS: ${{ inputs.github_mcp_allowed_tools }}
         GITHUB_MCP_ALLOWED_TOOLSETS: ${{ inputs.github_mcp_allowed_toolsets }}
+        GITHUB_MCP_URL: ${{ inputs.github_mcp_url }}
         # h2oGPTe Configuration
         LLM: ${{ inputs.llm }}
         AGENT_MAX_TURNS: ${{ inputs.agent_max_turns }}
