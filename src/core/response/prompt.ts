@@ -317,7 +317,6 @@ function createAgentInstructionPromptForComment(
   );
 }
 
-<<<<<<< feat/deterministic-empty-instructions
 export function getEmptyInstrctionResponse(actionUrl: string) {
   const references = `For more details see the [github action run](${actionUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
   return dedent(`
@@ -330,7 +329,8 @@ export function getEmptyInstrctionResponse(actionUrl: string) {
 
 ${references}
 `);
-=======
+}
+
 function createAgentInstructionPromptForGuidelines(
   agentDocsContent: string,
 ): string {
@@ -352,5 +352,4 @@ function getInstructionPromptForCollections(): string {
   Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
   `;
   return prompt;
->>>>>>> main
 }
