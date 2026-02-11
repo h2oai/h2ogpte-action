@@ -3,7 +3,7 @@ import {
   getGithubMcpAllowedTools,
   getGithubMcpAllowedToolsets,
   getGithubMcpUrl,
-} from "../src/core/services/github/copilot-mcp";
+} from "../src/core/services/github/mcp";
 import type { CustomTool } from "../src/core/services/h2ogpte/types";
 import {
   addToolsToListIfMissing,
@@ -84,6 +84,11 @@ describe("getGithubMcpUrl", () => {
   test("throws when GITHUB_MCP_URL is invalid", () => {
     process.env.GITHUB_MCP_URL = "not-a-valid-url";
     expect(() => getGithubMcpUrl()).toThrow("Invalid GITHUB_MCP_URL");
+  });
+
+  test("throws when GITHUB_MCP_URL uses unsupported protocol", () => {
+    process.env.GITHUB_MCP_URL = "ftp://mcp.example.com/mcp";
+    expect(() => getGithubMcpUrl()).toThrow("Invalid GITHUB_MCP_URL protocol");
   });
 
   test("throws when GITHUB_SERVER_URL is missing", () => {

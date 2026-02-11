@@ -5,7 +5,7 @@ import {
   getGithubMcpAllowedTools,
   getGithubMcpAllowedToolsets,
   getGithubMcpUrl,
-} from "./services/github/copilot-mcp";
+} from "./services/github/mcp";
 import type { ParsedGitHubContext } from "./services/github/types";
 import {
   createAgentKey,

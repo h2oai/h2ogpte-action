@@ -34,14 +34,21 @@ export function getGithubMcpUrl(): string {
   const customUrl = process.env.GITHUB_MCP_URL?.trim();
   if (customUrl) {
     try {
-      new URL(customUrl);
+      const parsedUrl = new URL(customUrl);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        throw new Error(
+          `Invalid GITHUB_MCP_URL protocol: ${parsedUrl.protocol}. Only http and https are supported. ` +
+            `See docs/CONFIGURATION.md for configuring MCP for GHES.`,
+        );
+      }
       return customUrl;
     } catch (err) {
       if (err instanceof Error && err.message.includes("GITHUB_MCP_URL")) {
         throw err;
       }
       throw new Error(
-        `Invalid GITHUB_MCP_URL: ${customUrl}. See docs/CONFIGURATION.md for configuring MCP for GHES.`,
+        `Invalid GITHUB_MCP_URL: ${customUrl}. Must be a valid URL. ` +
+          `See docs/CONFIGURATION.md for configuring MCP for GHES.`,
       );
     }
   }
