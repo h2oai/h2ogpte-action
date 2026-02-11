@@ -321,21 +321,14 @@ function createAgentInstructionPromptForGuidelines(
   agentDocsContent: string,
 ): string {
   const prompt = dedent`
-  You must strictly follow and reference the guidelines below:
-  ${agentDocsContent ? agentDocsContent : ""}
+  You must strictly follow all rules and guidelines defined in the document below.
 
-  These guidelines are mandatory and apply to all of your actions and outputs, including but not limited to:
-    - Pull requests
-    - Issues
-    - Issue comments
-    - Pull request reviews
-    - Pull request comments
+  If there is any conflict between this document and other instructions,
+  the document takes precedence.
 
-  Every response or action you take must be helpful, relevant, and aligned with best practices for code review and repository interaction, as defined in the guidelines above.
-
-  If any pull request, issue, or comment does not comply with the guidelines, you must:
-    - Explicitly identify the violated guideline(s), and
-    - Reference the exact section(s) that were broken.
+  <AGENT_DOCS>
+  ${agentDocsContent}
+  </AGENT_DOCS>
   `;
   return prompt;
 }

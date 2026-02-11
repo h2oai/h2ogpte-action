@@ -158,4 +158,8 @@ These variables are automatically populated by the action and help provide conte
 
 ## 📜 Custom Agent Guidelines Document
 
-You can provide custom guidelines and best practices for the h2oGPTe agent to enforce and abide by using an `ENTER_NAME.md` file and specifying the file path relative to the root of your repository via the `agent_docs` input.
+You can provide custom guidelines and best practices for the h2oGPTe agent to enforce and abide by using an `agents.md` file and specifying the file path relative to the root of your repository via the `agent_docs` parameter.
+
+An [`agents.md`](https://agents.md/) file provides high-level guidance that shapes how an agent behaves when responding to requests. It is intended to capture general rules, preferences, and constraints that should apply consistently across interactions, helping ensure the agent’s outputs align with the goals, conventions, and expectations of the repository or project.
+
+Note that `agents.md` is the recommended format but the agent can be configured using any other markdown framework (`claude.md`, `cursor.md`, etc).
