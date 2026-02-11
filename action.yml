@@ -66,7 +66,7 @@ inputs:
     description: Configuration for input/output control of Personal Identifiable Information (PII) and harmful content generation. For more information https://docs.h2o.ai/enterprise-h2ogpte/guide/collections/pii-sanitization
     required: false
   agent_docs:
-    description: Documentation to guide the h2oGPTe coding agent. Always searches the root directory.
+    description: Documentation to guide the h2oGPTe coding agent. File path must be relative to the repository's root directory.
     required: false
 runs:
   using: composite
