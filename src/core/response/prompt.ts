@@ -308,8 +308,6 @@ export function getEmptyInstrctionResponse(actionUrl: string) {
   return dedent(`
  ## 💡 Instructions Needed
 
-___
-
 > You said \`@h2ogpte\`
 > Give h2oGPTe an instruction to get started!
 
