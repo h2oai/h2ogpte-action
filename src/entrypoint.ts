@@ -6,8 +6,14 @@ import {
 } from "./core/data/context";
 import { fetchGitHubData } from "./core/data/fetcher";
 import { uploadAttachmentsToH2oGPTe } from "./core/data/utils/attachment-upload";
-import { createAgentInstructionPrompt } from "./core/response/prompt";
-import { buildH2ogpteResponse } from "./core/response/response_builder";
+import {
+  createAgentInstructionPrompt,
+  getEmptyInstrctionResponse,
+} from "./core/response/prompt";
+import {
+  buildH2ogpteResponse,
+  formatUserInstruction,
+} from "./core/response/response_builder";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 import { extractInstruction } from "./core/response/utils/instruction";
 import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
@@ -29,7 +35,7 @@ import {
   getToolsToRestrictCollectionTo,
   parseUserH2ogpteConfig,
 } from "./core/utils";
-
+import { isValidInstruction } from "./core/utils";
 import { getGuidelinesFile } from "./core/response/utils/guidelines";
 /**
  * The main function for the action.
@@ -65,6 +71,19 @@ export async function run(): Promise<void> {
     core.debug(`This run url is ${url}`);
 
     const instruction = extractInstruction(context);
+    if (
+      isPRIssueEvent(context) &&
+      instruction?.includes("@h2ogpte") &&
+      !isValidInstruction(instruction)
+    ) {
+      core.debug("Empty Instruction given");
+      await createReply(
+        octokits.rest,
+        getEmptyInstrctionResponse(formatUserInstruction(instruction), url),
+        context,
+      );
+      return;
+    }
 
     // Create Collection
     const collectionId = await h2ogpte.createCollection();
@@ -151,7 +170,6 @@ export async function run(): Promise<void> {
         initialCommentBody,
         context,
       );
-
       // Create the agent instruction prompt
       const instructionPrompt = createAgentInstructionPrompt(
         context,

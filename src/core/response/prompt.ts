@@ -317,6 +317,23 @@ function createAgentInstructionPromptForComment(
   );
 }
 
+export function getEmptyInstrctionResponse(
+  instruction: string,
+  actionUrl: string,
+) {
+  const references = `For more details see the [github action run](${actionUrl}).\n🚀 Powered by [h2oGPTe](https://h2o.ai/platform/enterprise-h2ogpte/)`;
+  return dedent(`
+ ## 💡 Instructions Needed
+
+> You said \`${instruction}\`
+> Give h2oGPTe an instruction to get started!
+
+---
+
+${references}
+`);
+}
+
 function createAgentInstructionPromptForGuidelines(
   agentDocsContent: string,
 ): string {

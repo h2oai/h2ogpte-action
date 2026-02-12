@@ -29,7 +29,7 @@ export function buildH2ogpteResponse(
   return commentFormat;
 }
 
-function formatUserInstruction(instruction: string): string {
+export function formatUserInstruction(instruction: string): string {
   // Prepend each line with '> ' for blockquote in markdown
   const formattedInstruction = instruction
     .split("\n")
@@ -38,10 +38,11 @@ function formatUserInstruction(instruction: string): string {
     .map((line) => `> ${line}`)
     .join("\n");
 
-  // Replace @h2ogpte with @ h2ogpte to prevent the agent rerunning everytime the comment is updated
+  // Add a zerowidth character between '@' and 'h' to prevent the agent rerunning everytime the comment is updated
+  const ZERO_WIDTH_SPACE = "\u200B";
   const replacedInstruction = formattedInstruction.replace(
     /@h2ogpte/g,
-    "@ h2ogpte",
+    `@${ZERO_WIDTH_SPACE}h2ogpte`,
   );
 
   return replacedInstruction;
