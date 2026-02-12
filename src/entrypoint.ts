@@ -10,7 +10,10 @@ import {
   createAgentInstructionPrompt,
   getEmptyInstrctionResponse,
 } from "./core/response/prompt";
-import { buildH2ogpteResponse } from "./core/response/response_builder";
+import {
+  buildH2ogpteResponse,
+  formatUserInstruction,
+} from "./core/response/response_builder";
 import { createInitialWorkingComment } from "./core/response/utils/comment-formatter";
 import { extractInstruction } from "./core/response/utils/instruction";
 import { getSlashCommandsUsed } from "./core/response/utils/slash-commands";
@@ -76,7 +79,7 @@ export async function run(): Promise<void> {
       core.debug("Empty Instruction given");
       await createReply(
         octokits.rest,
-        getEmptyInstrctionResponse(url),
+        getEmptyInstrctionResponse(formatUserInstruction(instruction), url),
         context,
       );
       return;
