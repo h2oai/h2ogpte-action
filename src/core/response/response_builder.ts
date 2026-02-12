@@ -41,7 +41,7 @@ function formatUserInstruction(instruction: string): string {
   // Replace @h2ogpte with @ h2ogpte to prevent the agent rerunning everytime the comment is updated
   const replacedInstruction = formattedInstruction.replace(
     /@h2ogpte/g,
-    "@ h2ogpte",
+    "@​h2ogpte",
   );
 
   return replacedInstruction;
