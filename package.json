@@ -32,6 +32,7 @@
     "@octokit/webhooks-types": "^7.6.1",
     "js-yaml": "^4.1.1",
     "tmp": "^0.2.3",
-    "ts-dedent": "^2.2.0"
+    "ts-dedent": "^2.2.0",
+    "undici": "^7.21.0"
   }
 }
