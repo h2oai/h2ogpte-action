@@ -121,6 +121,8 @@ function getPromptWrapper(agentDocsContent?: string | undefined): string {
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
+${getFileEmbeddingPrompt()}
+
 ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
 
 ${getInstructionPromptForCollections()}
@@ -133,7 +135,7 @@ You must only work in the user's repository, {{repoName}}.
 
 Respond and execute actions according to the user's instruction.
 
-${getFileEmbeddingPrompt}
+
 
 `;
 }
@@ -225,6 +227,8 @@ function createAgentInstructionPromptForComment(
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
 
+    ${getFileEmbeddingPrompt()}
+
     ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
 
     ${getInstructionPromptForCollections()}
@@ -241,7 +245,8 @@ function createAgentInstructionPromptForComment(
     - Modify files in the .github/workflows directory
 
     CRITICAL: DO NOT make any changes to the repository (including creating branches, PRs, or modifying files) unless the user's instruction explicitly requests it using action words like 'add', 'create', 'make changes', 'open pr', 'fix', 'update', 'implement', 'refactor', 'modify', 'change', etc. If the user's instruction is empty or only contains the @h2ogpte tag without any specific task, you should politely inform them that there is nothing to do and ask how you can help.
-  `;
+
+    `;
 
   const prompt_pr_review = dedent`
     Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to write any necessary file contents to local files using the GitHub MCP.
@@ -345,90 +350,33 @@ function getInstructionPromptForCollections(): string {
 
 function getFileEmbeddingPrompt(): string {
   const prompt = dedent`
-    ## Agent Instruction: Image Handling and Embedding Rules
+<constraints>
 
-When you generate a response that includes an image, you must follow this procedure:
+OUTPUT FORMAT RESTRICTION — STRICT
 
----
+You must respond using TEXT ONLY.
 
-### 1. Image Storage Rule
-All images must first be saved into the repository before referencing them.
-You must never generate image links that point to:
+Forbidden output types:
+- images
+- diagrams
+- charts
+- graphs
+- rendered markdown images
+- base64 content
+- downloadable content
+- file previews
+- attachments of any kind
 
-- \`/issues/\`
-- \`/pull/\`
-- local file paths
-- temporary runtime paths
+Never generate visual content even if it would improve the answer.
 
-Only repository-stored images are valid.
+If a user asks for an image, diagram, or file, respond exactly with:
+"I cannot provide that format."
 
----
+Citations must be plain text URLs only.
 
-### 2. Image Upload Location
-Images must be committed to the repository at:
+</constraints>
 
-agent_outputs/images/{filename}
-
-
-If no branch is specified, default to:
-
-main
-
-
----
-
-### 3. Image URL Format (MANDATORY)
-
-After storing the image, you must generate the URL using this exact format:
-
-https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}
-
-
-**Example**
-https://raw.githubusercontent.com/Sanktrip/h2ogpte_action_testing/main/agent_outputs/images/chart.png
-
-
----
-
-### 4. Markdown Embed Format
-
-Images must always be embedded using Markdown:
-
-
-
-Never output a bare URL unless explicitly asked.
-
----
-
-### 5. Validation Before Sending Response
-
-Before posting your final comment, verify:
-
-- URL starts with \`https://raw.githubusercontent.com/\`
-- URL does NOT contain \`/issues/\`
-- URL does NOT contain \`/pull/\`
-- Path includes \`/agent_outputs/images/\`
-
-If validation fails, regenerate the link.
-
----
-
-### 6. Failure Handling
-
-If you cannot upload or commit the image:
-
-> Image generation succeeded but upload failed. Please check repository write permissions.
-
-Do **not** fabricate a link.
-Do **not** guess a path.
-
----
-
-### 7. Priority Rule
-
-Correct image delivery is more important than speed.
-Never send a response containing a broken or unverified image link.
-  `;
+`;
 
   return prompt;
 }
