@@ -121,6 +121,8 @@ function getPromptWrapper(agentDocsContent?: string | undefined): string {
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
+${getFileEmbeddingPrompt()}
+
 ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
 
 ${getInstructionPromptForCollections()}
@@ -132,6 +134,9 @@ You must only work in the user's repository, {{repoName}}.
 {{userPrompt}}
 
 Respond and execute actions according to the user's instruction.
+
+
+
 `;
 }
 
@@ -222,6 +227,8 @@ function createAgentInstructionPromptForComment(
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
 
+    ${getFileEmbeddingPrompt()}
+
     ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
 
     ${getInstructionPromptForCollections()}
@@ -238,7 +245,8 @@ function createAgentInstructionPromptForComment(
     - Modify files in the .github/workflows directory
 
     CRITICAL: DO NOT make any changes to the repository (including creating branches, PRs, or modifying files) unless the user's instruction explicitly requests it using action words like 'add', 'create', 'make changes', 'open pr', 'fix', 'update', 'implement', 'refactor', 'modify', 'change', etc. If the user's instruction is empty or only contains the @h2ogpte tag without any specific task, you should politely inform them that there is nothing to do and ask how you can help.
-  `;
+
+    `;
 
   const prompt_pr_review = dedent`
     Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to write any necessary file contents to local files using the GitHub MCP.
@@ -354,5 +362,38 @@ function getInstructionPromptForCollections(): string {
   const prompt = dedent`
   Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
   `;
+  return prompt;
+}
+
+function getFileEmbeddingPrompt(): string {
+  const prompt = dedent`
+<constraints>
+
+OUTPUT FORMAT RESTRICTION — STRICT
+
+You must respond using TEXT ONLY.
+
+Forbidden output types:
+- images
+- diagrams
+- charts
+- graphs
+- rendered markdown images
+- base64 content
+- downloadable content
+- file previews
+- attachments of any kind
+
+Never generate visual content even if it would improve the answer.
+
+If a user asks for an image, diagram, or file, respond exactly with:
+"I cannot provide that format."
+
+Citations must be plain text URLs only.
+
+</constraints>
+
+`;
+
   return prompt;
 }
