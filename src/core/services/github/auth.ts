@@ -5,7 +5,7 @@ const TOKEN_EXCHANGE_SERVER_URL =
   "https://xj0o9dha0c.execute-api.us-east-1.amazonaws.com/prod";
 
 export async function checkTokenExchangeServerHealth(): Promise<void> {
-  const health = await fetch(`${TOKEN_EXCHANGE_SERVER_URL}/dev/health`, {
+  const health = await fetch(`${TOKEN_EXCHANGE_SERVER_URL}/health`, {
     method: "GET",
   });
 
@@ -24,7 +24,7 @@ export async function getGithubAccessToken(): Promise<string> {
     await checkTokenExchangeServerHealth();
   }
 
-  const tokenResponse = await fetch(`${TOKEN_EXCHANGE_SERVER_URL}/dev/token`, {
+  const tokenResponse = await fetch(`${TOKEN_EXCHANGE_SERVER_URL}/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
