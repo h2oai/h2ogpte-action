@@ -1,6 +1,5 @@
 import * as core from "@actions/core";
 import { basename } from "path";
-import { createCollection } from "../../services/h2ogpte/h2ogpte";
 import {
   createIngestionJob,
   getJobDetails,
@@ -114,16 +113,14 @@ async function processFileWithJobMonitoring(
  * @returns The created collectionId, or null if no collection was created
  */
 export async function uploadAttachmentsToH2oGPTe(
+  collectionId: string,
   attachmentUrlMap: Map<string, string>,
-): Promise<string | null> {
+): Promise<void> {
   if (attachmentUrlMap.size === 0) {
-    core.debug("No attachments found, skipping collection creation");
-    return null;
+    core.debug("No attachments found");
+    return;
   }
-
-  let collectionId: string | null = null;
   try {
-    collectionId = await createCollection();
     await Promise.all(
       Array.from(attachmentUrlMap.values()).map(async (localPath) => {
         const uploadResult = await processFileWithJobMonitoring(
@@ -144,5 +141,4 @@ export async function uploadAttachmentsToH2oGPTe(
       `Failed to process GitHub attachments: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  return collectionId;
 }

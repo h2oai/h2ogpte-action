@@ -106,3 +106,75 @@ export interface JobDetails {
   timeout?: number;
   start_time?: number;
 }
+
+export interface AgentCustomToolResponse {
+  agent_custom_tool_id: string;
+}
+
+export type CustomToolInput = {
+  toolType: "local_mcp" | "remote_mcp" | "browser_action" | "general_code";
+  toolArgs: Record<string, unknown> | string;
+  filePath?: string;
+  customToolPath?: string;
+  filename?: string;
+};
+
+export interface CustomTool {
+  id: string;
+  tool_name: string;
+  tool_type: string;
+  tool_args: Record<string, unknown>;
+  owner_email: string;
+}
+
+export interface Count {
+  count: number;
+}
+
+export interface Document {
+  id: string;
+  name: string;
+}
+
+export interface ChatSettings {
+  llm: string;
+  llm_args: Record<string, unknown>;
+  self_reflection_config: Record<string, unknown>;
+  rag_config: Record<string, unknown>;
+  include_chat_history: string;
+  tags: string[];
+}
+
+export interface CollectionSettings {
+  guardrails_settings?: object;
+  [key: string]: unknown;
+}
+
+export interface TypeList {
+  content: string;
+  message_type: string;
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  created_at: string;
+  error?: string;
+  type_list?: TypeList[];
+}
+
+export interface UsageStats {
+  llm: string;
+  cost: number;
+  response_time: number;
+  queue_time: number;
+  retrieval_time: number;
+}
+export interface SystemTool {
+  name: string;
+  description: string;
+  enabled: boolean;
+  default: boolean;
+  extendable: boolean;
+  api_keys: Record<string, unknown>;
+}
