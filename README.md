@@ -28,6 +28,16 @@ Once installed, simply mention `@h2ogpte` in any comment, issue, or pull request
 
 The agent will automatically analyze your code and provide intelligent feedback.
 
+## ⚙️ Inputs
+
+| Input             | Description                                                                           | Required | Default Value                  |
+| ----------------- | ------------------------------------------------------------------------------------- | -------- | ------------------------------ |
+| h2ogpte_api_key   | h2oGPTe API Key from your h2oGPTe instance (e.g., <https://h2ogpte.genai.h2o.ai/api>) | Yes      | –                              |
+| h2ogpte_api_base  | h2oGPTe API base url address (no trailing slash)                                      | No       | <https://h2ogpte.genai.h2o.ai> |
+| github_api_url    | GitHub API base url (no trailing slash)                                               | No       | <https://api.github.com>       |
+| github_server_url | GitHub server base url (no trailing slash)                                            | No       | <https://github.com>           |
+| github_token      | Github access token.                                                                  | No       | By default uses OpenID Connect |
+
 For all configuration options, see the **[Configuration](docs/CONFIGURATION.md#configuration-options)** guide.
 
 ## 📚 Examples

@@ -6,6 +6,7 @@ import {
   getGithubMcpAllowedToolsets,
   getGithubMcpUrl,
 } from "./services/github/mcp";
+import { getGithubAccessToken } from "./services/github/auth";
 import type { ParsedGitHubContext } from "./services/github/types";
 import {
   createAgentKey,
@@ -27,22 +28,25 @@ import {
   getAllAgentToolNamesFromLabel,
 } from "./services/h2ogpte/utils";
 
-/**
- * Gets Github key from environment variable
- */
-export function getGithubToken(): string {
-  const githubToken = process.env.GITHUB_TOKEN;
-
-  if (!githubToken) {
-    throw new Error("GitHub token is required");
-  }
+export function getGithubTokenFromEnv(): string | undefined {
+  const githubToken = process.env.OVERRIDE_GITHUB_TOKEN;
 
   return githubToken;
 }
 
-/**
- * Gets the GitHub API url from environment variable
- */
+export async function getGithubToken(): Promise<string> {
+  const githubTokenFromEnv = getGithubTokenFromEnv();
+
+  if (githubTokenFromEnv) {
+    core.info("Using GitHub token from user input");
+    return githubTokenFromEnv;
+  }
+
+  const githubAccessToken = await getGithubAccessToken();
+
+  return githubAccessToken;
+}
+
 export function getGithubApiUrl(): string {
   const githubApiBase = process.env.GITHUB_API_URL;
 
@@ -66,15 +70,6 @@ export function getGithubServerUrl(): string {
   return githubServerUrl;
 }
 
-/**
- * Check if the actor has write permissions to the repository
- * Adapted from: https://github.com/anthropics/claude-code-action/blob/main/src/github/validation/permissions.ts
- * Original author: Anthropic
- * License: MIT
- * @param octokit - The Octokit REST client
- * @param context - The GitHub context
- * @returns true if the actor has write permissions, false otherwise
- */
 export async function checkWritePermissions(
   octokit: Octokit,
   context: ParsedGitHubContext,
@@ -84,7 +79,6 @@ export async function checkWritePermissions(
   try {
     core.debug(`Checking permissions for actor: ${actor}`);
 
-    // Check permissions directly using the permission endpoint
     const response = await octokit.repos.getCollaboratorPermissionLevel({
       owner: repository.owner,
       repo: repository.repo,

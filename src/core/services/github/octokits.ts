@@ -1,19 +1,19 @@
 import { Octokit } from "@octokit/rest";
 import { graphql } from "@octokit/graphql";
-import { getGithubApiUrl, getGithubToken } from "../../utils";
+import { getGithubApiUrl } from "../../utils";
 
 export type Octokits = {
   rest: Octokit;
   graphql: typeof graphql;
 };
 
-export function createOctokits(): Octokits {
-  return { rest: newOctokit(), graphql: newGraphQl() };
+export function createOctokits(githubToken: string): Octokits {
+  return { rest: newOctokit(githubToken), graphql: newGraphQl(githubToken) };
 }
 
-export function newOctokit(): Octokit {
+export function newOctokit(githubToken: string): Octokit {
   return new Octokit({
-    auth: getGithubToken(),
+    auth: githubToken,
     baseUrl: getGithubApiUrl(),
     request: {
       timeout: 10000, // 10 second timeout for GitHub API requests
@@ -21,11 +21,11 @@ export function newOctokit(): Octokit {
   });
 }
 
-export function newGraphQl(): typeof graphql {
+export function newGraphQl(githubToken: string): typeof graphql {
   return graphql.defaults({
     baseUrl: getGithubApiUrl(),
     headers: {
-      authorization: `token ${getGithubToken()}`,
+      authorization: `token ${githubToken}`,
     },
   });
 }

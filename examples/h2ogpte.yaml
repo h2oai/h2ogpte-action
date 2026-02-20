@@ -13,9 +13,7 @@ on:
     types: [created, edited]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  id-token: write
 
 jobs:
   h2ogpte-agent-assistant:
@@ -31,9 +29,8 @@ jobs:
     steps:
       - name: h2oGPTe Agent Assistant
         id: h2ogpte-agent-assistant
-        uses: h2oai/h2ogpte-action@v0.2.2-beta
+        uses: h2oai/h2ogpte-action@main
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
           h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
           github_api_url: https://api.github.com
@@ -42,4 +39,4 @@ jobs:
           llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
           agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
           agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
-          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds (max 60 minutes)
