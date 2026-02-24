@@ -116,3 +116,7 @@ Currently, only **h2ogpte version >= 1.6.31, <= 1.6.47** is supported. By defaul
 2. The action will automatically use this secret if it exists, otherwise it defaults to `https://h2ogpte.genai.h2o.ai`
 
 See `action.yml` for additional configuration details.
+
+[v0.2.2-beta](https://github.com/h2oai/h2ogpte-action/tree/v0.2.2-beta) supports **h2ogpte version >= 1.6.31, <= 1.6.47**.
+
+To always use the latest compatible version, use `@latest`. See [FAQ](FAQ.md#-how-do-i-choose-which-version-of-the-action-to-use) for details.
