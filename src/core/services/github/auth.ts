@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import type { TokenResponse } from "./types";
 
 const TOKEN_EXCHANGE_SERVER_URL =
-  "https://5k45jeqyyh.execute-api.us-east-1.amazonaws.com/dev";
+  "https://4ldxv7gt0m.execute-api.us-east-1.amazonaws.com/prd";
 
 export async function checkTokenExchangeServerHealth(): Promise<void> {
   const health = await fetch(`${TOKEN_EXCHANGE_SERVER_URL}/health`, {
