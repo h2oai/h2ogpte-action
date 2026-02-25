@@ -18,19 +18,7 @@ import type { Octokit } from "@octokit/rest";
 import fs from "fs/promises";
 import path from "path";
 import tmp from "tmp";
-
-/**
- * Gets the GitHub server URL from environment variable
- */
-function getGithubServerUrl(): string {
-  const githubServerURL = process.env.GITHUB_SERVER_URL;
-
-  if (!githubServerURL) {
-    throw new Error("GitHub server url is required");
-  }
-
-  return githubServerURL;
-}
+import { getGithubServerUrl } from "../../utils";
 
 // Lazy-loaded regex to avoid module-time environment variable access
 let _cachedRegex: RegExp | null = null;

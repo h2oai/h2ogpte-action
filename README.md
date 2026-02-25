@@ -38,11 +38,13 @@ The agent will automatically analyze your code and provide intelligent feedback.
 | github_server_url | GitHub server base url (no trailing slash)                                            | No       | <https://github.com>           |
 | github_token      | Github access token.                                                                  | No       | By default uses OpenID Connect |
 
+For all configuration options, see the **[Configuration](docs/CONFIGURATION.md#configuration-options)** guide.
+
 ## 📚 Examples
 
 The repository includes several example workflows:
 
-- **[Basic Usage](examples/h2ogpte.yaml)** - Standard workflow for manual `@h2ogpte` mentions
+- **[Basic Usage](examples/h2ogpte.yaml)** - Standard workflow for manual `@h2ogpte` mentions with slash commands
 - **[Auto PR Review](examples/custom_workflows/h2ogpte_auto_pr.yaml)** - Automatic code review on pull requests
 - **[Auto Documentation](examples/custom_workflows/h2ogpte_auto_docs.yaml)** - Automatic documentation generation
 
@@ -60,6 +62,8 @@ See [examples](examples/) for more workflow configurations. Or, check out our [u
 h2oGPTe Action v0.2.2-beta requires h2oGPTe versions 1.6.31 through 1.6.47.
 
 This version range has been tested and verified for compatibility.
+
+For GitHub Enterprise Server, see [Configuring MCP for GHES](docs/CONFIGURATION.md#configuring-mcp-for-github-enterprise-server-ghes).
 
 ## 📄 License
 

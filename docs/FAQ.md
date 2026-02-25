@@ -81,4 +81,10 @@ Enable pull request creation permissions for GitHub Actions:
 - The `GITHUB_TOKEN` will automatically have the necessary permissions once this setting is enabled
 - You may need to re-run your h2oGPTe workflow after making this change
 
+## Does the action support GitHub Enterprise Server (GHES) with MCP?
+
+Yes, if you run your own GitHub MCP server and point the action at it.
+
+The built-in remote GitHub MCP does not support GHES, and h2oGPTe does not support Docker MCP commands, so the recommended approach is to host a **standalone** [GitHub MCP server](https://github.com/github/github-mcp-server) (e.g. build from source), expose it at a URL reachable by your cluster (e.g. internal URL or tunnel), then set the action's **`github_mcp_url`** input to the full URL of your MCP server. See [Configuring MCP for GHES](CONFIGURATION.md#configuring-mcp-for-github-enterprise-server-ghes) for a high-level guide.
+
 _If you have additional questions or need help with your specific setup, please open an issue in this repository._

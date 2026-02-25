@@ -1,8 +1,8 @@
 {
   "action": "opened",
   "issue": {
-    "id": 1,
-    "number": 1,
+    "id": 5,
+    "number": 5,
     "title": "Test Issue",
     "body": "@h2ogpte Please help me understand this issue and provide solutions.",
     "user": {

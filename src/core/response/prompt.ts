@@ -1,43 +1,144 @@
 import dedent from "ts-dedent";
-import { AGENT_GITHUB_ENV_VAR } from "../../constants";
-import { getGithubApiUrl } from "../utils";
-import type { ParsedGitHubContext } from "../services/github/types";
-import type { FetchDataResult } from "../data/fetcher";
-import { buildEventsText } from "./utils/formatter";
-import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
-import {
-  extractInstruction,
-  extractIdNumber,
-  extractPRReviewCommentDetails,
-  extractHeadBranch,
-  extractBaseBranch,
-  isInstructionEmpty,
-} from "./utils/instruction";
 import {
   isPRIssueEvent,
   isPullRequestReviewCommentEvent,
 } from "../data/context";
+import type { FetchDataResult } from "../data/fetcher";
+import {
+  getGithubMcpAllowedTools,
+  getGithubMcpAllowedToolsets,
+} from "../services/github/mcp";
+import type { ParsedGitHubContext } from "../services/github/types";
+import { buildEventsText } from "./utils/formatter";
+import {
+  extractBaseBranch,
+  extractHeadBranch,
+  extractIdNumber,
+  extractInstruction,
+  extractPRReviewCommentDetails,
+  isInstructionEmpty,
+} from "./utils/instruction";
+import { getSlashCommandsPrompt } from "./utils/slash-commands";
+import { replaceAttachmentUrlsWithLocalPaths } from "./utils/url-replace";
 
 const USER_PROMPT = process.env.PROMPT || "";
-const PROMPT_WRAPPER = dedent`
+
+function getGithubMcpToolsAndToolsetsSection(): string {
+  const toolsStr = getGithubMcpAllowedTools();
+  const toolsetsStr = getGithubMcpAllowedToolsets();
+  const tools = toolsStr
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const toolsets = toolsetsStr
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const toolsDisplay =
+    toolsStr === "" || tools.length === 0 ? "none" : tools.join(", ");
+  const toolsetsDisplay =
+    toolsetsStr === "" || toolsets.length === 0 ? "none" : toolsets.join(", ");
+  return dedent`
+    Available tools: ${toolsDisplay}
+    Available toolsets: ${toolsetsDisplay}
+  `;
+}
+
+function getMcpInstructions(): string {
+  return dedent`
+    You have access to the GitHub Model Context Protocol (MCP) server through h2oGPTe's tool runner. The GitHub MCP custom tool is already configured and available for you to use. It provides standardized tools for interacting with GitHub repositories, issues, pull requests, Actions, security features, and more. The MCP server handles authentication automatically and provides a reliable and secure way to perform GitHub operations.
+
+    ${getGithubMcpToolsAndToolsetsSection()}
+
+    The list of custom tools (including the GitHub tool) is provided in your system prompt. Use the GitHub tool name from that list (it is often suffixed with an ID, e.g. github_d007527f).
+
+    Optionally, to discover the tool name at runtime:
+    \`\`\`python
+    from api_server.agent_tools.claude_tool_runner import claude_tool_runner
+    tools_dict = claude_tool_runner(action="list")
+    github_tool = [t["name"] for t in tools_dict.get("available_tools", []) if t.get("name", "").startswith("github")][0]
+    \`\`\`
+
+    IMPORTANT:
+    - You must use the GitHub MCP custom tool through h2oGPTe's tool runner for all GitHub operations. The tool is already configured and ready to use.
+    - The claude_tool_runner is a sub-agent that executes specific GitHub MCP operations. You should provide it with very specific, granular tasks rather than broad or vague instructions.
+    - To launch MCP tools, use the claude_tool_runner from api_server.agent_tools.claude_tool_runner. This is the designated way to execute GitHub MCP tools - do NOT attempt to create your own MCP client or wrapper code.
+    - When retrieving file contents, instruct the tool runner to write contents to the workspace and return the path rather than returning them inline.
+    - For commits: small changes can be passed directly to claude_tool_runner; for large commits or new files, write the content to a file first, then instruct claude_tool_runner to commit the changes from that file.
+    - Example usage - provide specific, granular tasks. Use the GitHub tool name from the custom tools list in your system prompt:
+    \`\`\`python
+    from api_server.agent_tools.claude_tool_runner import claude_tool_runner
+
+    # github_tool is the name from the custom tools list in your system prompt (e.g. github_d007527f)
+
+    # Example 1: Write a specific file's contents to the workspace and return the path
+    claude_tool_runner(
+        query="Write the contents of src/utils/helper.ts from the main branch to the workspace and return the path",
+        tools=[github_tool]
+    )
+
+    # Example 2: Small commit - pass content directly
+    claude_tool_runner(
+        query="Update the file src/config/settings.json on branch feature/add-logging with the following content: {'debug': true, 'logLevel': 'info'}",
+        tools=[github_tool]
+    )
+
+    # Example 3: Large commit or new file - write to file first, then commit from file
+    # Step 1: Write your changes to a local file (e.g. patch.txt or new-feature.ts)
+    # Step 2: Instruct claude_tool_runner to commit from that file
+    claude_tool_runner(
+        query="Commit the changes from patch.txt to the repository on branch feature/add-logging",
+        tools=[github_tool]
+    )
+
+    # Example 4: Search for specific code patterns
+    claude_tool_runner(
+        query="Search for all occurrences of 'useState' in TypeScript files (.ts, .tsx) in the src directory",
+        tools=[github_tool]
+    )
+
+    # Example 5: Create a pull request with specific details
+    claude_tool_runner(
+        query="Create a pull request from branch feature/fix-bug-123 to main branch with title 'Fix authentication bug' and description 'Resolves issue #123 by updating token validation logic'",
+        tools=[github_tool]
+    )
+
+    # Example 6: Write multiple files to the workspace and return the paths
+    claude_tool_runner(
+        query="Write the contents of package.json and tsconfig.json from the main branch to the workspace and return the paths",
+        tools=[github_tool]
+    )
+    \`\`\`
+    - Break down complex operations into multiple specific sub-agent calls. Each call should target a single, well-defined task.
+    - Do NOT attempt to create your own MCP client in Python or any other language.
+    - Do NOT make direct API calls or use Python/shell scripts to interact with GitHub (except for using claude_tool_runner to execute MCP tools).
+    - If the MCP server encounters a fatal error, exit with an appropriate error message. For errors related to incorrect parameters or tool usage, handle them gracefully and provide helpful feedback.
+  `;
+}
+
+function getPromptWrapper(agentDocsContent?: string | undefined): string {
+  return dedent`
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
 
-You'll be provided a github api key that you can access in python by using os.getenv("{{AGENT_GITHUB_ENV_VAR}}").
-You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
-You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
+${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
+
+${getInstructionPromptForCollections()}
+
+${getMcpInstructions()}
 
 You must only work in the user's repository, {{repoName}}.
-Under no circumstances should you print the github api key in your response or any output stream.
 
 {{userPrompt}}
 
 Respond and execute actions according to the user's instruction.
 `;
+}
 
 export function createAgentInstructionPrompt(
   context: ParsedGitHubContext,
   githubData: FetchDataResult | undefined,
+  agentDocsContent?: string | undefined,
 ): string {
   let prompt: string;
 
@@ -46,9 +147,13 @@ export function createAgentInstructionPrompt(
     extractInstruction(context)?.includes("@h2ogpte") &&
     githubData
   ) {
-    prompt = createAgentInstructionPromptForComment(context, githubData);
+    prompt = createAgentInstructionPromptForComment(
+      context,
+      githubData,
+      agentDocsContent,
+    );
   } else {
-    prompt = PROMPT_WRAPPER;
+    prompt = getPromptWrapper(agentDocsContent);
   }
   return applyReplacements(prompt, context, githubData);
 }
@@ -75,7 +180,7 @@ function applyReplacements(
       IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction. In this case, you should:
       - Leave a polite comment explaining that you're ready to help but need more information
       - Ask the user what they would like you to do
-      - DO NOT make any code changes, create branches, or open PRs
+      - DO NOT make any code changes, create branches, or open PRs in the repository
       - DO NOT analyze code from the repository
     `
     : "";
@@ -85,8 +190,6 @@ function applyReplacements(
     : "Then read the code in the repository and understand the context of the code.";
 
   const replacements = {
-    "{{AGENT_GITHUB_ENV_VAR}}": AGENT_GITHUB_ENV_VAR,
-    "{{githubApiBase}}": getGithubApiUrl(),
     "{{repoName}}": context.repository.full_name,
     "{{instruction}}": instruction,
     "{{idNumber}}": (extractIdNumber(context) || "undefined").toString(),
@@ -95,6 +198,7 @@ function applyReplacements(
     "{{eventsText}}": buildEventsText(githubData, context.isPR),
     "{{emptyInstructionGuidance}}": emptyInstructionGuidance,
     "{{codeAnalysisGuidance}}": codeAnalysisGuidance,
+    "{{slashCommands}}": getSlashCommandsPrompt(instruction),
   };
 
   for (const [placeholder, value] of Object.entries(replacements)) {
@@ -106,6 +210,7 @@ function applyReplacements(
 function createAgentInstructionPromptForComment(
   context: ParsedGitHubContext,
   githubData: FetchDataResult,
+  agentDocsContent?: string | undefined,
 ): string {
   const isPRReviewComment = isPullRequestReviewCommentEvent(context);
 
@@ -116,10 +221,12 @@ function createAgentInstructionPromptForComment(
 
   const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
-    You'll be provided a github api key that you can access in python by using os.getenv("{{AGENT_GITHUB_ENV_VAR}}").
-    You can also access the github api key in your shell script by using the {{AGENT_GITHUB_ENV_VAR}} environment variable.
-    You should use the GitHub API directly ({{githubApiBase}}) with the api key as a bearer token.
-    Ensure you use the GitHub API token for authentication.
+
+    ${agentDocsContent ? createAgentInstructionPromptForGuidelines(agentDocsContent) : ""}
+
+    ${getInstructionPromptForCollections()}
+
+    ${getMcpInstructions()}
 
     What you CANNOT do under any circumstances:
     - Post comments on the pull request or issue
@@ -134,19 +241,19 @@ function createAgentInstructionPromptForComment(
   `;
 
   const prompt_pr_review = dedent`
-    Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to pull any necessary files.
+    Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to write any necessary file contents to local files using the GitHub MCP.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
   `;
 
   const prompt_pr = dedent`
     You must only work on pull request number {{idNumber}}. The head branch is "{{headBranch}}" and the base branch is "{{baseBranch}}".
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
-    Ensure you search for the relevant files in the head branch as they may not exist in the base branch if files were added in the PR.
+    Ensure you search for the relevant files in the head branch using the GitHub MCP server's search_code or get_file_contents tools, as they may not exist in the base branch if files were added in the PR.
     ${isPRReviewComment ? prompt_pr_review : ""}
   `;
 
   const prompt_issue = dedent`
-    If code changes are required, you must create a new branch and pull request in the user's repository and name it appropriately.
+    If code changes are required, you must create a new branch and pull request in the user's repository using the GitHub MCP server's create_pull_request tool and name it appropriately.
     You must link the pull request to the issue.
   `;
 
@@ -154,6 +261,8 @@ function createAgentInstructionPromptForComment(
     <user_instruction>
     {{instruction}}
     </user_instruction>
+
+    {{slashCommands}}
 
     {{emptyInstructionGuidance}}
 
@@ -170,7 +279,7 @@ function createAgentInstructionPromptForComment(
     First read the previous events and understand the context of the conversation.
     Then read the user's instruction (within the <user_instruction> tags) and understand the task they want to complete.
     {{codeAnalysisGuidance}}
-    Once you have a good understanding of the context, you can begin to respond to the user's instruction.
+    Once you have a good understanding of the context, use the GitHub MCP server tools to interact with the repository and begin responding to the user's instruction.
 
     If necessary, reference GitHub issues or PRs using the # symbol followed by their number (e.g., #42, #123). Don't respond with the literal link.
 
@@ -206,4 +315,27 @@ function createAgentInstructionPromptForComment(
     prompt,
     githubData.attachmentUrlMap,
   );
+}
+
+function createAgentInstructionPromptForGuidelines(
+  agentDocsContent: string,
+): string {
+  const prompt = dedent`
+  You must strictly follow all rules and guidelines defined in the document below.
+
+  If there is any conflict between this document and other instructions,
+  the document takes precedence.
+
+  <AGENT_DOCS>
+  ${agentDocsContent}
+  </AGENT_DOCS>
+  `;
+  return prompt;
+}
+
+function getInstructionPromptForCollections(): string {
+  const prompt = dedent`
+  Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
+  `;
+  return prompt;
 }

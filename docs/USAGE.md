@@ -67,7 +67,80 @@ Maintains comprehensive documentation standards across your repository. This wor
 
 Ensures your code changes never ship without proper test coverage. The agent reviews each pull request, identifies untested code paths, and automatically creates comprehensive test files that cover edge cases and follow your project's testing conventions. It only adds tests - never modifies existing code.
 
-See [examples](../examples/custom_workflows) of more custom workflow configurations.
+### 🦺 Automatic Guardrails & PII Protection ([h2ogpte_guardrails.yaml](../examples/custom_workflows/h2ogpte_guardrails.yaml))
+
+Redacts configured personally identifiable information (PII) during the document ingestion, input and output from the user prompt (issues, pull requests, comments, reviews). Further, given a list of safe and unsafe labels, the agent will flag safety violations in the user prompt and respond with the configured exception message.
+
+## 🔧 Slash Commands
+
+Slash commands allow you to predefine specific behaviors for the agent. When a user includes a slash command in their instruction, the agent will use the corresponding prompt to guide its response.
+
+### ⌨️ Using Slash Commands
+
+Simply include the slash command in your comment along with your request:
+
+```text
+@h2ogpte /review this code and check for security issues
+```
+
+```text
+@h2ogpte /explain how this authentication flow works
+```
+
+```text
+@h2ogpte /plan a feature to add user authentication
+```
+
+You can use multiple slash commands in a single instruction:
+
+```text
+@h2ogpte /review and /explain this code
+```
+
+### 📦 Default Slash Commands
+
+The action comes with three default slash commands:
+
+- **`/explain`** - Provides clear and accurate code explanations
+- **`/review`** - Performs comprehensive code reviews
+- **`/plan`** - Creates implementation plans without writing code
+
+### 🎨 Custom Slash Commands
+
+You can define your own slash commands in your workflow configuration. Each command requires:
+
+- **`name`**: The command identifier (must start with `/`)
+- **`prompt`**: The system prompt that guides the agent's behavior when this command is used
+
+#### 💡 Example workflow configuration
+
+```yaml
+slash_commands: |
+  [
+    {
+      "name": "/refactor",
+      "prompt": "You are an expert at refactoring code. Focus on improving code quality, readability, and maintainability while preserving functionality. Provide specific refactoring suggestions with examples."
+    },
+    {
+      "name": "/debug",
+      "prompt": "You are a debugging expert. Analyze the code for bugs, identify root causes, and suggest fixes. Be methodical and explain your reasoning step by step."
+    },
+    {
+      "name": "/optimize",
+      "prompt": "You are a performance optimization specialist. Analyze code for performance bottlenecks, suggest optimizations, and explain the trade-offs involved."
+    }
+  ]
+```
+
+See the [Basic Usage example](../examples/h2ogpte.yaml) for a complete workflow configuration with slash commands.
+
+### 📌 Usage Behaviour
+
+- Command matching is case-insensitive (e.g., `/review` matches `/Review` or `/REVIEW`)
+- Commands must match exactly (e.g., `/test` won't match `/testing` or `/test-drive`)
+- To escape a slash command (prevent it from being interpreted as a command), prefix it with another slash (e.g., `//plan` will not trigger the `/plan` command)
+- If no matching commands are found in the instruction, the agent uses its default behavior
+- Slash commands work alongside regular instructions - you can combine them naturally
 
 ## 🎯 Custom Prompting
 
@@ -82,3 +155,21 @@ When using custom prompts, you can inject the following variables into your prom
 | `{{eventsText}}` | Chronological list of previous events, including pull request/issue comments and commit history separated by new lines. | `Here are the previous events: {{eventsText}}`              |
 
 These variables are automatically populated by the action and help provide context-aware responses.
+
+## 📜 Custom Agent Guidelines Document
+
+You can provide custom guidelines and best practices for the h2oGPTe agent to enforce and abide by using an `agents.md` file and specifying the file path relative to the root of your repository via the `agent_docs` parameter.
+
+An [`agents.md`](https://agents.md/) file provides high-level guidance that shapes how an agent behaves when responding to requests. It is intended to capture general rules, preferences, and constraints that should apply consistently across interactions, helping ensure the agent’s outputs align with the goals, conventions, and expectations of the repository or project.
+
+Note that `agents.md` is the recommended format but the agent can be configured using any other markdown framework (`claude.md`, `cursor.md`, etc).
+
+## 🧰 MCPs & Custom Tools
+
+The h2oGPTe action supports both built-in system tools and custom tools, including Python scripts and [MCP (Model Context Protocol) servers](https://docs.h2o.ai/enterprise-h2ogpte/guide/agents/mcp-servers/mcp-servers-overview). You can mix and match tools to tailor the agent's capabilities for your workflow.
+
+### 🔧 Configuring Custom Tools
+
+Before using custom tools in the action, you must register them in your h2oGPTe instance. See the [h2oGPTe MCP servers guide](https://docs.h2o.ai/enterprise-h2ogpte/guide/agents/mcp-servers/mcp-servers-overview) for setup instructions.
+
+Once configured in h2oGPTe, specify which tools the agent can use via the `agent_tools` [configuration option](CONFIGURATION.md#action-configuration-options). Provide a comma-separated list of tool names (e.g. `"Python Coding, Google Search, Shell Scripting"`). **Note:** Setting `agent_tools` restricts the agent to only the tools you specify; all other tools are excluded.
