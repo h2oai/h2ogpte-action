@@ -115,12 +115,13 @@ export function buildEventsText(
       const sanitizedTimestamp = event.createdAt
         ? event.createdAt.replace(/:/g, "-")
         : "unknown";
-      const eventId = event.id ?? "issue_body";
-      const tagName = `${sanitizedTimestamp}_${eventId}`;
-      const content = `- ${event.type}: ${event.body} (${event.createdAt})`;
-      return `  <${tagName}>\n  ${content} \n</${tagName}>`;
+      const eventType = event.type;
+      const eventId = event.id ? `_${event.id}` : "";
+      const tagName = `${sanitizedTimestamp}_${eventType}${eventId}`;
+      const content = `${event.body}`;
+      return `  <${tagName}>\n\n  ${content}\n\n  </${tagName}>`;
     })
     .join("\n");
 
-  return `<events>\n ${eventLines} \n</events>`;
+  return `<events>\n\n${eventLines}\n\n</events>`;
 }

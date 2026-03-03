@@ -300,9 +300,10 @@ describe("buildEventsText", () => {
 
     expect(result).not.toBe("");
     expect(result).not.toContain("There are no previous events");
-    expect(result).toContain("commit:");
-    expect(result).toContain("comment:");
-    expect(result).toContain("review:");
+    expect(result).toContain("<events>");
+    expect(result).toContain("First commit");
+    expect(result).toContain("This is comment #1");
+    expect(result).toContain("Great work!");
   });
 
   test("should return formatted events when issue has events", () => {
@@ -332,7 +333,8 @@ describe("buildEventsText", () => {
 
     expect(result).not.toBe("");
     expect(result).not.toContain("There are no previous events");
-    expect(result).toContain("issue_body:");
-    expect(result).toContain("comment:");
+    expect(result).toContain("<events>");
+    expect(result).toContain("This is a test issue");
+    expect(result).toContain("Issue comment");
   });
 });
