@@ -116,7 +116,8 @@ export function buildEventsText(
         ? event.createdAt.replace(/:/g, "-")
         : "unknown";
       const eventType = event.type;
-      const tagName = `${sanitizedTimestamp}_${eventType}`;
+      const eventId = event.id ? `_${event.id}` : "";
+      const tagName = `${sanitizedTimestamp}_${eventType}${eventId}`;
       const content = `${event.body}`;
       return `  <${tagName}>\n\n  ${content}\n\n  </${tagName}>`;
     })
