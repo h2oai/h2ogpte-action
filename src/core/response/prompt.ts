@@ -46,6 +46,8 @@ function getGithubMcpToolsAndToolsetsSection(): string {
 
 function getMcpInstructions(): string {
   return dedent`
+    <github_mcp_instructions>
+
     You have access to the GitHub Model Context Protocol (MCP) server through h2oGPTe's tool runner. The GitHub MCP custom tool is already configured and available for you to use. It provides standardized tools for interacting with GitHub repositories, issues, pull requests, Actions, security features, and more. The MCP server handles authentication automatically and provides a reliable and secure way to perform GitHub operations.
 
     ${getGithubMcpToolsAndToolsetsSection()}
@@ -113,13 +115,18 @@ function getMcpInstructions(): string {
     - Do NOT attempt to create your own MCP client in Python or any other language.
     - Do NOT make direct API calls or use Python/shell scripts to interact with GitHub (except for using claude_tool_runner to execute MCP tools).
     - If the MCP server encounters a fatal error, exit with an appropriate error message. For errors related to incorrect parameters or tool usage, handle them gracefully and provide helpful feedback.
+
+    </github_mcp_instructions>
   `;
 }
 
 function getPromptWrapper(agentDocsContent?: string | undefined): string {
   return dedent`
+<role>
+
 You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
 This event is triggered automatically when a pull request is created/synchronized.
+</role>
 
 ${getFileEmbeddingPrompt()}
 
@@ -129,11 +136,15 @@ ${getInstructionPromptForCollections()}
 
 ${getMcpInstructions()}
 
+<task_scope>
+
 You must only work in the user's repository, {{repoName}}.
 
 {{userPrompt}}
 
 Respond and execute actions according to the user's instruction.
+
+</task_scope>
 
 
 
@@ -182,11 +193,15 @@ function applyReplacements(
 
   const emptyInstructionGuidance = isEmpty
     ? dedent`
+      <empty_instruction_guidance>
+
       IMPORTANT: The user has only tagged @h2ogpte without providing any specific instruction. In this case, you should:
       - Leave a polite comment explaining that you're ready to help but need more information
       - Ask the user what they would like you to do
       - DO NOT make any code changes, create branches, or open PRs in the repository
       - DO NOT analyze code from the repository
+
+      </empty_instruction_guidance>
     `
     : "";
 
@@ -224,8 +239,11 @@ function createAgentInstructionPromptForComment(
   const fileRelativePath = prReviewDetails?.fileRelativePath;
   const diffHunk = prReviewDetails?.diffHunk;
 
-  const prompt_intro = dedent`You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
+  const prompt_intro = dedent`<role>
+
+    You're h2oGPTe an AI Agent created to help software developers review their code in GitHub.
     Developers interact with you by adding @h2ogpte in their pull request review comments.
+    </role>
 
     ${getFileEmbeddingPrompt()}
 
@@ -234,6 +252,8 @@ function createAgentInstructionPromptForComment(
     ${getInstructionPromptForCollections()}
 
     ${getMcpInstructions()}
+
+    <restrictions>
 
     What you CANNOT do under any circumstances:
     - Post comments on the pull request or issue
@@ -246,39 +266,62 @@ function createAgentInstructionPromptForComment(
 
     CRITICAL: DO NOT make any changes to the repository (including creating branches, PRs, or modifying files) unless the user's instruction explicitly requests it using action words like 'add', 'create', 'make changes', 'open pr', 'fix', 'update', 'implement', 'refactor', 'modify', 'change', etc. If the user's instruction is empty or only contains the @h2ogpte tag without any specific task, you should politely inform them that there is nothing to do and ask how you can help.
 
+    </restrictions>
+
     `;
 
   const prompt_pr_review = dedent`
+    <review_comment_context>
+
     Use the commit id, {{idNumber}}, and the relative file path, ${fileRelativePath}, to write any necessary file contents to local files using the GitHub MCP.
     ${diffHunk ? `In this case the user has selected the following diff hunk that you must focus on ${diffHunk}` : ""}
+
+    </review_comment_context>
   `;
 
   const prompt_pr = dedent`
+    <pr_context>
+
     You must only work on pull request number {{idNumber}}. The head branch is "{{headBranch}}" and the base branch is "{{baseBranch}}".
     You must only work on the section of code they've selected which may be a diff hunk or an entire file/s.
     Ensure you search for the relevant files in the head branch using the GitHub MCP server's search_code or get_file_contents tools, as they may not exist in the base branch if files were added in the PR.
     ${isPRReviewComment ? prompt_pr_review : ""}
+
+    </pr_context>
   `;
 
   const prompt_issue = dedent`
+    <issue_context>
+
     If code changes are required, you must create a new branch and pull request in the user's repository using the GitHub MCP server's create_pull_request tool and name it appropriately.
     You must link the pull request to the issue.
+
+    </issue_context>
   `;
 
   const prompt_body = dedent`
     <user_instruction>
+
     {{instruction}}
+
     </user_instruction>
 
     {{slashCommands}}
 
     {{emptyInstructionGuidance}}
 
+    <repo_scope>
+
     You must only work in the user's repository, {{repoName}}.
+
+    </repo_scope>
+
     ${context.isPR ? prompt_pr : prompt_issue}
   `;
 
   const prompt_outro = dedent`
+    <previous_events>
+
     For context, you have been provided the previous events on the ${context.isPR ? "pull request" : "issue"}.
     You can reference the previous events in the repo itself by their id provided.
     Here are the previous events in chronological order:
@@ -291,7 +334,15 @@ function createAgentInstructionPromptForComment(
 
     If necessary, reference GitHub issues or PRs using the # symbol followed by their number (e.g., #42, #123). Don't respond with the literal link.
 
+    </previous_events>
+
+    <execution_directive>
+
     Please respond and execute actions according to the user's instruction. Remember: only make changes to the repository if the user explicitly requests it with clear action words.
+
+    </execution_directive>
+
+    <response_format>
 
     Format your response using GitHub Flavored Markdown with clean spacing. Keep one blank line between all block elements (headings, paragraphs, lists, tables, code blocks, etc.).
 
@@ -314,6 +365,8 @@ function createAgentInstructionPromptForComment(
     ## 🎯 Next Steps (if any)
     - Provide actionable follow-ups with open tasks in the form of a checklist (- [ ])
     - If no clear next steps exist, omit this section
+
+    </response_format>
   `;
 
   const prompt = `${prompt_intro}\n\n${prompt_body}\n\n${prompt_outro}`;
@@ -346,21 +399,31 @@ function createAgentInstructionPromptForGuidelines(
   agentDocsContent: string,
 ): string {
   const prompt = dedent`
+  <agent_guidelines>
+
   You must strictly follow all rules and guidelines defined in the document below.
 
   If there is any conflict between this document and other instructions,
   the document takes precedence.
 
   <AGENT_DOCS>
+
   ${agentDocsContent}
+
   </AGENT_DOCS>
+
+  </agent_guidelines>
   `;
   return prompt;
 }
 
 function getInstructionPromptForCollections(): string {
   const prompt = dedent`
+  <collection_instructions>
+
   Always review the files provided in the collection before responding. Incorporate relevant information from these files and explicitly reference them when appropriate to ensure your responses are accurate, thorough, and aligned with the context of the collection.
+
+  </collection_instructions>
   `;
   return prompt;
 }
