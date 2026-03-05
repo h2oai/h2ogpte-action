@@ -138,6 +138,22 @@ check_git_repo() {
     print_success "Git repository detected"
 }
 
+# Function to prompt user to install GitHub App
+install_github_app() {
+    echo
+    printf "==================== 📦 Install GitHub App ====================\n\n"
+    echo "  Install the h2oGPTe GitHub App on your repository:"
+    echo
+    echo "  https://github.com/apps/h2ogpte-agent/installations/new"
+    echo
+    printf "Press Enter once you've installed the GitHub App... "
+    read -r
+    print_success "GitHub App installation confirmed"
+    echo
+}
+
+
+
 # Function to detect repository name and handle user confirmation
 detect_repo_name() {
     if command -v git >/dev/null 2>&1; then
@@ -439,6 +455,9 @@ main() {
 
     echo
     printf "======================= 🔧 Setup GitHub ========================\n\n"
+    # Step 0: Install GitHub App
+    install_github_app
+
     # Step 1: Check if we're in a git repository
     check_git_repo
 
