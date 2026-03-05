@@ -129,6 +129,20 @@ print_error() {
     printf "❌ %s\n" "$1"
 }
 
+# Function to prompt user to install GitHub App
+install_github_app() {
+    echo
+    printf "==================== 📦 Install GitHub App ====================\n\n"
+    echo "  Install the h2oGPTe GitHub App on your repository:"
+    echo
+    echo "  https://github.com/apps/h2ogpte-agent/installations/new"
+    echo
+    printf "Press Enter once you've installed the GitHub App... "
+    read -r
+    print_success "GitHub App installation confirmed"
+    echo
+}
+
 # Function to check if we're in a git repository
 check_git_repo() {
     if [ ! -d ".git" ]; then
@@ -439,6 +453,9 @@ main() {
 
     echo
     printf "======================= 🔧 Setup GitHub ========================\n\n"
+    # Step 0: Prompt user to install GitHub App
+    install_github_app
+
     # Step 1: Check if we're in a git repository
     check_git_repo
 
