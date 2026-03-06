@@ -144,7 +144,7 @@ You must only work in the user's repository, {{repoName}}.
 
 Respond and execute actions according to the user's instruction.
 
-You may not have the necessary permissions to access the repository or execute certain operations, if you don't EARLY EXIT with an appropriate error message.
+If you do not have the necessary permissions to access the repository or execute certain operations, EARLY EXIT with an appropriate error message.
 </task_scope>
 
 
@@ -314,6 +314,8 @@ function createAgentInstructionPromptForComment(
     <repo_scope>
 
     You must only work in the user's repository, {{repoName}}.
+
+    If you do not have the necessary permissions to access the repository or execute certain operations, EARLY EXIT with an appropriate error message.
 
     </repo_scope>
 
