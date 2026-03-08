@@ -131,17 +131,51 @@ print_error() {
 
 # Function to prompt user to install GitHub App
 install_github_app() {
+    local install_url="https://github.com/apps/h2ogpte-agent/installations/new"
     echo
     printf "==================== 📦 Install GitHub App ====================\n\n"
-    echo "  Install the h2oGPTe GitHub App on your repository:"
+    echo "  The h2oGPTe Action uses the h2ogpte-agent GitHub App to"
+    echo "  authenticate and interact with your repository. Installing"
+    echo "  the app grants it the permissions the action needs to read"
+    echo "  pull requests, post comments, and access repository content."
     echo
-    echo "  https://github.com/apps/h2ogpte-agent/installations/new"
+    echo "  Note: If you plan to use a custom GitHub App, personal access"
+    echo "  token, or your own authentication method, you can skip this"
+    echo "  step — but you will need to manually adjust the generated"
+    echo "  workflow file at .github/workflows/h2ogpte.yaml, as it"
+    echo "  assumes the h2ogpte-agent app is installed."
     echo
-    printf "Press Enter once you've installed the GitHub App... "
-    read -r
-    print_success "GitHub App installation confirmed"
+    printf "Do you want to install the h2ogpte-agent GitHub App now? (y/N): "
+    read -r install_choice
+
+    case "$install_choice" in
+        y|Y|yes|YES)
+            echo
+            echo "  Opening: $install_url"
+            if command -v open >/dev/null 2>&1; then
+                open "$install_url"
+            elif command -v xdg-open >/dev/null 2>&1; then
+                xdg-open "$install_url"
+            elif command -v start >/dev/null 2>&1; then
+                start "" "$install_url"
+            else
+                printf "${MARIGOLD_YELLOW}Could not open browser automatically.${NC}\n"
+                echo "  Please visit the URL above manually."
+            fi
+            echo
+            printf "Press Enter once you've completed the GitHub App installation... "
+            read -r
+            print_success "GitHub App installation confirmed"
+            ;;
+        *)
+            echo
+            print_warning "Skipping GitHub App installation."
+            print_warning "You will need to update .github/workflows/h2ogpte.yaml to use your own authentication method before the action will work."
+            ;;
+    esac
     echo
 }
+
 
 # Function to check if we're in a git repository
 check_git_repo() {
