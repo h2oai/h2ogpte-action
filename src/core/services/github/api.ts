@@ -1,7 +1,7 @@
 import { Octokit } from "@octokit/rest";
-import type { ParsedGitHubContext } from "./types";
 import type { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
 import { isPullRequestReviewCommentEvent } from "../../data/context";
+import type { ParsedGitHubContext } from "./types";
 
 export async function createReply(
   octokit: Octokit,

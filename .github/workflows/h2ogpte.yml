@@ -13,9 +13,7 @@ on:
     types: [created, edited]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  id-token: write
 
 jobs:
   test-action:
@@ -37,7 +35,6 @@ jobs:
         id: test-action
         uses: ./
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
           h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
           slash_commands: |

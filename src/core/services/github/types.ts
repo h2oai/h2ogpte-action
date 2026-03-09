@@ -25,3 +25,11 @@ export type ParsedGitHubContext = {
   entityNumber?: number;
   isPR: boolean;
 };
+
+export type TokenResponse = {
+  token: string;
+  expires_at: string;
+  permissions: string;
+  repository_selection: string;
+  authenticated_as: string;
+};

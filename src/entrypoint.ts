@@ -49,10 +49,9 @@ export async function run(): Promise<void> {
     process.env.COLLECTION_ID || null;
 
   try {
-    // Fetch context
-    const octokits = createOctokits();
+    const githubToken = await getGithubToken();
+    const octokits = createOctokits(githubToken);
     const context = parseGitHubContext();
-    const githubToken = getGithubToken();
 
     // Check if actor has correct permissions, otherwise exit immeditely
     const hasWritePermissions = await checkWritePermissions(
