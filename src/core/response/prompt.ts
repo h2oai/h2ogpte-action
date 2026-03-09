@@ -144,6 +144,8 @@ You must only work in the user's repository, {{repoName}}.
 
 Respond and execute actions according to the user's instruction.
 
+${getOutOfScopePrompt()}
+
 </task_scope>
 
 
@@ -314,6 +316,8 @@ function createAgentInstructionPromptForComment(
 
     You must only work in the user's repository, {{repoName}}.
 
+    ${getOutOfScopePrompt()}
+
     </repo_scope>
 
     ${context.isPR ? prompt_pr : prompt_issue}
@@ -449,6 +453,8 @@ Forbidden output types:
 
 Never generate visual content even if it would improve the answer.
 
+Never attach generated files, even if the user requests it or if it would improve the answer.
+
 If a user asks for an image, diagram, or file, respond exactly with:
 "I cannot provide that format."
 
@@ -458,5 +464,19 @@ Citations must be plain text URLs only.
 
 `;
 
+  return prompt;
+}
+
+function getOutOfScopePrompt(): string {
+  const prompt = dedent`
+    If you do not have the necessary permissions to access the repository or execute certain operations, EARLY EXIT with an appropriate error message.
+    Examples of restrictive permission or operations include but are not limited to:
+      - The provided github tooset/tool does not have the necessary permissions to perform the requested action
+      - The user instructs you to access a repository that you do not have access to
+      - The user instructs you to perform an action that is outside of your permissions (e.g. merging a PR, approving a PR, accessing organization-level settings, etc.)
+
+    Do not attempt to access or interact with any repositories, issues, pull requests, or other GitHub resources that are outside the scope of the user's instruction.
+
+  `;
   return prompt;
 }
