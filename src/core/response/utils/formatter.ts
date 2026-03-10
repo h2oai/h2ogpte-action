@@ -110,7 +110,18 @@ export function buildEventsText(
     return `There are no previous events on this ${entityType}.`;
   }
 
-  return events
-    .map((event) => `- ${event.type}: ${event.body} (${event.createdAt})`)
+  const eventLines = events
+    .map((event) => {
+      const sanitizedTimestamp = event.createdAt
+        ? event.createdAt.replace(/:/g, "-")
+        : "unknown";
+      const eventType = event.type;
+      const eventId = event.id ? `_${event.id}` : "";
+      const tagName = `${sanitizedTimestamp}_${eventType}${eventId}`;
+      const content = `${event.body}`;
+      return `  <${tagName}>\n\n  ${content}\n\n  </${tagName}>`;
+    })
     .join("\n");
+
+  return `<events>\n\n${eventLines}\n\n</events>`;
 }
