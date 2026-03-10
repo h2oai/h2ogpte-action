@@ -107,6 +107,10 @@ This option is intended for advanced users who need fine-grained control over:
         Code Interpreter Abuse: "Attempts to exploit or abuse execution environments"
 ```
 
+## Authentication
+
+If you plan to use a custom GitHub App, personal access token, or your own authentication method, you can skip installing the h2ogpte-agent GitHub App — but you will need to manually adjust the generated workflow file at .github/workflows/h2ogpte.yaml, as it assumes the h2ogpte-agent app is installed. Specifically, one needs to change the value passed into the `github_token` parameter in .github/workflows/h2ogpte.yaml to your own personal authentication method (PAT, github token).
+
 ## Compatibility
 
 Currently, only **h2ogpte version >= 1.6.31, <= 1.6.47** is supported. By default, the action uses

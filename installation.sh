@@ -134,16 +134,16 @@ install_github_app() {
     local install_url="https://github.com/apps/h2ogpte-agent/installations/new"
     echo
     printf "==================== 📦 Install GitHub App ====================\n\n"
+    echo "  ⚡ TL;DR"
     echo "  The h2oGPTe Action uses the h2ogpte-agent GitHub App to"
     echo "  authenticate and interact with your repository. Installing"
     echo "  the app grants it the permissions the action needs to read"
     echo "  pull requests, post comments, and access repository content."
     echo
-    echo "  Note: If you plan to use a custom GitHub App, personal access"
-    echo "  token, or your own authentication method, you can skip this"
-    echo "  step — but you will need to manually adjust the generated"
-    echo "  workflow file at .github/workflows/h2ogpte.yaml, as it"
-    echo "  assumes the h2ogpte-agent app is installed."
+    echo "  To read more see: https://github.com/Sanktrip/h2ogpte-action/blob/main/docs/CONFIGURATION.md"
+    echo
+    echo "  Choose to install the h2ogpte-agent GitHub App in the"
+    echo "  repository you are in now: $(get_repo_name_display)"
     echo
     printf "Do you want to install the h2ogpte-agent GitHub App now? (y/N): "
     read -r install_choice
@@ -487,42 +487,42 @@ main() {
 
     echo
     printf "======================= 🔧 Setup GitHub ========================\n\n"
-    # Step 0: Prompt user to install GitHub App
-    install_github_app
-
     # Step 1: Check if we're in a git repository
     check_git_repo
 
-    # Step 2: Detect repository name and get all repository info
+    # Step 2: Prompt user to install GitHub App
+    install_github_app
+
+    # Step 3: Detect repository name and get all repository info
     detect_repo_name
 
-    # Step 3: Get installation location
+    # Step 4: Get installation location
     get_installation_location
 
-    # Step 4: Create directory
+    # Step 5: Create directory
     create_directory
 
-    # Step 5: Download example file
+    # Step 6: Download example file
     download_example_file
 
     echo
     printf "======================= 🔧 Setup h2oGPTe =======================\n\n"
-    # Step 6: Ask about h2oGPTe version
+    # Step 7: Ask about h2oGPTe version
     ask_h2ogpte_version
 
-    # Step 7: Customize workflow file
+    # Step 8: Customize workflow file
     customize_workflow_file
 
-    # Step 8: Show confirmation message
+    # Step 9: Show confirmation message
     show_confirmation
 
-    # Step 9: Show API key instructions
+    # Step 10: Show API key instructions
     show_api_key_instructions
 
-    # Step 10: Show API base instructions
+    # Step 11: Show API base instructions
     show_api_base_instructions
 
-    # Step 11: Show commit and push instructions
+    # Step 12: Show commit and push instructions
     show_and_execute_commit_instructions
 
     echo
