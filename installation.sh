@@ -134,7 +134,7 @@ install_github_app() {
     local install_url="https://github.com/apps/h2ogpte-agent/installations/new"
     echo
     printf "==================== 📦 Install GitHub App ====================\n\n"
-    echo "  ⚡ TL;DR"
+    echo "  TL;DR"
     echo "  The h2oGPTe Action uses the h2ogpte-agent GitHub App to"
     echo "  authenticate and interact with your repository. Installing"
     echo "  the app grants it the permissions the action needs to read"
