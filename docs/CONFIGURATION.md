@@ -109,7 +109,7 @@ This option is intended for advanced users who need fine-grained control over:
 
 ## Compatibility
 
-Currently, only **h2ogpte version >= 1.6.31, <= 1.6.47** is supported. By default, the action uses
+Currently, only **h2ogpte version >= 1.6.46, <= 1.6.57** is supported. By default, the action uses
 `https://h2ogpte.genai.h2o.ai` as the API base. If you wish to use a different h2ogpte environment, you need to:
 
 1. Add your h2oGPTe server's base URL as a repository secret named `H2OGPTE_API_BASE`
@@ -117,6 +117,6 @@ Currently, only **h2ogpte version >= 1.6.31, <= 1.6.47** is supported. By defaul
 
 See `action.yml` for additional configuration details.
 
-[v0.2.2-beta](https://github.com/h2oai/h2ogpte-action/tree/v0.2.2-beta) supports **h2ogpte version >= 1.6.31, <= 1.6.47**.
+[v0.3.0-beta](https://github.com/h2oai/h2ogpte-action/tree/v0.3.0-beta) supports **h2ogpte version >= 1.6.46, <= 1.6.57**.
 
 To always use the latest compatible version, use `@latest`. See [FAQ](FAQ.md#-how-do-i-choose-which-version-of-the-action-to-use) for details.
