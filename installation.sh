@@ -140,7 +140,7 @@ install_github_app() {
     echo "  the app grants it the permissions the action needs to read"
     echo "  pull requests, post comments, and access repository content."
     echo
-    echo "  To read more see: https://github.com/Sanktrip/h2ogpte-action/blob/main/docs/CONFIGURATION.md"
+    echo "  To read more see: https://github.com/h2oai/h2ogpte-action/blob/main/docs/CONFIGURATION.md"
     echo
     echo "  Choose to install the h2ogpte-agent GitHub App in the"
     echo "  repository you are in now: $(get_repo_name_display)"
