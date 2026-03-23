@@ -62,6 +62,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
         ),
       };
     }
+    case "pull_request_target":
     case "pull_request": {
       return {
         ...commonPRIssueFields,
@@ -114,6 +115,12 @@ export function isPullRequestEvent(
   return context.eventName === "pull_request";
 }
 
+export function isPullRequestTargetEvent(
+  context: ParsedGitHubContext,
+): context is ParsedGitHubContext & { payload: PullRequestEvent } {
+  return context.eventName === "pull_request_target";
+}
+
 export function isPullRequestReviewEvent(
   context: ParsedGitHubContext,
 ): context is ParsedGitHubContext & { payload: PullRequestReviewEvent } {
@@ -131,6 +138,7 @@ export function isPRIssueEvent(context: ParsedGitHubContext): boolean {
     isIssuesEvent(context) ||
     isIssueCommentEvent(context) ||
     isPullRequestEvent(context) ||
+    isPullRequestTargetEvent(context) ||
     isPullRequestReviewEvent(context) ||
     isPullRequestReviewCommentEvent(context)
   );

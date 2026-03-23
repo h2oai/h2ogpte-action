@@ -10,6 +10,7 @@ import {
   isIssueCommentEvent,
   isIssuesEvent,
   isPullRequestEvent,
+  isPullRequestTargetEvent,
   isPullRequestReviewCommentEvent,
   isPullRequestReviewEvent,
 } from "../../data/context";
@@ -24,7 +25,7 @@ export function extractInstruction(context: ParsedGitHubContext): string {
     return (context.payload as IssuesEvent).issue.body || "";
   } else if (isIssueCommentEvent(context)) {
     return (context.payload as IssueCommentEvent).comment.body || "";
-  } else if (isPullRequestEvent(context)) {
+  } else if (isPullRequestEvent(context) || isPullRequestTargetEvent(context)) {
     return (context.payload as PullRequestEvent).pull_request.body || "";
   } else if (isPullRequestReviewEvent(context)) {
     return (context.payload as PullRequestReviewEvent).review.body || "";
@@ -50,6 +51,7 @@ export function extractIdNumber(
   const isPRReviewComment = isPullRequestReviewCommentEvent(context);
   const isPREvent =
     isPullRequestEvent(context) ||
+    isPullRequestTargetEvent(context) ||
     isPullRequestReviewEvent(context) ||
     isPRReviewComment;
 
@@ -101,7 +103,7 @@ export function extractHeadBranch(
   context: ParsedGitHubContext,
   githubData?: { branchInfo?: { headBranch: string; baseBranch: string } },
 ): string | undefined {
-  if (isPullRequestEvent(context)) {
+  if (isPullRequestEvent(context) || isPullRequestTargetEvent(context)) {
     return (context.payload as PullRequestEvent).pull_request.head.ref;
   } else if (isPullRequestReviewEvent(context)) {
     return (context.payload as PullRequestReviewEvent).pull_request.head.ref;
@@ -128,7 +130,7 @@ export function extractBaseBranch(
   context: ParsedGitHubContext,
   githubData?: { branchInfo?: { headBranch: string; baseBranch: string } },
 ): string | undefined {
-  if (isPullRequestEvent(context)) {
+  if (isPullRequestEvent(context) || isPullRequestTargetEvent(context)) {
     return (context.payload as PullRequestEvent).pull_request.base.ref;
   } else if (isPullRequestReviewEvent(context)) {
     return (context.payload as PullRequestReviewEvent).pull_request.base.ref;
