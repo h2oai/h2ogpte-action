@@ -129,6 +129,54 @@ print_error() {
     printf "❌ %s\n" "$1"
 }
 
+# Function to prompt user to install GitHub App
+install_github_app() {
+    local install_url="https://github.com/apps/h2ogpte-agent/installations/new"
+    echo
+    printf "==================== 📦 Install GitHub App ====================\n\n"
+    echo "  TL;DR"
+    echo "  The h2oGPTe Action uses the h2ogpte-agent GitHub App to"
+    echo "  authenticate and interact with your repository. Installing"
+    echo "  the app grants it the permissions the action needs to read"
+    echo "  pull requests, post comments, and access repository content."
+    echo
+    echo "  To read more see: https://github.com/h2oai/h2ogpte-action/blob/main/docs/CONFIGURATION.md"
+    echo
+    echo "  Choose to install the h2ogpte-agent GitHub App in the"
+    echo "  repository you are in now: $(get_repo_name_display)"
+    echo
+    printf "Do you want to install the h2ogpte-agent GitHub App now? (y/N): "
+    read -r install_choice
+
+    case "$install_choice" in
+        y|Y|yes|YES)
+            echo
+            echo "  Opening: $install_url"
+            if command -v open >/dev/null 2>&1; then
+                open "$install_url"
+            elif command -v xdg-open >/dev/null 2>&1; then
+                xdg-open "$install_url"
+            elif command -v start >/dev/null 2>&1; then
+                start "" "$install_url"
+            else
+                printf "${MARIGOLD_YELLOW}Could not open browser automatically.${NC}\n"
+                echo "  Please visit the URL above manually."
+            fi
+            echo
+            printf "Press Enter once you've completed the GitHub App installation... "
+            read -r
+            print_success "GitHub App installation confirmed"
+            ;;
+        *)
+            echo
+            print_warning "Skipping GitHub App installation."
+            print_warning "You will need to update .github/workflows/h2ogpte.yaml to use your own authentication method before the action will work."
+            ;;
+    esac
+    echo
+}
+
+
 # Function to check if we're in a git repository
 check_git_repo() {
     if [ ! -d ".git" ]; then
@@ -442,36 +490,39 @@ main() {
     # Step 1: Check if we're in a git repository
     check_git_repo
 
-    # Step 2: Detect repository name and get all repository info
+    # Step 2: Prompt user to install GitHub App
+    install_github_app
+
+    # Step 3: Detect repository name and get all repository info
     detect_repo_name
 
-    # Step 3: Get installation location
+    # Step 4: Get installation location
     get_installation_location
 
-    # Step 4: Create directory
+    # Step 5: Create directory
     create_directory
 
-    # Step 5: Download example file
+    # Step 6: Download example file
     download_example_file
 
     echo
     printf "======================= 🔧 Setup h2oGPTe =======================\n\n"
-    # Step 6: Ask about h2oGPTe version
+    # Step 7: Ask about h2oGPTe version
     ask_h2ogpte_version
 
-    # Step 7: Customize workflow file
+    # Step 8: Customize workflow file
     customize_workflow_file
 
-    # Step 8: Show confirmation message
+    # Step 9: Show confirmation message
     show_confirmation
 
-    # Step 9: Show API key instructions
+    # Step 10: Show API key instructions
     show_api_key_instructions
 
-    # Step 10: Show API base instructions
+    # Step 11: Show API base instructions
     show_api_base_instructions
 
-    # Step 11: Show commit and push instructions
+    # Step 12: Show commit and push instructions
     show_and_execute_commit_instructions
 
     echo
