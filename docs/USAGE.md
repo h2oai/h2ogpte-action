@@ -67,7 +67,7 @@ Maintains comprehensive documentation standards across your repository. This wor
 
 Ensures your code changes never ship without proper test coverage. The agent reviews each pull request, identifies untested code paths, and automatically creates comprehensive test files that cover edge cases and follow your project's testing conventions. It only adds tests - never modifies existing code.
 
-### 🦺 Automatic Guardrails & PII Protection ([h2ogpte_guardrails.yaml](../examples/custom_workflows/h2ogpte_guardrails.yaml))
+### 🦺 Automatic Guardrails & PII Protection ([Configuration Docs](CONFIGURATION.md#guardrails-configuration-advanced))
 
 Redacts configured personally identifiable information (PII) during the document ingestion, input and output from the user prompt (issues, pull requests, comments, reviews). Further, given a list of safe and unsafe labels, the agent will flag safety violations in the user prompt and respond with the configured exception message.
 
@@ -160,7 +160,7 @@ These variables are automatically populated by the action and help provide conte
 
 You can provide custom guidelines and best practices for the h2oGPTe agent to enforce and abide by using an `agents.md` file and specifying the file path relative to the root of your repository via the `agent_docs` parameter.
 
-An [`agents.md`](https://agents.md/) file provides high-level guidance that shapes how an agent behaves when responding to requests. It is intended to capture general rules, preferences, and constraints that should apply consistently across interactions, helping ensure the agent’s outputs align with the goals, conventions, and expectations of the repository or project.
+An [`agents.md`](https://agents.md/) file provides high-level guidance that shapes how an agent behaves when responding to requests. It is intended to capture general rules, preferences, and constraints that should apply consistently across interactions, helping ensure the agent's outputs align with the goals, conventions, and expectations of the repository or project.
 
 Note that `agents.md` is the recommended format but the agent can be configured using any other markdown framework (`claude.md`, `cursor.md`, etc).
 
