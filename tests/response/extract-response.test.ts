@@ -2,6 +2,31 @@ import { describe, expect, test } from "bun:test";
 import { extractFinalAgentResponse } from "../../src/core/response/utils/extract-response";
 
 describe("extractFinalAgentResponse", () => {
+  test("should extract TL;DR section and remove turn_title", () => {
+    const input = `Some code output
+ENDOFTURN
+
+## ⚡️ TL;DR
+The repository lacks test coverage for critical components.
+
+## 🧪 Analysis
+Detailed analysis here...
+
+## 🎯 Next Steps
+- Add tests
+- Improve coverage
+
+<turn_title>Test Coverage Analysis</turn_title>
+
+**LLM Call Info:**
+Turn Time: 19.40s
+ENDOFTURN`;
+    const result = extractFinalAgentResponse(input);
+    expect(result).toBe(
+      "## ⚡️ TL;DR\nThe repository lacks test coverage for critical components.\n\n## 🧪 Analysis\nDetailed analysis here...\n\n## 🎯 Next Steps\n- Add tests\n- Improve coverage",
+    );
+  });
+
   test("should extract TL;DR section and remove stream_turn_title", () => {
     const input = `Some code output
 ENDOFTURN
