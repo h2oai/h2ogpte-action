@@ -5,7 +5,7 @@ on:
     types: [opened, edited]
   issue_comment:
     types: [created, edited]
-  pull_request:
+  pull_request_target:
     types: [opened, edited]
   pull_request_review:
     types: [submitted]
@@ -22,7 +22,7 @@ jobs:
     if: |
       (github.event_name == 'issues' && contains(github.event.issue.body, '@h2ogpte')) ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@h2ogpte')) ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.body, '@h2ogpte')) ||
+      (github.event_name == 'pull_request_target' && contains(github.event.pull_request.body, '@h2ogpte')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@h2ogpte')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@h2ogpte'))
 
