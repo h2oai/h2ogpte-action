@@ -44,9 +44,16 @@ export function extractFinalAgentResponse(input: string): string {
     return input;
   }
 
-  // Remove everything from <stream_turn_title> onwards (or trailing ENDOFTURN)
+  // Remove everything from <stream_turn_title> or <turn_title> onwards (or trailing ENDOFTURN)
   let textBeforeTitle = finalSection;
-  const titleIndex = finalSection.indexOf("<stream_turn_title>");
+  const streamTitleIndex = finalSection.indexOf("<stream_turn_title>");
+  const turnTitleIndex = finalSection.indexOf("<turn_title>");
+  const titleIndex =
+    streamTitleIndex === -1
+      ? turnTitleIndex
+      : turnTitleIndex === -1
+        ? streamTitleIndex
+        : Math.min(streamTitleIndex, turnTitleIndex);
   if (titleIndex !== -1) {
     textBeforeTitle = finalSection.substring(0, titleIndex);
   }
