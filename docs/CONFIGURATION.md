@@ -121,6 +121,6 @@ Currently, only **h2ogpte version >= 1.6.46, <= 1.6.57** is supported. By defaul
 
 See `action.yml` for additional configuration details.
 
-[v0.3.0-beta](https://github.com/h2oai/h2ogpte-action/tree/v0.3.0-beta) supports **h2ogpte version >= 1.6.46, <= 1.6.57**.
+[v0.3.1-beta](https://github.com/h2oai/h2ogpte-action/tree/v0.3.1-beta) supports **h2ogpte version >= 1.6.46, <= 1.6.57**.
 
 To always use the latest compatible version, use `@latest`. See [FAQ](FAQ.md#-how-do-i-choose-which-version-of-the-action-to-use) for details.
