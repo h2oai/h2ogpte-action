@@ -71,6 +71,10 @@ Ensures your code changes never ship without proper test coverage. The agent rev
 
 Redacts configured personally identifiable information (PII) during the document ingestion, input and output from the user prompt (issues, pull requests, comments, reviews). Further, given a list of safe and unsafe labels, the agent will flag safety violations in the user prompt and respond with the configured exception message.
 
+### 🛠️💧 Automatic PII Detection ([h2ogpte_auto_pii.yaml](../examples/custom_workflows/h2ogpte_auto_pii.yaml))
+
+Flags any PII leakage from incoming PR changes. The agent reviews the flow of personal information from the source to any potential ouputs (e.g. API Responses, Logs, Error messages). If a leakage is detected, the agent will state which file and line the leakage occurs, outline the potential risks and suggest a fix.
+
 ## 🔧 Slash Commands
 
 Slash commands allow you to predefine specific behaviors for the agent. When a user includes a slash command in their instruction, the agent will use the corresponding prompt to guide its response.
