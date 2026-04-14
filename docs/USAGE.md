@@ -67,13 +67,13 @@ Maintains comprehensive documentation standards across your repository. This wor
 
 Ensures your code changes never ship without proper test coverage. The agent reviews each pull request, identifies untested code paths, and automatically creates comprehensive test files that cover edge cases and follow your project's testing conventions. It only adds tests - never modifies existing code.
 
+### 🔐 Automatic PII Detection ([h2ogpte_auto_pii.yaml](../examples/custom_workflows/h2ogpte_auto_pii.yaml))
+
+Flags any PII leakage from incoming PR changes. The agent reviews the flow of personal information from the source to any potential outputs (e.g. API Responses, Logs, Error messages). If a leakage is detected, the agent will state which file and line the leakage occurs, outline the potential risks and suggest a fix.
+
 ### 🦺 Automatic Guardrails & PII Protection ([Configuration Docs](CONFIGURATION.md#guardrails-configuration-advanced))
 
 Redacts configured personally identifiable information (PII) during the document ingestion, input and output from the user prompt (issues, pull requests, comments, reviews). Further, given a list of safe and unsafe labels, the agent will flag safety violations in the user prompt and respond with the configured exception message.
-
-### 🛠️💧 Automatic PII Detection ([h2ogpte_auto_pii.yaml](../examples/custom_workflows/h2ogpte_auto_pii.yaml))
-
-Flags any PII leakage from incoming PR changes. The agent reviews the flow of personal information from the source to any potential ouputs (e.g. API Responses, Logs, Error messages). If a leakage is detected, the agent will state which file and line the leakage occurs, outline the potential risks and suggest a fix.
 
 ## 🔧 Slash Commands
 

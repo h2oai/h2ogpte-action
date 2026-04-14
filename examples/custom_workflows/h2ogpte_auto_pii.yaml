@@ -3,7 +3,7 @@ name: h2oGPTe Agent Auto PII Detection
 on:
   pull_request_target:
     branches: [main]
-    types: [opened]
+    types: [opened, synchronize]
 
 permissions:
   id-token: write
