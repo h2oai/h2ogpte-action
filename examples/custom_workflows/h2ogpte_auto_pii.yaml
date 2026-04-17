@@ -1,0 +1,97 @@
+name: h2oGPTe Agent Auto PII Detection
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  id-token: write
+
+jobs:
+  h2ogpte-agent-assistant:
+    name: h2oGPTe Auto PII Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: h2oGPTe Auto PII Detection
+        id: h2ogpte-agent-assistant
+        uses: h2oai/h2ogpte-action@latest
+        with:
+          h2ogpte_api_key: ${{ secrets.H2OGPTE_API_KEY }}
+          h2ogpte_api_base: ${{ secrets.H2OGPTE_API_BASE }}
+          github_api_url: https://api.github.com
+          github_server_url: https://github.com
+          # h2oGPTe Configuration (optional)
+          llm: "auto" # choose from: https://docs.h2o.ai/enterprise-h2ogpte/guide/models-section
+          agent_max_turns: "auto" # agent_max_turns must be one of: {"auto", 5, 10, 15, 20}
+          agent_accuracy: "standard" # agent_accuracy must be one of: {"quick", "basic", "standard", "maximum"}
+          agent_total_timeout: 3600 # agent_total_timeout must be a positive integer in seconds (max 60 minutes)
+          prompt: |
+            You must only perform a PII exposure review for the repository {{repoName}} on pull request {{idNumber}}.
+
+            Your goal is to detect whether any personally identifiable information (PII) may be exposed to outputs as a result of the code changes.
+
+            ---
+
+            Context:
+            First, read the previous events to understand the pull request context:
+            {{eventsText}}
+
+            Then analyze the code changes.
+
+            ---
+
+            Definitions:
+
+            PII includes (but is not limited to):
+            - Names, emails, phone numbers
+            - Physical addresses
+            - Government identifiers (e.g. SSN)
+            - Financial information (e.g. credit card numbers)
+            - Authentication data (tokens, passwords, API keys)
+            - Any user-specific sensitive attributes
+
+            Outputs / exposure points include:
+            - Logs (e.g. logger, print statements)
+            - API responses (JSON, REST, GraphQL)
+            - UI rendering (frontend display)
+            - Error messages
+            - Analytics, telemetry, or monitoring systems
+            - External integrations
+
+            ---
+
+            Your task:
+
+            1. Identify any flow of PII from a source (e.g. user data, database fields, request payloads) to an output.
+
+            2. Flag cases where:
+              - PII is directly output
+              - PII is insufficiently masked or anonymized
+              - Sensitive fields are included in logs or responses
+
+            3. Do NOT flag:
+              - Clearly anonymized or masked data (e.g. ****1234)
+              - Synthetic/test data (unless realistic and risky)
+              - Irreversible hashes (unless reversible or misused)
+
+            ---
+
+            Output Instructions:
+
+            If NO issues are found:
+            - Respond with: "No PII exposure risks detected."
+
+            If issues ARE found:
+            - Provide a SINGLE review comment that includes:
+              - A brief summary of the issue
+              - Why it is a risk
+              - Exact file + line references
+              - Suggested fix (e.g. masking, removal, redaction)
+
+            Keep the response concise and actionable.
+
+            Do NOT:
+            - Suggest code rewrites beyond PII handling
+            - Modify code
+            - Add unrelated feedback
