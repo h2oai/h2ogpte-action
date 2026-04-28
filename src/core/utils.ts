@@ -247,6 +247,7 @@ export async function applyChatSettingsWithUserConfigAndTools(
     llm_args: {
       ...chatSettings.llm_args,
       use_agent: true,
+      final_answer_guidelines_mode: "detailed_no_links",
       agent_tools: agentTools,
       agent_max_turns: h2ogpteConfig.agent_max_turns,
       agent_accuracy: h2ogpteConfig.agent_accuracy,
